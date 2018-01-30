@@ -1,0 +1,9 @@
+name: chessaidev
+dependencies:
+    - python=2.7.12
+    - nose
+    - multipledispatch
+    - cython
+    - pip:
+        - toolz==0.8.2
+        - frozendict
