@@ -1,3 +1,6 @@
+#ifndef BITBOARDLIB_H
+#define BITBOARDLIB_H
+
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -203,11 +206,8 @@ inline void unset_blacks_turn(boardstate *bs){
 	set_whites_turn(bs);
 };
 
-inline void bitboard_to_arr(bitboard bb, char* arr){
-	
-};
+void bitboard_to_arr(boardstate *bb, char* arr);
 
 
 
-
-
+#endif

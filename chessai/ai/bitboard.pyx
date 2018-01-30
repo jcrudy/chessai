@@ -1,5 +1,6 @@
 from libc.stdint cimport uint64_t, uint8_t
 from cpython cimport bool
+from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 
 cdef extern from "bitboardlib.h":
     ctypedef uint64_t bitboard
@@ -44,6 +45,7 @@ cdef extern from "bitboardlib.h":
     cdef void set_fullmove_counter(boardstate *bs, unsigned int n)
     cdef uint8_t get_enpassant(boardstate *bs)
     cdef void set_enpassant(boardstate *bs, uint8_t pos)
+    cdef void bitboard_to_arr(boardstate *bb, char* arr)
 
 cdef class BitBoardState:
     cdef boardstate *bs
@@ -56,6 +58,14 @@ cdef class BitBoardState:
         result.bs = bs
         return result
     
+    cpdef str to_str(BitBoardState self):
+        cdef char *arr = <char *>PyMem_Malloc(64 * sizeof(char))
+        bitboard_to_arr(self.bs, arr)
+        result = str(arr)
+        PyMem_Free(arr)
+        return result
+        
+        
 #     def to_lol(BitBoardState self):
 #         result = [list() for _ in range(8)]
 #         cdef bitboard white_kings = (self.bs.k & self.bs.w)
