@@ -72,6 +72,24 @@ const bitboard places[64] = {p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p
 						  p33, p34, p35, p36, p37, p38, p39, p40, p41, p42, p43, p44, p45, p46, p47, p48, 
 						  p49, p50, p51, p52, p53, p54, p55, p56, p57, p58, p59, p60, p61, p62, p63};
 
+const bitboard file_a = 0x0101010101010101ULL;
+const bitboard file_b = 0x0202020202020202ULL;
+const bitboard file_c = 0x0404040404040404ULL;
+const bitboard file_d = 0x0808080808080808ULL;
+const bitboard file_e = 0x1010101010101010ULL;
+const bitboard file_f = 0x2020202020202020ULL;
+const bitboard file_g = 0x4040404040404040ULL;
+const bitboard file_h = 0x8080808080808080ULL;
+
+const bitboard row_1 = 0x00000000000000FFULL;
+const bitboard row_2 = 0x000000000000FF00ULL;
+const bitboard row_3 = 0x0000000000FF0000ULL;
+const bitboard row_4 = 0x00000000FF000000ULL;
+const bitboard row_5 = 0x000000FF00000000ULL;
+const bitboard row_6 = 0x0000FF0000000000ULL;
+const bitboard row_7 = 0x00FF000000000000ULL;
+const bitboard row_8 = 0xFF00000000000000ULL;
+
 
 const stateflags empty_flags = 0b00000000;
 const stateflags white_castle_king_mask = 0b00000001;

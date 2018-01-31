@@ -75,6 +75,24 @@ extern const bitboard p62;
 extern const bitboard p63;
 extern const bitboard places[64];
 
+extern const bitboard file_a;
+extern const bitboard file_b;
+extern const bitboard file_c;
+extern const bitboard file_d;
+extern const bitboard file_e;
+extern const bitboard file_f;
+extern const bitboard file_g;
+extern const bitboard file_h;
+
+extern const bitboard row_1;
+extern const bitboard row_2;
+extern const bitboard row_3;
+extern const bitboard row_4;
+extern const bitboard row_5;
+extern const bitboard row_6;
+extern const bitboard row_7;
+extern const bitboard row_8;
+
 extern const stateflags empty_flags;
 extern const stateflags white_castle_king_mask;
 extern const stateflags white_castle_queen_mask;
@@ -85,6 +103,97 @@ extern const stateflags turn_mask;
 inline bitboard place(bitboard b, int p){
 	return (b | places[p]);
 }
+
+inline bitboard unplace(bitboard b, int p){
+	return (b & ~(places[p]));
+}
+
+inline bitboard slide_north(bitboard pieces, bitboard unoccupied){
+	bitboard result = pieces;
+	result |= ((result << 8) & unoccupied);
+	unoccupied &= (unoccupied << 8);
+	result |= ((result << 16) & unoccupied);
+	unoccupied &= (unoccupied << 16);
+	result |= ((result << 32) & unoccupied);
+	return result;
+}
+
+inline bitboard slide_south(bitboard pieces, bitboard unoccupied){
+	bitboard result = pieces;
+	result |= ((result >> 8) & unoccupied);
+	unoccupied &= (unoccupied >> 8);
+	result |= ((result >> 16) & unoccupied);
+	unoccupied &= (unoccupied >> 16);
+	result |= ((result >> 32) & unoccupied);
+	return result;
+}
+
+inline bitboard slide_east(bitboard pieces, bitboard unoccupied){
+	bitboard result = pieces;
+	unoccupied &= (~file_a);
+	result |= ((result << 1) & unoccupied);
+	unoccupied &= (unoccupied << 1);
+	result |= ((result << 2) & unoccupied);
+	unoccupied &= (unoccupied << 2);
+	result |= ((result << 4) & unoccupied);
+	return result;
+}
+
+inline bitboard slide_west(bitboard pieces, bitboard unoccupied){
+	bitboard result = pieces;
+	unoccupied &= (~file_h);
+	result |= ((result >> 1) & unoccupied);
+	unoccupied &= (unoccupied >> 1);
+	result |= ((result >> 2) & unoccupied);
+	unoccupied &= (unoccupied >> 2);
+	result |= ((result >> 4) & unoccupied);
+	return result;
+}
+
+inline bitboard slide_northeast(bitboard pieces, bitboard unoccupied){
+	bitboard result = pieces;
+	unoccupied &= (~file_a);
+	result |= ((result << 9) & unoccupied);
+	unoccupied &= (unoccupied << 9);
+	result |= ((result << 18) & unoccupied);
+	unoccupied &= (unoccupied << 18);
+	result |= ((result << 36) & unoccupied);
+	return result;
+}
+
+inline bitboard slide_northwest(bitboard pieces, bitboard unoccupied){
+	bitboard result = pieces;
+	unoccupied &= (~file_h);
+	result |= ((result << 7) & unoccupied);
+	unoccupied &= (unoccupied << 7);
+	result |= ((result << 14) & unoccupied);
+	unoccupied &= (unoccupied << 14);
+	result |= ((result << 28) & unoccupied);
+	return result;
+}
+
+inline bitboard slide_southeast(bitboard pieces, bitboard unoccupied){
+	bitboard result = pieces;
+	unoccupied &= (~file_a);
+	result |= ((result >> 7) & unoccupied);
+	unoccupied &= (unoccupied >> 7);
+	result |= ((result >> 14) & unoccupied);
+	unoccupied &= (unoccupied >> 14);
+	result |= ((result >> 28) & unoccupied);
+	return result;
+}
+
+inline bitboard slide_southwest(bitboard pieces, bitboard unoccupied){
+	bitboard result = pieces;
+	unoccupied &= (~file_h);
+	result |= ((result >> 9) & unoccupied);
+	unoccupied &= (unoccupied >> 9);
+	result |= ((result >> 18) & unoccupied);
+	unoccupied &= (unoccupied >> 18);
+	result |= ((result >> 36) & unoccupied);
+	return result;
+}
+
 
 typedef struct {
 	bitboard k;

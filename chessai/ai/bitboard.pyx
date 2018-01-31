@@ -1,7 +1,8 @@
 from libc.stdint cimport uint64_t, uint8_t
-
+from cpython.object cimport Py_EQ
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 from toolz import partition
+from operator import methodcaller
 
 cdef extern from "stdbool.h":
     ctypedef char bool
@@ -56,6 +57,14 @@ cdef extern from "bitboardlib.h":
     cdef void bitboard_to_arr(boardstate *bb, char* arr)
     cdef bitboard places[64]
     cdef bitboard empty;
+    cdef bitboard slide_north(bitboard pieces, bitboard unoccupied)
+    cdef bitboard slide_south(bitboard pieces, bitboard unoccupied)
+    cdef bitboard slide_east(bitboard pieces, bitboard unoccupied)
+    cdef bitboard slide_west(bitboard pieces, bitboard unoccupied)
+    cdef bitboard slide_northwest(bitboard pieces, bitboard unoccupied)
+    cdef bitboard slide_northeast(bitboard pieces, bitboard unoccupied)
+    cdef bitboard slide_southeast(bitboard pieces, bitboard unoccupied)
+    cdef bitboard slide_southwest(bitboard pieces, bitboard unoccupied)
     
 cpdef bitboard_to_str(bitboard bb):
     cdef int i
@@ -70,28 +79,78 @@ cpdef bitboard_to_str(bitboard bb):
 cdef class BitBoard:
     cdef bitboard bb
     
+    def __richcmp__(BitBoard self, BitBoard other, int op):
+        if op != Py_EQ:
+            return NotImplemented()
+        if self.bb == other.bb:
+            return True
+        else:
+            return False
+    
     @classmethod
     def from_str(cls, str s):
         cdef bitboard bb = empty
         for i, c in enumerate(reversed(s)):
-            if c == '1':
+            if c != '0':
                 bb = place(bb, i)
-            else:
-                assert c == '0'
         cdef BitBoard result = BitBoard()
         result.bb = bb
         return result
     
-#     @classmethod
-#     def from_k(cls, BitBoardState bs):
-#         cdef bitboard bb = bs.get_k()
-#         cdef BitBoard result = BitBoard()
-#         result.bb = bb
-#         return result
+    @classmethod
+    def from_grid(cls, str g):
+        cdef list lines = list(map(methodcaller('strip'), g.strip().split()))
+        cdef str s = ''.join(reversed(''.join(reversed(lines))))
+                               
+#         cdef str s = ''.join(reversed(g.replace('\n', '').replace('\t', '').replace(' ', '')))
+        return cls.from_str(s)
     
     def to_str(self):
         return bitboard_to_str(self.bb)
-
+    
+    def to_grid(self):
+        return '\n'.join(reversed(map(''.join, partition(8, reversed(self.to_str())))))
+    
+    cpdef BitBoard slide_north(BitBoard self, BitBoard unoccupied):
+        cdef BitBoard result = BitBoard()
+        result.bb = slide_north(self.bb, unoccupied.bb)
+        return result
+    
+    cpdef BitBoard slide_south(BitBoard self, BitBoard unoccupied):
+        cdef BitBoard result = BitBoard()  # @DuplicatedSignature
+        result.bb = slide_south(self.bb, unoccupied.bb)
+        return result
+    
+    cpdef BitBoard slide_east(BitBoard self, BitBoard unoccupied):
+        cdef BitBoard result = BitBoard()  # @DuplicatedSignature
+        result.bb = slide_east(self.bb, unoccupied.bb)
+        return result
+    
+    cpdef BitBoard slide_west(BitBoard self, BitBoard unoccupied):
+        cdef BitBoard result = BitBoard()  # @DuplicatedSignature
+        result.bb = slide_west(self.bb, unoccupied.bb)
+        return result
+    
+    cpdef BitBoard slide_northeast(BitBoard self, BitBoard unoccupied):
+        cdef BitBoard result = BitBoard()  # @DuplicatedSignature
+        result.bb = slide_northeast(self.bb, unoccupied.bb)
+        return result
+    
+    cpdef BitBoard slide_northwest(BitBoard self, BitBoard unoccupied):
+        cdef BitBoard result = BitBoard()  # @DuplicatedSignature
+        result.bb = slide_northwest(self.bb, unoccupied.bb)
+        return result
+    
+    cpdef BitBoard slide_southeast(BitBoard self, BitBoard unoccupied):
+        cdef BitBoard result = BitBoard()  # @DuplicatedSignature
+        result.bb = slide_southeast(self.bb, unoccupied.bb)
+        return result
+    
+    cpdef BitBoard slide_southwest(BitBoard self, BitBoard unoccupied):
+        cdef BitBoard result = BitBoard()  # @DuplicatedSignature
+        result.bb = slide_southwest(self.bb, unoccupied.bb)
+        return result
+    
 def compress_row(row):
     result = ''
     count = 0
@@ -117,19 +176,20 @@ cdef class BitBoardState:
         bs = fen_to_bitboard(fen)
         cdef BitBoardState result = BitBoardState()
         result.bs = bs
-#         cdef BitBoard bb = BitBoard.from_k(result)
-#         print('bs.k =', result.get_k().to_str())
-#         print('bs.q =', result.get_q().to_str())
-#         print('bs.b =', result.get_b().to_str())
-#         print('bs.n =', result.get_n().to_str())
-#         print('bs.r =', result.get_r().to_str())
-#         print('bs.p =', result.get_p().to_str())
         return result
+    
+    cpdef str to_grid(BitBoardState self):
+        # Get raw positions
+        cdef char *arr = <char *>PyMem_Malloc(64 * sizeof(char))
+        bitboard_to_arr(&(self.bs), arr)
+        raw_positions = str(arr)
+        PyMem_Free(arr)
+        return '\n'.join(list(map(''.join, partition(8, raw_positions))))
     
     cpdef str to_fen(BitBoardState self):
         
         # Get raw positions
-        cdef char *arr = <char *>PyMem_Malloc(64 * sizeof(char))
+        cdef char *arr = <char *>PyMem_Malloc(64 * sizeof(char))  # @DuplicatedSignature
         bitboard_to_arr(&(self.bs), arr)
         raw_positions = str(arr)
         PyMem_Free(arr)
@@ -207,34 +267,6 @@ cdef class BitBoardState:
         result.bb =  self.bs.black
         return result
     
-    cpdef int k_to_int(BitBoardState self):
-        return <int> self.bs.k
-    
-    cpdef int q_to_int(BitBoardState self):
-        return <int> self.bs.q
-    
-    cpdef int b_to_int(BitBoardState self):
-        return <int> self.bs.b
-    
-    cpdef int r_to_int(BitBoardState self):
-        return <int> self.bs.r
-    
-    cpdef int n_to_int(BitBoardState self):
-        return <int> self.bs.n
-    
-    cpdef int p_to_int(BitBoardState self):
-        return <int> self.bs.p
-    
-#     def to_lol(BitBoardState self):
-#         result = [list() for _ in range(8)]
-#         cdef bitboard white_kings = (self.bs.k & self.bs.w)
-    
-#     def render_fen(BitBoardState self):
-#         '''
-#         Not fast.
-#         '''
-#         board
-        
 cpdef int algebraic_to_int(str alg):
     return int(alg[1]) + 8 * (ord(alg[0].lower()) - ord('a'))
 
@@ -248,40 +280,27 @@ cdef boardstate fen_to_bitboard(str fen):
     
     cdef int pos = 0
     cdef str ch
-#     print('for ch in pieces:')
     for ch in pieces:
-#         print(ch)
-#         print('pos =', pos)
         if ch == '/':
-#             print('found /')
             continue
         if ch.isdigit():
-#             print('found digit')
             pos += int(ch)
             continue
         if ch.isupper():
-#             print('found white')
             bs.white = place(bs.white, 63 - pos)
         else:
-#             print('found black')
             bs.black = place(bs.black, 63 - pos)
         if ch.lower() == 'k':
-#             print('found king')
             bs.k = place(bs.k, 63 - pos)
         elif ch.lower() == 'q':
-#             print('found queen')
             bs.q = place(bs.q, 63 - pos)
         elif ch.lower() == 'b':
-#             print('found bishop')
             bs.b = place(bs.b, 63 - pos) 
         elif ch.lower() == 'n':
-#             print('found knight')
             bs.n = place(bs.n, 63 - pos) 
         elif ch.lower() == 'r':
-#             print('found rook')
             bs.r = place(bs.r, 63 - pos) 
         elif ch.lower() == 'p':
-#             print('found pawn')
             bs.p = place(bs.p, 63 - pos)
         pos += 1
     

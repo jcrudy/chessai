@@ -26,7 +26,7 @@ def test_to_fen():
         new_fen = bb.to_fen()
         assert_equal(new_fen, fen)
 
-def test_bitboard():
+def test_bitboard_io():
     s = '0000000000000000000000000000000100000011000010000111010000000000'
     bb = BitBoard.from_str(s)
     assert_equal(s, bb.to_str())
@@ -34,7 +34,303 @@ def test_bitboard():
         s = ''.join([random.choice(['0','1']) for _ in range(64)])
         bb = BitBoard.from_str(s)
         assert_equal(s, bb.to_str())
-        
+        assert_equal(bb.to_grid(), BitBoard.from_grid(bb.to_grid()).to_grid())
+    
+    s = '00000000000000000000000000000000000000000000000000000000000000001'
+    
+    g = '''
+             00000000
+             00000000
+             00000000
+             00000000
+             00000000
+             00000000
+             00000000
+             10000000
+         '''
+    
+    assert_equal(BitBoard.from_str(s).to_grid(), BitBoard.from_grid(g).to_grid())
+    
+def test_bitboard_slide_north():
+    pieces = BitBoard.from_grid('''
+             00000000
+             00000000
+             00000000
+             00000000
+             00000000
+             00001000
+             00101000
+             00000000
+             ''')
+    
+    unoccupied = BitBoard.from_grid('''
+                 11111111
+                 11111111
+                 11111101
+                 11011111
+                 11111111
+                 11110111
+                 11010111
+                 11111101
+                 ''')
+    
+    expected = BitBoard.from_grid('''
+                 00001000
+                 00001000
+                 00001000
+                 00001000
+                 00101000
+                 00101000
+                 00101000
+                 00000000
+                 ''')
+    assert_equal(pieces.slide_north(unoccupied), expected)
+    
+def test_bitboard_slide_south():
+    pieces = BitBoard.from_grid('''
+             00000000
+             00001000
+             00100000
+             00000000
+             00000000
+             00000000
+             00100000
+             00000000
+             ''')
+    
+    unoccupied = BitBoard.from_grid('''
+                 11111111
+                 11111111
+                 11111101
+                 11011111
+                 11111111
+                 11110111
+                 11010111
+                 11111101
+                 ''')
+    
+    expected = BitBoard.from_grid('''
+                 00000000
+                 00001000
+                 00101000
+                 00001000
+                 00001000
+                 00000000
+                 00100000
+                 00100000
+                 ''')
+    assert_equal(pieces.slide_south(unoccupied), expected)
+
+def test_bitboard_slide_east():
+    pieces = BitBoard.from_grid('''
+             00000000
+             00001000
+             00100000
+             00000000
+             00000000
+             00000000
+             00100000
+             00000000
+             ''')
+    
+    unoccupied = BitBoard.from_grid('''
+                 11111111
+                 11111111
+                 11111101
+                 11011111
+                 11111111
+                 11110111
+                 11010111
+                 11111101
+                 ''')
+    
+    expected = BitBoard.from_grid('''
+                 00000000
+                 00001111
+                 00111100
+                 00000000
+                 00000000
+                 00000000
+                 00110000
+                 00000000
+                 ''')
+    assert_equal(pieces.slide_east(unoccupied), expected)
+
+def test_bitboard_slide_west():
+    pieces = BitBoard.from_grid('''
+             00000000
+             00001000
+             00100000
+             00000000
+             00000000
+             00000000
+             00100000
+             00000000
+             ''')
+    
+    unoccupied = BitBoard.from_grid('''
+                 11111111
+                 11111111
+                 10111101
+                 11011111
+                 11111111
+                 11110111
+                 11010111
+                 11111101
+                 ''')
+    
+    expected = BitBoard.from_grid('''
+                 00000000
+                 11111000
+                 00100000
+                 00000000
+                 00000000
+                 00000000
+                 11100000
+                 00000000
+                 ''')
+    assert_equal(pieces.slide_west(unoccupied), expected)
+
+def test_bitboard_slide_northeast():
+    pieces = BitBoard.from_grid('''
+             00000000
+             00001000
+             00100000
+             00000000
+             00000000
+             00000000
+             00100000
+             00000000
+             ''')
+    
+    unoccupied = BitBoard.from_grid('''
+                 11111111
+                 11111111
+                 10111101
+                 11011111
+                 11111111
+                 11110111
+                 11010111
+                 11111101
+                 ''')
+    
+    expected = BitBoard.from_grid('''
+                 00001100
+                 00011000
+                 00100000
+                 00000100
+                 00001000
+                 00010000
+                 00100000
+                 00000000
+                 ''')
+    assert_equal(pieces.slide_northeast(unoccupied), expected)
+
+def test_bitboard_slide_northwest():
+    pieces = BitBoard.from_grid('''
+             00000000
+             00001000
+             00100000
+             00000000
+             00000000
+             00000000
+             00100000
+             00000100
+             ''')
+    
+    unoccupied = BitBoard.from_grid('''
+                 11111111
+                 11111111
+                 10111101
+                 11011111
+                 11111111
+                 11100111
+                 11010111
+                 11111101
+                 ''')
+    
+    expected = BitBoard.from_grid('''
+                 10010000
+                 01001000
+                 00100000
+                 00000000
+                 10000000
+                 01000000
+                 00100000
+                 00000100
+                 ''')
+    assert_equal(pieces.slide_northwest(unoccupied), expected)
+
+def test_bitboard_slide_southeast():
+    pieces = BitBoard.from_grid('''
+             00000000
+             00001000
+             00100000
+             00000000
+             00000000
+             00000000
+             00100000
+             00000100
+             ''')
+    
+    unoccupied = BitBoard.from_grid('''
+                 11111111
+                 11111111
+                 10111101
+                 11001111
+                 11111111
+                 11100111
+                 11010111
+                 11111101
+                 ''')
+    
+    expected = BitBoard.from_grid('''
+                 00000000
+                 00001000
+                 00100100
+                 00000010
+                 00000001
+                 00000000
+                 00100000
+                 00010100
+                 ''')
+    assert_equal(pieces.slide_southeast(unoccupied), expected)
+
+def test_bitboard_slide_southwest():
+    pieces = BitBoard.from_grid('''
+             00000000
+             00001000
+             00100000
+             00000000
+             00000000
+             00000000
+             00100000
+             00000100
+             ''')
+    
+    unoccupied = BitBoard.from_grid('''
+                 11111111
+                 11111111
+                 10111101
+                 11001111
+                 11111111
+                 11100111
+                 11010111
+                 11111101
+                 ''')
+    
+    expected = BitBoard.from_grid('''
+                 00000000
+                 00001000
+                 00110000
+                 01000000
+                 10000000
+                 00000000
+                 00100000
+                 01000100
+                 ''')
+    assert_equal(pieces.slide_southwest(unoccupied), expected)
+
 
 if __name__ == '__main__':
     # This code will run the test in this file.'
