@@ -101,6 +101,7 @@ def compress_row(row):
         else:
             if count != 0:
                 result += str(count)
+                count = 0
             result += c
     if count != 0:
         result += str(count)
