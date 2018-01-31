@@ -46,26 +46,127 @@ cdef extern from "bitboardlib.h":
     cdef uint8_t get_enpassant(boardstate *bs)
     cdef void set_enpassant(boardstate *bs, uint8_t pos)
     cdef void bitboard_to_arr(boardstate *bb, char* arr)
+    cdef bitboard places[64]
+    cdef bitboard empty;
+    
+cpdef bitboard_to_str(bitboard bb):
+    cdef int i
+    result = ''
+    for i in range(64):
+        if bb & places[i]:
+            result = '1' + result
+        else:
+            result = '0' + result
+    return result
 
+cdef class BitBoard:
+    cdef bitboard bb
+    
+    @classmethod
+    def from_str(cls, str s):
+        cdef bitboard bb = empty
+        for i, c in enumerate(reversed(s)):
+            if c == '1':
+                bb = place(bb, i)
+            else:
+                assert c == '0'
+        cdef BitBoard result = BitBoard()
+        result.bb = bb
+        return result
+    
+#     @classmethod
+#     def from_k(cls, BitBoardState bs):
+#         cdef bitboard bb = bs.get_k()
+#         cdef BitBoard result = BitBoard()
+#         result.bb = bb
+#         return result
+    
+    def to_str(self):
+        return bitboard_to_str(self.bb)
+                
 cdef class BitBoardState:
-    cdef boardstate *bs
+    cdef boardstate bs
     
     @classmethod
     def from_fen(cls, str fen):
-        cdef boardstate *bs
+        cdef boardstate bs
         bs = fen_to_bitboard(fen)
         cdef BitBoardState result = BitBoardState()
         result.bs = bs
+#         cdef BitBoard bb = BitBoard.from_k(result)
+#         print('bs.k =', result.get_k().to_str())
+#         print('bs.q =', result.get_q().to_str())
+#         print('bs.b =', result.get_b().to_str())
+#         print('bs.n =', result.get_n().to_str())
+#         print('bs.r =', result.get_r().to_str())
+#         print('bs.p =', result.get_p().to_str())
         return result
     
     cpdef str to_str(BitBoardState self):
         cdef char *arr = <char *>PyMem_Malloc(64 * sizeof(char))
-        bitboard_to_arr(self.bs, arr)
+        bitboard_to_arr(&(self.bs), arr)
         result = str(arr)
         PyMem_Free(arr)
         return result
+    
+    cpdef BitBoard get_k(BitBoardState self):
+        result = BitBoard()
+        result.bb =  self.bs.k
+        return result
         
-        
+    cpdef BitBoard get_q(BitBoardState self):
+        result = BitBoard()
+        result.bb =  self.bs.q
+        return result
+    
+    cpdef BitBoard get_b(BitBoardState self):
+        result = BitBoard()
+        result.bb =  self.bs.b
+        return result
+    
+    cpdef BitBoard get_r(BitBoardState self):
+        result = BitBoard()
+        result.bb =  self.bs.r
+        return result
+    
+    cpdef BitBoard get_n(BitBoardState self):
+        result = BitBoard()
+        result.bb =  self.bs.n
+        return result
+    
+    cpdef BitBoard get_p(BitBoardState self):
+        result = BitBoard()
+        result.bb =  self.bs.p
+        return result
+    
+    cpdef BitBoard get_white(BitBoardState self):
+        result = BitBoard()
+        result.bb =  self.bs.white
+        return result
+    
+    cpdef BitBoard get_black(BitBoardState self):
+        result = BitBoard()
+        result.bb =  self.bs.black
+        return result
+    
+    cpdef int k_to_int(BitBoardState self):
+        return <int> self.bs.k
+    
+    cpdef int q_to_int(BitBoardState self):
+        return <int> self.bs.q
+    
+    cpdef int b_to_int(BitBoardState self):
+        return <int> self.bs.b
+    
+    cpdef int r_to_int(BitBoardState self):
+        return <int> self.bs.r
+    
+    cpdef int n_to_int(BitBoardState self):
+        return <int> self.bs.n
+    
+    cpdef int p_to_int(BitBoardState self):
+        return <int> self.bs.p
+    
 #     def to_lol(BitBoardState self):
 #         result = [list() for _ in range(8)]
 #         cdef bitboard white_kings = (self.bs.k & self.bs.w)
@@ -79,35 +180,49 @@ cdef class BitBoardState:
 cpdef int algebraic_to_int(str alg):
     return int(alg[1]) + 8 * (ord(alg[0].lower()) - ord('a'))
     
-cdef boardstate *fen_to_bitboard(str fen):
+cdef boardstate fen_to_bitboard(str fen):
     cdef boardstate bs = emptyboardstate;
     cdef str pieces, turn, castles, en_passant, halfmove_clock, move_number 
     pieces, turn, castles, en_passant, halfmove_clock, move_number = fen.split(' ')
     
     cdef int pos = 0
     cdef str ch
+#     print('for ch in pieces:')
     for ch in pieces:
+#         print(ch)
+#         print('pos =', pos)
         if ch == '/':
+#             print('found /')
             continue
         if ch.isdigit():
+#             print('found digit')
             pos += int(ch)
             continue
         if ch.isupper():
-            bs.white = place(bs.white, pos)
+#             print('found white')
+            bs.white = place(bs.white, 63 - pos)
         else:
-            bs.black = place(bs.black, pos)
+#             print('found black')
+            bs.black = place(bs.black, 63 - pos)
         if ch.lower() == 'k':
-            bs.k = place(bs.k, pos)
+#             print('found king')
+            bs.k = place(bs.k, 63 - pos)
         elif ch.lower() == 'q':
-            bs.q = place(bs.q, pos)
+#             print('found queen')
+            bs.q = place(bs.q, 63 - pos)
         elif ch.lower() == 'b':
-            bs.b = place(bs.b, pos) 
+#             print('found bishop')
+            bs.b = place(bs.b, 63 - pos) 
         elif ch.lower() == 'n':
-            bs.n = place(bs.n, pos) 
+#             print('found knight')
+            bs.n = place(bs.n, 63 - pos) 
         elif ch.lower() == 'r':
-            bs.r = place(bs.r, pos) 
+#             print('found rook')
+            bs.r = place(bs.r, 63 - pos) 
         elif ch.lower() == 'p':
-            bs.p = place(bs.p, pos)
+#             print('found pawn')
+            bs.p = place(bs.p, 63 - pos)
+        pos += 1
     
     if turn.lower() == 'w':
         set_whites_turn(&bs)
@@ -128,5 +243,5 @@ cdef boardstate *fen_to_bitboard(str fen):
     set_halfmove_clock(&bs, int(halfmove_clock))
     set_fullmove_counter(&bs, int(move_number))
     
-    return &bs
+    return bs
             
