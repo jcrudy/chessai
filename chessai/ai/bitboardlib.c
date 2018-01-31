@@ -90,74 +90,58 @@ void bitboard_to_arr(boardstate *bb, char* arr){
 	bitboard mask;
 	for (i=0; i<64; i++){
 		mask = places[i];
-		printf("%s\n", arr);
-		printf("%d\n", i);
 		if (bb->white & mask){
-			printf("white\n");
 			if (bb->k & mask){
-				printf("k\n");
-				arr[i] = 'K';
+				arr[63 - i] = 'K';
 				continue;
 			}
 			if (bb->q & mask){
-				printf("q\n");
-				arr[i] = 'Q';
+				arr[63 - i] = 'Q';
 				continue;
 			}
 			if (bb->b & mask){
-				printf("b\n");
-				arr[i] = 'B';
+				arr[63 - i] = 'B';
 				continue;
 			}
 			if (bb->r & mask){
-				printf("r\n");
-				arr[i] = 'R';
+				arr[63 - i] = 'R';
 				continue;
 			}
 			if (bb->n & mask){
-				printf("n\n");
-				arr[i] = 'N';
+				arr[63 - i] = 'N';
 				continue;
 			}
 			if (bb->p & mask){
-				printf("p\n");
-				arr[i] = 'P';
+				arr[63 - i] = 'P';
 				continue;
 			}
 		}
 		if (bb->black & mask){
-			printf("black\n");
 			if (bb->k & mask){
-				printf("k\n");
-				arr[i] = 'k';
+				arr[63 - i] = 'k';
 				continue;
 			}
 			if (bb->q & mask){
-				printf("q\n");
-				arr[i] = 'q';
+				arr[63 - i] = 'q';
 				continue;
 			}
 			if (bb->b & mask){
-				printf("b\n");
-				arr[i] = 'b';
+				arr[63 - i] = 'b';
 				continue;
 			}
 			if (bb->r & mask){
-				printf("r\n");
-				arr[i] = 'r';
+				arr[63 - i] = 'r';
 				continue;
 			}
 			if (bb->n & mask){
-				printf("n\n");
-				arr[i] = 'n';
+				arr[63 - i] = 'n';
 				continue;
 			}
 			if (bb->p & mask){
-				printf("p\n");
-				arr[i] = 'p';
+				arr[63 - i] = 'p';
 				continue;
 			}
 		}
-		arr[i] = '-';
+		arr[63 - i] = '-';
 	}
 };

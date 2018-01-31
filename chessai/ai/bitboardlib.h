@@ -96,7 +96,11 @@ typedef struct {
 	bitboard white;
 	bitboard black;
 	uint8_t enpassant;
-	stateflags flags;
+	bool whites_turn;
+	bool white_castle_king;
+	bool white_castle_queen;
+	bool black_castle_king;
+	bool black_castle_queen;
 	unsigned int halfmove_clock;
 	unsigned int fullmove_counter;
 } boardstate;
@@ -129,63 +133,66 @@ inline void set_fullmove_counter(boardstate *bs, unsigned int n){
 
 
 inline bool get_white_castle_king(boardstate *bs){
-	return((bs->flags) & white_castle_king_mask);
+	return(bs->white_castle_king);
 };
 
 inline void set_white_castle_king(boardstate *bs){
-	bs->flags = ((bs->flags) | white_castle_king_mask);
+	bs->white_castle_king = true;
 };
 
 inline void unset_white_castle_king(boardstate *bs){
-	bs->flags = ((bs->flags) & (~white_castle_king_mask));
+	bs->white_castle_king = false;
 };
 
 inline bool get_white_castle_queen(boardstate *bs){
-	return((bs->flags) & white_castle_queen_mask);
+	return(bs->white_castle_queen);
 };
 
 inline void set_white_castle_queen(boardstate *bs){
-	bs->flags = ((bs->flags) | white_castle_queen_mask);
+	bs->white_castle_queen = true;
 };
 
 inline void unset_white_castle_queen(boardstate *bs){
-	bs->flags = ((bs->flags) & (~white_castle_queen_mask));
+	bs->white_castle_queen = false;
 };
 
-inline bool black_castle_king(boardstate *bs){
-	return((bs->flags) & black_castle_king_mask);
+
+inline bool get_black_castle_king(boardstate *bs){
+	return(bs->white_castle_king);
 };
 
 inline void set_black_castle_king(boardstate *bs){
-	bs->flags = ((bs->flags) | black_castle_king_mask);
+	bs->white_castle_king = true;
 };
 
 inline void unset_black_castle_king(boardstate *bs){
-	bs->flags = ((bs->flags) & (~black_castle_king_mask));
+	bs->white_castle_king = false;
 };
 
-inline bool black_castle_queen(boardstate *bs){
-	return((bs->flags) & black_castle_queen_mask);
+inline bool get_black_castle_queen(boardstate *bs){
+	return(bs->white_castle_queen);
 };
 
 inline void set_black_castle_queen(boardstate *bs){
-	bs->flags = ((bs->flags) | black_castle_queen_mask);
+	bs->white_castle_queen = true;
 };
 
 inline void unset_black_castle_queen(boardstate *bs){
-	bs->flags = ((bs->flags) & (~black_castle_queen_mask));
+	bs->white_castle_queen = false;
 };
 
+
+
 inline bool get_whites_turn(boardstate *bs){
-	return((bs->flags) & turn_mask);
+	return(bs->whites_turn);
 };
 
 inline void set_whites_turn(boardstate *bs){
-	bs->flags = ((bs->flags) | turn_mask);
+	bs->whites_turn = true;
 };
 
 inline void unset_whites_turn(boardstate *bs){
-	bs->flags = ((bs->flags) & (~turn_mask));
+	bs->whites_turn = false;
 };
 
 inline bool get_blacks_turn(boardstate *bs){

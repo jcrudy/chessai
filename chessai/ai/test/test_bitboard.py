@@ -14,6 +14,12 @@ def test_from_fen():
     assert_equal(bb.get_white().to_str(), '0000000000000000000000000000000000000000000000001111111111111111')
     assert_equal(bb.get_black().to_str(), '1111111111111111000000000000000000000000000000000000000000000000')
 
+def test_to_fen():
+    fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    bb = BitBoardState.from_fen(fen)
+    new_fen = bb.to_fen()
+    assert_equal(new_fen, fen)
+
 def test_bitboard():
     s = '0000000000000000000000000000000100000011000010000111010000000000'
     bb = BitBoard.from_str(s)

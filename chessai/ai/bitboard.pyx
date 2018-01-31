@@ -1,6 +1,10 @@
 from libc.stdint cimport uint64_t, uint8_t
-from cpython cimport bool
+
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
+from toolz import partition
+
+cdef extern from "stdbool.h":
+    ctypedef char bool
 
 cdef extern from "bitboardlib.h":
     ctypedef uint64_t bitboard
@@ -15,8 +19,12 @@ cdef extern from "bitboardlib.h":
         bitboard p
         bitboard white
         bitboard black
-        uint8_t enpassant
-        stateflags flags
+        uint8_t enpassant;
+        bool whites_turn;
+        bool white_castle_king
+        bool white_castle_queen
+        bool black_castle_king
+        bool black_castle_queen
         unsigned int halfmove_clock
         unsigned int fullmove_counter
         
@@ -27,10 +35,10 @@ cdef extern from "bitboardlib.h":
     cdef bool get_white_castle_queen(boardstate *bs)
     cdef void set_white_castle_queen(boardstate *bs)
     cdef void unset_white_castle_queen(boardstate *bs)
-    cdef bool black_castle_king(boardstate *bs)
+    cdef bool get_black_castle_king(boardstate *bs)
     cdef void set_black_castle_king(boardstate *bs)
     cdef void unset_black_castle_king(boardstate *bs)
-    cdef bool black_castle_queen(boardstate *bs)
+    cdef bool get_black_castle_queen(boardstate *bs)
     cdef void set_black_castle_queen(boardstate *bs)
     cdef void unset_black_castle_queen(boardstate *bs)
     cdef bool get_whites_turn(boardstate *bs)
@@ -83,7 +91,22 @@ cdef class BitBoard:
     
     def to_str(self):
         return bitboard_to_str(self.bb)
-                
+
+def compress_row(row):
+    result = ''
+    count = 0
+    for c in row:
+        if c == '-':
+            count += 1
+        else:
+            if count != 0:
+                result += str(count)
+            result += c
+    if count != 0:
+        result += str(count)
+    return result
+
+ 
 cdef class BitBoardState:
     cdef boardstate bs
     
@@ -102,12 +125,46 @@ cdef class BitBoardState:
 #         print('bs.p =', result.get_p().to_str())
         return result
     
-    cpdef str to_str(BitBoardState self):
+    cpdef str to_fen(BitBoardState self):
+        
+        # Get raw positions
         cdef char *arr = <char *>PyMem_Malloc(64 * sizeof(char))
         bitboard_to_arr(&(self.bs), arr)
-        result = str(arr)
+        raw_positions = str(arr)
         PyMem_Free(arr)
-        return result
+        
+        # Compress positions into fen format
+        rows = list(map(''.join, partition(8, raw_positions)))
+        for i in range(len(rows)):
+            rows[i] = compress_row(rows[i])
+        fen_positions = '/'.join(rows)
+        
+        # Get turn
+        cdef bool whites_turn = get_whites_turn(&(self.bs))
+        turn = 'w' if whites_turn else 'b'
+        
+        # Get castles
+        cdef bool white_castle_king = get_white_castle_king(&(self.bs))
+        cdef bool white_castle_queen = get_white_castle_queen(&(self.bs))
+        cdef bool black_castle_king = get_black_castle_king(&(self.bs))
+        cdef bool black_castle_queen = get_black_castle_queen(&(self.bs))
+        castles = ''
+        castles += 'K' if white_castle_king else ''
+        castles += 'Q' if white_castle_queen else ''
+        castles += 'k' if black_castle_king else ''
+        castles += 'q' if black_castle_queen else ''
+        if not castles:
+            castles = '-'
+        
+        # Get en passant
+        cdef int en_passant_int = get_enpassant(&(self.bs))
+        en_passant = int_to_algebraic(en_passant_int) if en_passant_int != 255 else '-'
+        
+        # Get clocks and counts
+        cdef int halfmove_clock = get_halfmove_clock(&(self.bs))
+        cdef int fullmove_count = get_fullmove_counter(&(self.bs))
+        
+        return ' '.join([fen_positions, turn, castles, en_passant, str(halfmove_clock), str(fullmove_count)])
     
     cpdef BitBoard get_k(BitBoardState self):
         result = BitBoard()
@@ -179,7 +236,10 @@ cdef class BitBoardState:
         
 cpdef int algebraic_to_int(str alg):
     return int(alg[1]) + 8 * (ord(alg[0].lower()) - ord('a'))
-    
+
+cpdef str int_to_algebraic(int n):
+    return chr(ord('a') + (n / 8)) + str(n % 8)
+
 cdef boardstate fen_to_bitboard(str fen):
     cdef boardstate bs = emptyboardstate;
     cdef str pieces, turn, castles, en_passant, halfmove_clock, move_number 
