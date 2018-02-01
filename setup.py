@@ -24,7 +24,7 @@ else:
 
 ext_modules = [Extension('chessai.ai.bitboard', 
                          [os.path.join('chessai', 'ai',
-                                       'bitboardlib.c'),
+                                       'bitboardlib.cpp'),
                           os.path.join('chessai', 'ai',
                                        'bitboard.%s' % ext),],
                          )]

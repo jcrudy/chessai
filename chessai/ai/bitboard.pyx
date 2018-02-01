@@ -1,3 +1,4 @@
+# distutils: language=c++
 from libc.stdint cimport uint64_t, uint8_t
 from cpython.object cimport Py_EQ
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
@@ -10,7 +11,26 @@ cdef extern from "stdbool.h":
 cdef extern from "bitboardlib.h":
     ctypedef uint64_t bitboard
     cdef bitboard place(bitboard b, int p)
-    ctypedef uint8_t stateflags
+    cdef bitboard unplace(bitboard b, int p)
+    ctypedef enum piece:
+        no=0
+        K
+        Q
+        B
+        N
+        R
+        P
+        EP
+        k
+        q
+        b
+        n
+        r
+        p
+        ep
+        
+    ctypedef unsigned char brdidx
+    
     ctypedef struct boardstate:
         bitboard k
         bitboard q
@@ -20,7 +40,7 @@ cdef extern from "bitboardlib.h":
         bitboard p
         bitboard white
         bitboard black
-        uint8_t enpassant;
+        brdidx enpassant;
         bool whites_turn;
         bool white_castle_king
         bool white_castle_queen
@@ -28,8 +48,9 @@ cdef extern from "bitboardlib.h":
         bool black_castle_queen
         unsigned int halfmove_clock
         unsigned int fullmove_counter
-        
-    cdef boardstate emptyboardstate
+        piece piece_map[64]
+    
+    cdef const boardstate emptyboardstate
     cdef bool get_white_castle_king(boardstate *bs)
     cdef void set_white_castle_king(boardstate *bs)
     cdef void unset_white_castle_king(boardstate *bs)
@@ -55,8 +76,8 @@ cdef extern from "bitboardlib.h":
     cdef uint8_t get_enpassant(boardstate *bs)
     cdef void set_enpassant(boardstate *bs, uint8_t pos)
     cdef void bitboard_to_arr(boardstate *bb, char* arr)
-    cdef bitboard places[64]
-    cdef bitboard empty;
+    cdef const bitboard places[64]
+    cdef const bitboard empty;
     cdef bitboard slide_north(bitboard pieces, bitboard unoccupied)
     cdef bitboard slide_south(bitboard pieces, bitboard unoccupied)
     cdef bitboard slide_east(bitboard pieces, bitboard unoccupied)
@@ -65,6 +86,15 @@ cdef extern from "bitboardlib.h":
     cdef bitboard slide_northeast(bitboard pieces, bitboard unoccupied)
     cdef bitboard slide_southeast(bitboard pieces, bitboard unoccupied)
     cdef bitboard slide_southwest(bitboard pieces, bitboard unoccupied)
+    cdef bitboard ls1b(bitboard b)
+    cdef int greatest_square_index(bitboard b)
+    cdef int greatest_rank_index(bitboard b)
+    cdef int greatest_file_index(bitboard b)
+    cdef int greatest_diag_index(bitboard b)
+    cdef int greatest_antidiag_index(bitboard b)
+    cdef bitboard bitboard_from_square_index(int i)
+    cdef void unplace_piece(boardstate *bs, brdidx square_index)
+    cdef void place_piece(boardstate *bs, brdidx square_index, piece pc)
     
 cpdef bitboard_to_str(bitboard bb):
     cdef int i
@@ -101,8 +131,6 @@ cdef class BitBoard:
     def from_grid(cls, str g):
         cdef list lines = list(map(methodcaller('strip'), g.strip().split()))
         cdef str s = ''.join(reversed(''.join(reversed(lines))))
-                               
-#         cdef str s = ''.join(reversed(g.replace('\n', '').replace('\t', '').replace(' ', '')))
         return cls.from_str(s)
     
     def to_str(self):
@@ -111,8 +139,13 @@ cdef class BitBoard:
     def to_grid(self):
         return '\n'.join(reversed(map(''.join, partition(8, reversed(self.to_str())))))
     
+    cpdef BitBoard ls1b(BitBoard self):
+        cdef BitBoard result = BitBoard()  # @DuplicatedSignature
+        result.bb = ls1b(self.bb)
+        return result
+    
     cpdef BitBoard slide_north(BitBoard self, BitBoard unoccupied):
-        cdef BitBoard result = BitBoard()
+        cdef BitBoard result = BitBoard()  # @DuplicatedSignature
         result.bb = slide_north(self.bb, unoccupied.bb)
         return result
     
@@ -166,9 +199,77 @@ def compress_row(row):
         result += str(count)
     return result
 
- 
+cdef piece str_to_piece(str s):
+    if s == 'K':
+        return K
+    if s == 'k':
+        return k
+    if s == 'Q':
+        return Q
+    if s == 'q':
+        return q
+    if s == 'B':
+        return B
+    if s == 'b':
+        return b
+    if s == 'N':
+        return N
+    if s == 'n':
+        return n
+    if s == 'R':
+        return R
+    if s == 'r':
+        return r
+    if s == 'P':
+        return P
+    if s == 'p':
+        return p
+    if s == 'EP':
+        return EP
+    if s == 'ep':
+        return ep
+    if s == 'no':
+        return no
+
+cdef str piece_to_str(piece pc):
+    cdef str c
+    if pc == K:
+        c =  'K'
+    elif pc == k:
+        c = 'k'
+    elif pc == Q:
+        c = 'Q'
+    elif pc == q:
+        c = 'q'
+    elif pc == B:
+        c = 'B'
+    elif pc == b:
+        c = 'b'
+    elif pc == N:
+        c = 'N'
+    elif pc == n:
+        c = 'n'
+    elif pc == R:
+        c = 'R'
+    elif pc == r:
+        c = 'r'
+    elif pc == P:
+        c = 'P'
+    elif pc == p:
+        c = 'p'
+    elif pc == EP:
+        c = 'EP'
+    elif pc == ep:
+        c = 'ep'
+    elif pc == no:
+        c = 'no'
+    return c
+    
 cdef class BitBoardState:
     cdef boardstate bs
+    
+    cpdef place_piece(BitBoardState self, int idx, str pc):
+        place_piece(&(self.bs), <brdidx> idx, str_to_piece(pc))
     
     @classmethod
     def from_fen(cls, str fen):
@@ -178,12 +279,32 @@ cdef class BitBoardState:
         result.bs = bs
         return result
     
+    cpdef to_grid_redundant(BitBoardState self):
+        '''
+        Use the redundant piece_map instead of the bitboards.
+        '''
+        cdef int i
+        cdef piece pc
+        result = ''
+        for i in range(64):
+            pc = self.bs.piece_map[i]
+            c = piece_to_str(pc)
+            if c == 'no':
+                c = '-'
+            if c.lower() == 'ep':
+                c = '*'
+            result = c + result
+        return '\n'.join(list(map(''.join, partition(8, result))))
+    
     cpdef str to_grid(BitBoardState self):
         # Get raw positions
         cdef char *arr = <char *>PyMem_Malloc(64 * sizeof(char))
         bitboard_to_arr(&(self.bs), arr)
         raw_positions = str(arr)
         PyMem_Free(arr)
+        if self.bs.enpassant != 255:
+            ins = '*'
+            raw_positions = raw_positions[:(63 - self.bs.enpassant)] + ins + raw_positions[(63 - self.bs.enpassant+1):]
         return '\n'.join(list(map(''.join, partition(8, raw_positions))))
     
     cpdef str to_fen(BitBoardState self):
@@ -268,10 +389,15 @@ cdef class BitBoardState:
         return result
     
 cpdef int algebraic_to_int(str alg):
-    return int(alg[1]) + 8 * (ord(alg[0].lower()) - ord('a'))
+    return int(alg[1]) - 1 + 8 * (ord(alg[0].lower()) - ord('a'))
 
 cpdef str int_to_algebraic(int n):
-    return chr(ord('a') + (n / 8)) + str(n % 8)
+    return chr(ord('a') + (n / 8)) + str((n % 8) + 1)
+
+cdef str bb_to_grid(bitboard bb):
+    r = BitBoard()
+    r.bb = bb
+    return r.to_grid()
 
 cdef boardstate fen_to_bitboard(str fen):
     cdef boardstate bs = emptyboardstate;
@@ -286,22 +412,7 @@ cdef boardstate fen_to_bitboard(str fen):
         if ch.isdigit():
             pos += int(ch)
             continue
-        if ch.isupper():
-            bs.white = place(bs.white, 63 - pos)
-        else:
-            bs.black = place(bs.black, 63 - pos)
-        if ch.lower() == 'k':
-            bs.k = place(bs.k, 63 - pos)
-        elif ch.lower() == 'q':
-            bs.q = place(bs.q, 63 - pos)
-        elif ch.lower() == 'b':
-            bs.b = place(bs.b, 63 - pos) 
-        elif ch.lower() == 'n':
-            bs.n = place(bs.n, 63 - pos) 
-        elif ch.lower() == 'r':
-            bs.r = place(bs.r, 63 - pos) 
-        elif ch.lower() == 'p':
-            bs.p = place(bs.p, 63 - pos)
+        place_piece(&bs, 63 - pos, str_to_piece(ch))
         pos += 1
     
     if turn.lower() == 'w':
@@ -320,6 +431,10 @@ cdef boardstate fen_to_bitboard(str fen):
     
     if en_passant != '-':
         set_enpassant(&bs, algebraic_to_int(en_passant))
+        if bs.whites_turn:
+            bs.piece_map[algebraic_to_int(en_passant)] = ep
+        else:
+            bs.piece_map[algebraic_to_int(en_passant)] = EP
     set_halfmove_clock(&bs, int(halfmove_clock))
     set_fullmove_counter(&bs, int(move_number))
     

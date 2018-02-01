@@ -80,34 +80,66 @@ const bitboard file_e = 0x1010101010101010ULL;
 const bitboard file_f = 0x2020202020202020ULL;
 const bitboard file_g = 0x4040404040404040ULL;
 const bitboard file_h = 0x8080808080808080ULL;
+const bitboard files[8] = {file_a, file_b, file_c, file_d, file_e, file_f, file_g, file_h};
 
-const bitboard row_1 = 0x00000000000000FFULL;
-const bitboard row_2 = 0x000000000000FF00ULL;
-const bitboard row_3 = 0x0000000000FF0000ULL;
-const bitboard row_4 = 0x00000000FF000000ULL;
-const bitboard row_5 = 0x000000FF00000000ULL;
-const bitboard row_6 = 0x0000FF0000000000ULL;
-const bitboard row_7 = 0x00FF000000000000ULL;
-const bitboard row_8 = 0xFF00000000000000ULL;
+const bitboard rank_1 = 0x00000000000000FFULL;
+const bitboard rank_2 = 0x000000000000FF00ULL;
+const bitboard rank_3 = 0x0000000000FF0000ULL;
+const bitboard rank_4 = 0x00000000FF000000ULL;
+const bitboard rank_5 = 0x000000FF00000000ULL;
+const bitboard rank_6 = 0x0000FF0000000000ULL;
+const bitboard rank_7 = 0x00FF000000000000ULL;
+const bitboard rank_8 = 0xFF00000000000000ULL;
+const bitboard ranks[8] = {rank_1, rank_2, rank_3, rank_4, rank_5, rank_6, rank_7, rank_8};
 
+const bitboard diag_0 = 0x8040201008040201ULL;
+const bitboard diag_1 = step_west(diag_0);
+const bitboard diag_2 = step_west(diag_1);
+const bitboard diag_3 = step_west(diag_2);
+const bitboard diag_4 = step_west(diag_3);
+const bitboard diag_5 = step_west(diag_4);
+const bitboard diag_6 = step_west(diag_5);
+const bitboard diag_7 = step_west(diag_6);
+const bitboard diag_15 = step_east(diag_0);
+const bitboard diag_14 = step_east(diag_15);
+const bitboard diag_13 = step_east(diag_14);
+const bitboard diag_12 = step_east(diag_13);
+const bitboard diag_11 = step_east(diag_12);
+const bitboard diag_10 = step_east(diag_11);
+const bitboard diag_9 = step_east(diag_10);
+const bitboard diags[16] = {diag_0, diag_1, diag_2, diag_3, diag_4, diag_5, diag_6, diag_7, 0,
+							diag_9, diag_10, diag_11, diag_12, diag_13, diag_14, diag_15};
 
-const stateflags empty_flags = 0b00000000;
-const stateflags white_castle_king_mask = 0b00000001;
-const stateflags white_castle_queen_mask = 0b00000010;
-const stateflags black_castle_king_mask = 0b00000100;
-const stateflags black_castle_queen_mask = 0b00001000;
-const stateflags turn_mask = 0b00010000;
+const bitboard antidiag_0 = 0x0102040810204080ULL;
+const bitboard antidiag_1 = step_south(antidiag_0);
+const bitboard antidiag_2 = step_south(antidiag_1);
+const bitboard antidiag_3 = step_south(antidiag_2);
+const bitboard antidiag_4 = step_south(antidiag_3);
+const bitboard antidiag_5 = step_south(antidiag_4);
+const bitboard antidiag_6 = step_south(antidiag_5);
+const bitboard antidiag_7 = step_south(antidiag_6);
+const bitboard antidiag_15 = step_north(antidiag_0);
+const bitboard antidiag_14 = step_north(antidiag_15);
+const bitboard antidiag_13 = step_north(antidiag_14);
+const bitboard antidiag_12 = step_north(antidiag_13);
+const bitboard antidiag_11 = step_north(antidiag_12);
+const bitboard antidiag_10 = step_north(antidiag_11);
+const bitboard antidiag_9 = step_north(antidiag_10);
+const bitboard antidiags[16] = {antidiag_0, antidiag_1, antidiag_2, antidiag_3, antidiag_4, antidiag_5,
+								antidiag_6, antidiag_7, 0, antidiag_9, antidiag_10, antidiag_11,
+								antidiag_12, antidiag_13, antidiag_14, antidiag_15};
 
+const brdidx no_enpassant = 0b11111111;
 const boardstate emptyboardstate = {empty,empty,empty,empty,
 									empty,empty,empty,empty,
-									0b11111111, empty_flags, 0, 0};
+									no_enpassant, 0, 0, 0, 0, 0, 0, 0};
 
 
 void bitboard_to_arr(boardstate *bb, char* arr){
-	int i;
+	brdidx i;
 	bitboard mask;
 	for (i=0; i<64; i++){
-		mask = places[i];
+		mask = bitboard_from_square_index(i);
 		if (bb->white & mask){
 			if (bb->k & mask){
 				arr[63 - i] = 'K';

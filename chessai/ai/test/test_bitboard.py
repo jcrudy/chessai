@@ -2,6 +2,13 @@ from chessai.ai.bitboard import BitBoardState, BitBoard
 from nose.tools import assert_equal
 import random
 
+def test_place_piece():
+    fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    bb = BitBoardState.from_fen(fen)
+    bb.place_piece(0, 'p')
+    new_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNp w KQkq - 0 1'
+    assert_equal(bb.to_fen(), new_fen)
+    
 def test_from_fen():
     fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     bb = BitBoardState.from_fen(fen)
@@ -14,12 +21,37 @@ def test_from_fen():
     assert_equal(bb.get_white().to_str(), '0000000000000000000000000000000000000000000000001111111111111111')
     assert_equal(bb.get_black().to_str(), '1111111111111111000000000000000000000000000000000000000000000000')
 
-def test_to_fen():
-    fens = ['8/5N2/4p2p/5p1k/1p4rP/1P2Q1P1/P4P1K/5q2 w - - 15 44',
+def test_to_grid():
+    fens = [
+            '8/5N2/4p2p/5p1k/1p4rP/1P2Q1P1/P4P1K/5q2 w - - 15 44',
             'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
             'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
             'rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2',
             'rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2',
+            'R6R/3Q4/1Q4Q1/4Q3/2Q4Q/Q4Q2/pp1Q4/kBNN1KB1 w - - 0 1',
+            '3Q4/1Q4Q1/4Q3/2Q4R/Q4Q2/3Q4/1Q4Rp/1K1BBNNk w - - 0 1',
+            ]
+    for fen in fens:
+        bb = BitBoardState.from_fen(fen)
+        assert_equal(bb.to_grid(), bb.to_grid_redundant())
+
+def test_move_generation():
+    # The following two positions should have 218 moves each.
+    # See https://chessprogramming.wikispaces.com/Encoding+Moves
+    positions_218 = [
+                     'R6R/3Q4/1Q4Q1/4Q3/2Q4Q/Q4Q2/pp1Q4/kBNN1KB1 w - - 0 1',
+                     '3Q4/1Q4Q1/4Q3/2Q4R/Q4Q2/3Q4/1Q4Rp/1K1BBNNk w - - 0 1',
+                     ]
+
+def test_to_fen():
+    fens = [
+            '8/5N2/4p2p/5p1k/1p4rP/1P2Q1P1/P4P1K/5q2 w - - 15 44',
+            'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+            'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
+            'rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2',
+            'rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2',
+            'R6R/3Q4/1Q4Q1/4Q3/2Q4Q/Q4Q2/pp1Q4/kBNN1KB1 w - - 0 1',
+            '3Q4/1Q4Q1/4Q3/2Q4R/Q4Q2/3Q4/1Q4Rp/1K1BBNNk w - - 0 1',
             ]
     for fen in fens:
         bb = BitBoardState.from_fen(fen)
@@ -330,6 +362,13 @@ def test_bitboard_slide_southwest():
                  01000100
                  ''')
     assert_equal(pieces.slide_southwest(unoccupied), expected)
+
+def test_bitboard_ls1b():
+    s = '0000000000000000000000000000000100000011000010000111010000000000'
+    e = '0000000000000000000000000000000000000000000000000000010000000000'
+    bb = BitBoard.from_str(s)
+    assert_equal(e, bb.ls1b().to_str())
+
 
 
 if __name__ == '__main__':

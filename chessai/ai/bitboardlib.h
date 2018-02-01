@@ -3,9 +3,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 typedef uint64_t bitboard;
-typedef uint8_t stateflags;
 
 extern const bitboard empty;
 extern const bitboard full;
@@ -83,22 +83,83 @@ extern const bitboard file_e;
 extern const bitboard file_f;
 extern const bitboard file_g;
 extern const bitboard file_h;
+extern const bitboard files[8];
 
-extern const bitboard row_1;
-extern const bitboard row_2;
-extern const bitboard row_3;
-extern const bitboard row_4;
-extern const bitboard row_5;
-extern const bitboard row_6;
-extern const bitboard row_7;
-extern const bitboard row_8;
+extern const bitboard rank_1;
+extern const bitboard rank_2;
+extern const bitboard rank_3;
+extern const bitboard rank_4;
+extern const bitboard rank_5;
+extern const bitboard rank_6;
+extern const bitboard rank_7;
+extern const bitboard rank_8;
+extern const bitboard ranks[8];
 
-extern const stateflags empty_flags;
-extern const stateflags white_castle_king_mask;
-extern const stateflags white_castle_queen_mask;
-extern const stateflags black_castle_king_mask;
-extern const stateflags black_castle_queen_mask;
-extern const stateflags turn_mask;
+extern const bitboard diag_0;
+extern const bitboard diag_1;
+extern const bitboard diag_2;
+extern const bitboard diag_3;
+extern const bitboard diag_4;
+extern const bitboard diag_5;
+extern const bitboard diag_6;
+extern const bitboard diag_7;
+extern const bitboard diag_15;
+extern const bitboard diag_14;
+extern const bitboard diag_13;
+extern const bitboard diag_12;
+extern const bitboard diag_11;
+extern const bitboard diag_10;
+extern const bitboard diag_9;
+extern const bitboard diags[16];
+
+extern const bitboard antidiag_0;
+extern const bitboard antidiag_1;
+extern const bitboard antidiag_2;
+extern const bitboard antidiag_3;
+extern const bitboard antidiag_4;
+extern const bitboard antidiag_5;
+extern const bitboard antidiag_6;
+extern const bitboard antidiag_7;
+extern const bitboard antidiag_15;
+extern const bitboard antidiag_14;
+extern const bitboard antidiag_13;
+extern const bitboard antidiag_12;
+extern const bitboard antidiag_11;
+extern const bitboard antidiag_10;
+extern const bitboard antidiag_9;
+extern const bitboard antidiags[16];
+
+typedef unsigned char brdidx;
+extern const brdidx no_enpassant;
+
+inline brdidx greatest_square_index(bitboard b){
+	brdidx result = 0;
+	while(b >>= 1){
+		result++;
+	}
+	return(result);
+}
+
+inline bitboard bitboard_from_square_index(brdidx i){
+	bitboard result = 1;
+	return(result << i);
+}
+
+inline brdidx greatest_rank_index(bitboard b){
+	return(greatest_square_index(b) / 8);
+}
+
+inline brdidx greatest_file_index(bitboard b){
+	return(greatest_square_index(b) % 8);
+}
+
+inline brdidx greatest_diag_index(bitboard b){
+	return(greatest_rank_index(b) - greatest_file_index(b));
+}
+
+inline brdidx greatest_antidiag_index(bitboard b){
+	return(greatest_rank_index(b) + greatest_file_index(b) - 7);
+}
 
 inline bitboard place(bitboard b, int p){
 	return (b | places[p]);
@@ -106,6 +167,42 @@ inline bitboard place(bitboard b, int p){
 
 inline bitboard unplace(bitboard b, int p){
 	return (b & ~(places[p]));
+}
+
+inline bitboard ls1b(bitboard b){
+	return(b & (-b));
+}
+
+inline bitboard step_north(bitboard b){
+	return(b << 8);
+}
+
+inline bitboard step_south(bitboard b){
+	return(b >> 8);
+}
+
+inline bitboard step_east(bitboard b){
+	return((b << 1) & (~file_a));
+}
+
+inline bitboard step_west(bitboard b){
+	return((b >> 1) & (~file_h));
+}
+
+inline bitboard step_northwest(bitboard b){
+	return((b << 9) & (~file_a));
+}
+
+inline bitboard step_northeast(bitboard b){
+	return((b << 7) & (~file_a));
+}
+
+inline bitboard step_southwest(bitboard b){
+	return((b >> 7) & (~file_h));
+}
+
+inline bitboard step_southeast(bitboard b){
+	return((b >> 9) & (~file_h));
 }
 
 inline bitboard slide_north(bitboard pieces, bitboard unoccupied){
@@ -194,6 +291,7 @@ inline bitboard slide_southwest(bitboard pieces, bitboard unoccupied){
 	return result;
 }
 
+typedef enum {no=0,K,Q,B,N,R,P,EP,k,q,b,n,r,p,ep} piece;
 
 typedef struct {
 	bitboard k;
@@ -204,7 +302,7 @@ typedef struct {
 	bitboard p;
 	bitboard white;
 	bitboard black;
-	uint8_t enpassant;
+	brdidx enpassant;
 	bool whites_turn;
 	bool white_castle_king;
 	bool white_castle_queen;
@@ -212,9 +310,239 @@ typedef struct {
 	bool black_castle_queen;
 	unsigned int halfmove_clock;
 	unsigned int fullmove_counter;
+	piece piece_map[64];
 } boardstate;
 
+
+inline piece piece_from_square_index(boardstate *bs, brdidx square_index){
+	// May return no (=0), meaning not occupied.  Check for this before using the piece.
+	return(bs->piece_map[square_index]);
+}
+
+inline void unsafe_place_piece(boardstate *bs, brdidx square_index, piece pc){
+	bitboard bb = bitboard_from_square_index(square_index);
+	(bs->piece_map)[square_index] = pc;
+	switch(pc){
+		case K:
+			(bs->k) |= bb;
+			(bs->white) |= bb;
+			break;
+		case k:
+			(bs->k) |= bb;
+			(bs->black) |= bb;
+			break;
+		case Q:
+			(bs->q) |= bb;
+			(bs->white) |= bb;
+			break;
+		case q:
+			(bs->q) |= bb;
+			(bs->black) |= bb;
+			break;
+		case B:
+			(bs->b) |= bb;
+			(bs->white) |= bb;
+			break;
+		case b:
+			(bs->b) |= bb;
+			(bs->black) |= bb;
+			break;
+		case N:
+			(bs->n) |= bb;
+			(bs->white) |= bb;
+			break;
+		case n:
+			(bs->n) |= bb;
+			(bs->black) |= bb;
+			break;
+		case R:
+			(bs->r) |= bb;
+			(bs->white) |= bb;
+			break;
+		case r:
+			(bs->r) |= bb;
+			(bs->black) |= bb;
+			break;
+		case P:
+			(bs->p) |= bb;
+			(bs->white) |= bb;
+			break;
+		case p:
+			(bs->p) |= bb;
+			(bs->black) |= bb;
+			break;
+		case EP:
+			(bs->enpassant) = square_index;
+			break;
+		case ep:
+			(bs->enpassant) = square_index;
+			break;
+		case no:
+			{}
+	}
+}
+
+inline void unplace_piece(boardstate *bs, brdidx square_index){
+	bitboard bb = ~bitboard_from_square_index(square_index);
+	piece pc = (bs->piece_map)[square_index];
+	bs->piece_map[square_index] = no;
+	switch(pc){
+		case K:
+			(bs->k) &= bb;
+			(bs->white) &= bb;
+			break;
+		case k:
+			(bs->k) &= bb;
+			(bs->black) &= bb;
+			break;
+		case Q:
+			(bs->q) &= bb;
+			(bs->white) &= bb;
+			break;
+		case q:
+			(bs->q) &= bb;
+			(bs->black) &= bb;
+			break;
+		case B:
+			(bs->b) &= bb;
+			(bs->white) &= bb;
+			break;
+		case b:
+			(bs->b) &= bb;
+			(bs->black) &= bb;
+			break;
+		case N:
+			(bs->n) &= bb;
+			(bs->white) &= bb;
+			break;
+		case n:
+			(bs->n) &= bb;
+			(bs->black) &= bb;
+			break;
+		case R:
+			(bs->r) &= bb;
+			(bs->white) &= bb;
+			break;
+		case r:
+			(bs->r) &= bb;
+			(bs->black) &= bb;
+			break;
+		case P:
+			(bs->p) &= bb;
+			(bs->white) &= bb;
+			break;
+		case p:
+			(bs->p) &= bb;
+			(bs->black) &= bb;
+			break;
+		case EP:
+			(bs->enpassant) = no_enpassant;
+			break;
+		case ep:
+			(bs->enpassant) = no_enpassant;
+			break;
+		case no:
+			{}
+	}
+}
+
+inline void place_piece(boardstate *bs, brdidx square_index, piece pc){
+	unplace_piece(bs, square_index);
+	unsafe_place_piece(bs, square_index, pc);
+}
+
+inline bitboard piece_bitboard_from_piece(boardstate *bs, piece pc){
+	switch(pc){
+		case K:
+			return(bs->k);
+		case k:
+			return(bs->k);
+		case Q:
+			return(bs->q);
+		case q:
+			return(bs->q);
+		case B:
+			return(bs->b);
+		case b:
+			return(bs->b);
+		case N:
+			return(bs->n);
+		case n:
+			return(bs->n);
+		case R:
+			return(bs->r);
+		case r:
+			return(bs->r);
+		case P:
+			return(bs->p);
+		case p:
+			return(bs->p);
+		case EP:
+			return(bitboard_from_square_index(bs->enpassant));
+		case ep:
+			return(bitboard_from_square_index(bs->enpassant));
+		case no:
+			return(empty);
+	}
+}
+
+inline bitboard color_bitboard_from_piece(boardstate *bs, piece pc){
+	switch(pc){
+		case K:
+			return(bs->white);
+		case k:
+			return(bs->black);
+		case Q:
+			return(bs->white);
+		case q:
+			return(bs->black);
+		case B:
+			return(bs->white);
+		case b:
+			return(bs->black);
+		case N:
+			return(bs->white);
+		case n:
+			return(bs->black);
+		case R:
+			return(bs->white);
+		case r:
+			return(bs->black);
+		case P:
+			return(bs->white);
+		case p:
+			return(bs->black);
+		case EP:
+			return(bs->white);
+		case ep:
+			return(bs->black);
+		case no:
+			return(empty);
+	}
+}
+
+inline bitboard bitboard_from_piece(boardstate *bs, piece pc){
+	return(piece_bitboard_from_piece(bs, pc) & color_bitboard_from_piece(bs, pc));
+}
+
 extern const boardstate emptyboardstate;
+
+typedef struct {
+	brdidx from;
+	brdidx to;
+} move;
+
+typedef struct {
+	piece captured;
+	bool lost_castle_king;
+	bool lost_castle_queen;
+} moverecord;
+
+/*
+inline moverecord make_move(boardstate *brd, move *mv){
+	
+}
+*/
 
 inline uint8_t get_enpassant(boardstate *bs){
 	return(bs->enpassant);
