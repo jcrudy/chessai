@@ -145,6 +145,14 @@ inline bitboard bitboard_from_square_index(brdidx i){
 	return(result << i);
 }
 
+inline brdidx square_index_to_file_index(brdidx i){
+	return(i % 8);
+}
+
+inline brdidx square_index_to_rank_index(brdidx i){
+	return(i / 8);
+}
+
 inline brdidx greatest_rank_index(bitboard b){
 	return(greatest_square_index(b) / 8);
 }
@@ -528,21 +536,17 @@ inline bitboard bitboard_from_piece(boardstate *bs, piece pc){
 extern const boardstate emptyboardstate;
 
 typedef struct {
-	brdidx from;
-	brdidx to;
+	brdidx from_square;
+	brdidx to_square;
 } move;
 
 typedef struct {
 	piece captured;
 	bool lost_castle_king;
 	bool lost_castle_queen;
+	brdidx from_square;
+	brdidx to_square;
 } moverecord;
-
-/*
-inline moverecord make_move(boardstate *brd, move *mv){
-	
-}
-*/
 
 inline uint8_t get_enpassant(boardstate *bs){
 	return(bs->enpassant);
@@ -615,21 +619,23 @@ inline void set_black_castle_queen(boardstate *bs){
 };
 
 inline void unset_black_castle_queen(boardstate *bs){
-	bs->white_castle_queen = false;
+	(bs->white_castle_queen) = false;
 };
 
-
+inline void flip_turn(boardstate *bs){
+	(bs->whites_turn) = !(bs->whites_turn);
+}
 
 inline bool get_whites_turn(boardstate *bs){
 	return(bs->whites_turn);
 };
 
 inline void set_whites_turn(boardstate *bs){
-	bs->whites_turn = true;
+	(bs->whites_turn) = true;
 };
 
 inline void unset_whites_turn(boardstate *bs){
-	bs->whites_turn = false;
+	(bs->whites_turn) = false;
 };
 
 inline bool get_blacks_turn(boardstate *bs){
@@ -644,8 +650,108 @@ inline void unset_blacks_turn(boardstate *bs){
 	set_whites_turn(bs);
 };
 
-void bitboard_to_arr(boardstate *bb, char* arr);
+inline void increment_fullmove_counter(boardstate *bs){
+	(bs->fullmove_counter)++;
+}
 
+inline void increment_halfmove_clock(boardstate *bs){
+	(bs->halfmove_clock)++;
+}
+
+inline void reset_halfmove_clock(boardstate *bs){
+	(bs->halfmove_clock) = 0;
+}
+
+inline moverecord make_move(boardstate *brd, move *mv){
+	piece from_piece, to_piece;
+	bool lost_castle_king = false;
+	bool lost_castle_queen = false;
+	from_piece = brd->piece_map[mv->from_square];
+	to_piece = brd->piece_map[mv->to_square];
+	
+	// check for castle loss
+	switch(from_piece){
+		case K:
+			lost_castle_king = get_white_castle_king(brd);
+			lost_castle_queen = get_white_castle_queen(brd);
+			break;
+		case R:
+			if((mv->from_square) == 7){
+				lost_castle_king = get_white_castle_king(brd);
+				lost_castle_queen = false;
+			}
+			if((mv->from_square) == 0){
+				lost_castle_queen = get_white_castle_queen(brd);
+				lost_castle_king = false;
+			}
+			break;
+		case k:
+			lost_castle_king = get_black_castle_king(brd);
+			lost_castle_queen = get_black_castle_queen(brd);
+			break;
+		case r:
+			if((mv->from_square) == 63){
+				lost_castle_king = get_black_castle_king(brd);
+				lost_castle_queen = false;
+			}
+			if((mv->from_square) == 55){
+				lost_castle_queen = get_black_castle_queen(brd);
+				lost_castle_king = false;
+			}
+			break;
+		default:
+			break;
+	
+	}// end check for castle loss
+	
+	// check for new en passant
+	brdidx new_enpassant;
+	if((from_piece == P) && 
+		(square_index_to_rank_index(mv->from_square) == 1) &&
+		(square_index_to_rank_index(mv->to_square) == 3)){
+		new_enpassant = (mv->to_square) - 8;
+	}else if((from_piece == p) && 
+		(square_index_to_rank_index(mv->from_square) == 6) &&
+		(square_index_to_rank_index(mv->to_square) == 4)){
+		new_enpassant = (mv->to_square) + 8;
+	}else{
+		new_enpassant = no_enpassant;
+	}
+	
+	// update board state
+	unplace_piece(brd, mv->from_square);
+	place_piece(brd, mv->to_square, from_piece);
+	set_enpassant(brd, new_enpassant);
+	if(brd->whites_turn){
+		if(lost_castle_king){
+			unset_white_castle_king(brd);
+		}
+		if(lost_castle_queen){
+			unset_white_castle_queen(brd);
+		}
+	}else{
+		increment_fullmove_counter(brd);
+		if(lost_castle_king){
+			unset_black_castle_king(brd);
+		}
+		if(lost_castle_queen){
+			unset_black_castle_queen(brd);
+		}
+	}
+	if((to_piece != no) || (from_piece == p) || (from_piece == P)){
+		reset_halfmove_clock(brd);
+	}else{
+		increment_halfmove_clock(brd);
+	}
+	flip_turn(brd);
+	
+	moverecord record = {to_piece, lost_castle_king, lost_castle_queen, 
+						 mv->from_square, mv->to_square};
+	return(record);
+}
+
+
+void bitboard_to_arr(boardstate *bb, char* arr);
 
 
 #endif

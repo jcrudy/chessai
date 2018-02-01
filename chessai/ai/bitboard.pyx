@@ -50,6 +50,18 @@ cdef extern from "bitboardlib.h":
         unsigned int fullmove_counter
         piece piece_map[64]
     
+    ctypedef struct move:
+        brdidx from_square
+        brdidx to_square
+
+    ctypedef struct moverecord:
+        piece captured
+        bool lost_castle_king
+        bool lost_castle_queen
+        brdidx from_square
+        brdidx to_square
+    
+    cdef moverecord make_move(boardstate *brd, move *mv);
     cdef const boardstate emptyboardstate
     cdef bool get_white_castle_king(boardstate *bs)
     cdef void set_white_castle_king(boardstate *bs)
@@ -264,7 +276,49 @@ cdef str piece_to_str(piece pc):
     elif pc == no:
         c = 'no'
     return c
+
+cdef class Move:
+    cdef move mv
+    def __init__(Move self, int from_square, int to_square):
+        cdef move mv
+        mv.from_square = from_square
+        mv.to_square = to_square
+        self.mv = mv
     
+cdef class MoveRecord:
+    cdef moverecord rec
+    property from_square:
+        def __get__(MoveRecord self):
+            return self.rec.from_square
+#         
+#         def __set__(MoveRecord self, int square_index):
+#             self.rec.from_square = square_index
+        
+    property to_square:
+        def __get__(MoveRecord self):  # @DuplicatedSignature
+            return self.rec.to_square
+        
+#         def __set__(MoveRecord self, int square_index):  # @DuplicatedSignature
+#             self.rec.to_square = square_index
+        
+    property captured:
+        def __get__(MoveRecord self):  # @DuplicatedSignature
+            return piece_to_str(self.rec.captured)
+        
+    property lost_castle_king:
+        def __get__(MoveRecord self):  # @DuplicatedSignature
+            if self.rec.lost_castle_king:
+                return True
+            else:
+                return False
+    
+    property lost_castle_queen:
+        def __get__(MoveRecord self):  # @DuplicatedSignature
+            if self.rec.lost_castle_queen:
+                return True
+            else:
+                return False
+        
 cdef class BitBoardState:
     cdef boardstate bs
     
@@ -277,6 +331,14 @@ cdef class BitBoardState:
         bs = fen_to_bitboard(fen)
         cdef BitBoardState result = BitBoardState()
         result.bs = bs
+        return result
+    
+    cpdef MoveRecord make_move(BitBoardState self, Move mv):
+        cdef moverecord rec
+        rec = make_move(&(self.bs), &(mv.mv))
+        cdef MoveRecord result
+        result = MoveRecord()
+        result.rec = rec
         return result
     
     cpdef to_grid_redundant(BitBoardState self):
