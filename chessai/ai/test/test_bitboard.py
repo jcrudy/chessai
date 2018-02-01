@@ -1,19 +1,235 @@
-from chessai.ai.bitboard import BitBoardState, BitBoard
+from chessai.ai.bitboard import BitBoardState, BitBoard, Move, MoveRecord,\
+    int_to_algebraic, algebraic_to_int
 from nose.tools import assert_equal
 import random
 
+def test_boardstate_to_grid():
+    starting_fen = 'rnbqkbnr/pppppppr/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    board = BitBoardState.from_fen(starting_fen)
+    expected_grid = '''
+                    rnbqkbnr
+                    pppppppr
+                    --------
+                    --------
+                    --------
+                    --------
+                    PPPPPPPP
+                    RNBQKBNR
+                    '''.replace(' ','').strip()
+    assert_equal(board.to_grid(), expected_grid)
+
+def test_places():
+    expected = BitBoard.from_grid('''
+               00000000
+               00000000
+               00000000
+               00000000
+               00000000
+               00000000
+               00000000
+               10000000
+               ''').to_grid()
+    got = BitBoard.from_square_index(0).to_grid()
+    assert_equal(expected, got)
+    
+    expected = BitBoard.from_grid('''
+               00000000
+               00000000
+               00000000
+               00000000
+               00000000
+               00000000
+               00000000
+               01000000
+               ''').to_grid()
+    got = BitBoard.from_square_index(1).to_grid()
+    assert_equal(expected, got)
+    
+    expected = BitBoard.from_grid('''
+               00000000
+               00000000
+               00000000
+               00000000
+               00000000
+               00000000
+               10000000
+               00000000
+               ''').to_grid()
+    got = BitBoard.from_square_index(8).to_grid()
+    assert_equal(expected, got)
+    
+    expected = BitBoard.from_grid('''
+               00000000
+               00000000
+               00000000
+               00000000
+               00000000
+               00000000
+               00001000
+               00000000
+               ''').to_grid()
+    got = BitBoard.from_square_index(12).to_grid()
+    assert_equal(expected, got)
+    
+    expected = BitBoard.from_grid('''
+               00000000
+               00000000
+               00000000
+               00000000
+               00000000
+               00001000
+               00000000
+               00000000
+               ''').to_grid()
+    got = BitBoard.from_square_index(20).to_grid()
+    assert_equal(expected, got)
+
+def test_algebraic():
+    correct = {
+               0: 'a1',
+               1: 'b1',
+               2: 'c1',
+               3: 'd1',
+               4: 'e1',
+               5: 'f1',
+               6: 'g1',
+               7: 'h1', 
+               8: 'a2',
+               9: 'b2',
+               10: 'c2',
+               11: 'd2',
+               12: 'e2',
+               13: 'f2',
+               14: 'g2',
+               15: 'h2',
+               16: 'a3',
+               17: 'b3',
+               18: 'c3',
+               19: 'd3',
+               20: 'e3',
+               21: 'f3',
+               22: 'g3',
+               23: 'h3',
+               }
+    for ind, alg in correct.items():
+        assert_equal(int_to_algebraic(ind), alg)
+        assert_equal(ind, algebraic_to_int(alg))
+    
+def test_make_move():
+    starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    
+    # Try moving king's pawn one space
+    board = BitBoardState.from_fen(starting_fen)
+    board.make_move(Move(12, 20))
+    assert_equal(board.to_fen(), 'rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1')
+
+    # Try moving king's pawn two spaces, thus invoking en passant
+    board = BitBoardState.from_fen(starting_fen)
+    board.make_move(Move(12, 28))
+    assert_equal(board.get_enpassant(), 20)
+    assert_equal(board.to_fen(), 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1')
+    
+    # Attempt an en passant capture
+    board = BitBoardState.from_fen(starting_fen)
+    board.make_move(Move(12, 28))
+    assert_equal(
+                 '''
+                 rnbqkbnr
+                 pppppppp
+                 --------
+                 --------
+                 ----P---
+                 ----*---
+                 PPPP-PPP
+                 RNBQKBNR
+                 '''.replace(' ','').strip(),
+                 board.to_grid()
+                 )
+    board.make_move(Move(48, 40))
+    assert_equal(
+                 '''
+                 rnbqkbnr
+                 -ppppppp
+                 p-------
+                 --------
+                 ----P---
+                 --------
+                 PPPP-PPP
+                 RNBQKBNR
+                 '''.replace(' ','').strip(),
+                 board.to_grid()
+                 )
+    board.make_move(Move(28, 36))
+    assert_equal(
+                 '''
+                 rnbqkbnr
+                 -ppppppp
+                 p-------
+                 ----P---
+                 --------
+                 --------
+                 PPPP-PPP
+                 RNBQKBNR
+                 '''.replace(' ','').strip(),
+                 board.to_grid()
+                 )
+    board.make_move(Move(51, 35))
+    assert_equal(
+                 '''
+                 rnbqkbnr
+                 -pp-pppp
+                 p--*----
+                 ---pP---
+                 --------
+                 --------
+                 PPPP-PPP
+                 RNBQKBNR
+                 '''.replace(' ','').strip(),
+                 board.to_grid()
+                 )
+    assert_equal(board.get_enpassant(), 43)
+    board.make_move(Move(36, 43))
+    assert_equal(
+                 '''
+                 rnbqkbnr
+                 -pp-pppp
+                 p--P----
+                 --------
+                 --------
+                 --------
+                 PPPP-PPP
+                 RNBQKBNR
+                 '''.replace(' ','').strip(),
+                 board.to_grid()
+                 )
+    board.make_move(Move(52, 36))
+    assert_equal(
+                 '''
+                 rnbqkbnr
+                 -pp--ppp
+                 p--P*---
+                 ----p---
+                 --------
+                 --------
+                 PPPP-PPP
+                 RNBQKBNR
+                 '''.replace(' ','').strip(),
+                 board.to_grid()
+                 )
+    
+    
 def test_place_piece():
     fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     bb = BitBoardState.from_fen(fen)
     bb.place_piece(0, 'p')
-    new_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNp w KQkq - 0 1'
+    new_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/pNBQKBNR w KQkq - 0 1'
     assert_equal(bb.to_fen(), new_fen)
     
 def test_from_fen():
     fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     bb = BitBoardState.from_fen(fen)
-    assert_equal(bb.get_k().to_str(), '0000100000000000000000000000000000000000000000000000000000001000')
-    assert_equal(bb.get_q().to_str(), '0001000000000000000000000000000000000000000000000000000000010000')
+    assert_equal(bb.get_k().to_str(), '0001000000000000000000000000000000000000000000000000000000010000')
+    assert_equal(bb.get_q().to_str(), '0000100000000000000000000000000000000000000000000000000000001000')
     assert_equal(bb.get_b().to_str(), '0010010000000000000000000000000000000000000000000000000000100100')
     assert_equal(bb.get_n().to_str(), '0100001000000000000000000000000000000000000000000000000001000010')
     assert_equal(bb.get_r().to_str(), '1000000100000000000000000000000000000000000000000000000010000001')
@@ -23,8 +239,8 @@ def test_from_fen():
 
 def test_to_grid():
     fens = [
-            '8/5N2/4p2p/5p1k/1p4rP/1P2Q1P1/P4P1K/5q2 w - - 15 44',
             'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+            '8/5N2/4p2p/5p1k/1p4rP/1P2Q1P1/P4P1K/5q2 w - - 15 44',
             'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
             'rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2',
             'rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2',

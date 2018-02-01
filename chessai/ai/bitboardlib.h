@@ -141,8 +141,7 @@ inline brdidx greatest_square_index(bitboard b){
 }
 
 inline bitboard bitboard_from_square_index(brdidx i){
-	bitboard result = 1;
-	return(result << i);
+	return(places[i]);
 }
 
 inline brdidx square_index_to_file_index(brdidx i){
@@ -553,7 +552,13 @@ inline uint8_t get_enpassant(boardstate *bs){
 }
 
 inline void set_enpassant(boardstate *bs, uint8_t pos){
+	// Should be called before flip_turn
 	bs->enpassant = pos;
+	if(bs->whites_turn){
+		(bs->piece_map)[pos] = EP;
+	}else{
+		(bs->piece_map)[pos] = ep;
+	}
 };
 
 inline unsigned int get_halfmove_clock(boardstate *bs){
@@ -720,6 +725,13 @@ inline moverecord make_move(boardstate *brd, move *mv){
 	
 	// update board state
 	unplace_piece(brd, mv->from_square);
+	if(to_piece==ep){
+		//remove black pawn for en_passant capture
+		unplace_piece(brd, (mv->to_square) - 8);
+	}else if(to_piece==EP){
+		//remove white pawn for en_passant capture
+		unplace_piece(brd, (mv->to_square) + 8);
+	}
 	place_piece(brd, mv->to_square, from_piece);
 	set_enpassant(brd, new_enpassant);
 	if(brd->whites_turn){

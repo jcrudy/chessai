@@ -142,56 +142,56 @@ void bitboard_to_arr(boardstate *bb, char* arr){
 		mask = bitboard_from_square_index(i);
 		if (bb->white & mask){
 			if (bb->k & mask){
-				arr[63 - i] = 'K';
+				arr[i] = 'K';
 				continue;
 			}
 			if (bb->q & mask){
-				arr[63 - i] = 'Q';
+				arr[i] = 'Q';
 				continue;
 			}
 			if (bb->b & mask){
-				arr[63 - i] = 'B';
+				arr[i] = 'B';
 				continue;
 			}
 			if (bb->r & mask){
-				arr[63 - i] = 'R';
+				arr[i] = 'R';
 				continue;
 			}
 			if (bb->n & mask){
-				arr[63 - i] = 'N';
+				arr[i] = 'N';
 				continue;
 			}
 			if (bb->p & mask){
-				arr[63 - i] = 'P';
+				arr[i] = 'P';
 				continue;
 			}
 		}
 		if (bb->black & mask){
 			if (bb->k & mask){
-				arr[63 - i] = 'k';
+				arr[i] = 'k';
 				continue;
 			}
 			if (bb->q & mask){
-				arr[63 - i] = 'q';
+				arr[i] = 'q';
 				continue;
 			}
 			if (bb->b & mask){
-				arr[63 - i] = 'b';
+				arr[i] = 'b';
 				continue;
 			}
 			if (bb->r & mask){
-				arr[63 - i] = 'r';
+				arr[i] = 'r';
 				continue;
 			}
 			if (bb->n & mask){
-				arr[63 - i] = 'n';
+				arr[i] = 'n';
 				continue;
 			}
 			if (bb->p & mask){
-				arr[63 - i] = 'p';
+				arr[i] = 'p';
 				continue;
 			}
 		}
-		arr[63 - i] = '-';
+		arr[i] = '-';
 	}
 };

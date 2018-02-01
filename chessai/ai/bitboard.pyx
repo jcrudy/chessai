@@ -130,6 +130,13 @@ cdef class BitBoard:
             return False
     
     @classmethod
+    def from_square_index(cls, int idx):
+        cdef bitboard bb = bitboard_from_square_index(idx)
+        cdef BitBoard result = BitBoard()
+        result.bb = bb
+        return result
+        
+    @classmethod
     def from_str(cls, str s):
         cdef bitboard bb = empty
         for i, c in enumerate(reversed(s)):
@@ -355,8 +362,8 @@ cdef class BitBoardState:
                 c = '-'
             if c.lower() == 'ep':
                 c = '*'
-            result = c + result
-        return '\n'.join(list(map(''.join, partition(8, result))))
+            result = result + c
+        return '\n'.join(reversed(map(''.join, partition(8, result))))
     
     cpdef str to_grid(BitBoardState self):
         # Get raw positions
@@ -366,8 +373,8 @@ cdef class BitBoardState:
         PyMem_Free(arr)
         if self.bs.enpassant != 255:
             ins = '*'
-            raw_positions = raw_positions[:(63 - self.bs.enpassant)] + ins + raw_positions[(63 - self.bs.enpassant+1):]
-        return '\n'.join(list(map(''.join, partition(8, raw_positions))))
+            raw_positions = raw_positions[:(self.bs.enpassant)] + ins + raw_positions[(self.bs.enpassant+1):]
+        return '\n'.join(reversed(map(''.join, partition(8, raw_positions))))
     
     cpdef str to_fen(BitBoardState self):
         
@@ -381,7 +388,7 @@ cdef class BitBoardState:
         rows = list(map(''.join, partition(8, raw_positions)))
         for i in range(len(rows)):
             rows[i] = compress_row(rows[i])
-        fen_positions = '/'.join(rows)
+        fen_positions = '/'.join(reversed(rows))
         
         # Get turn
         cdef bool whites_turn = get_whites_turn(&(self.bs))
@@ -450,11 +457,15 @@ cdef class BitBoardState:
         result.bb =  self.bs.black
         return result
     
+    cpdef int get_enpassant(BitBoardState self):
+        cdef int result = self.bs.enpassant
+        return result
+    
 cpdef int algebraic_to_int(str alg):
-    return int(alg[1]) - 1 + 8 * (ord(alg[0].lower()) - ord('a'))
+    return ord(alg[0].lower()) - ord('a') + 8 * (int(alg[1]) - 1)
 
 cpdef str int_to_algebraic(int n):
-    return chr(ord('a') + (n / 8)) + str((n % 8) + 1)
+    return chr(ord('a') + (n % 8)) + str((n / 8) + 1)
 
 cdef str bb_to_grid(bitboard bb):
     r = BitBoard()
@@ -468,14 +479,14 @@ cdef boardstate fen_to_bitboard(str fen):
     
     cdef int pos = 0
     cdef str ch
-    for ch in pieces:
-        if ch == '/':
-            continue
-        if ch.isdigit():
-            pos += int(ch)
-            continue
-        place_piece(&bs, 63 - pos, str_to_piece(ch))
-        pos += 1
+    ranks = list(reversed(pieces.split('/')))
+    for rank in ranks:
+        for ch in rank:
+            if ch.isdigit():
+                pos += int(ch)
+            else:
+                place_piece(&bs, pos, str_to_piece(ch))
+                pos += 1
     
     if turn.lower() == 'w':
         set_whites_turn(&bs)
