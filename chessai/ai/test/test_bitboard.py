@@ -31,7 +31,7 @@ def test_places():
                ''').to_grid()
     got = BitBoard.from_square_index(0).to_grid()
     assert_equal(expected, got)
-    
+
     expected = BitBoard.from_grid('''
                00000000
                00000000
@@ -44,7 +44,7 @@ def test_places():
                ''').to_grid()
     got = BitBoard.from_square_index(1).to_grid()
     assert_equal(expected, got)
-    
+
     expected = BitBoard.from_grid('''
                00000000
                00000000
@@ -57,7 +57,7 @@ def test_places():
                ''').to_grid()
     got = BitBoard.from_square_index(8).to_grid()
     assert_equal(expected, got)
-    
+
     expected = BitBoard.from_grid('''
                00000000
                00000000
@@ -70,7 +70,7 @@ def test_places():
                ''').to_grid()
     got = BitBoard.from_square_index(12).to_grid()
     assert_equal(expected, got)
-    
+
     expected = BitBoard.from_grid('''
                00000000
                00000000
@@ -93,7 +93,7 @@ def test_algebraic():
                4: 'e1',
                5: 'f1',
                6: 'g1',
-               7: 'h1', 
+               7: 'h1',
                8: 'a2',
                9: 'b2',
                10: 'c2',
@@ -114,10 +114,10 @@ def test_algebraic():
     for ind, alg in correct.items():
         assert_equal(int_to_algebraic(ind), alg)
         assert_equal(ind, algebraic_to_int(alg))
-    
+
 def test_make_move():
     starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-    
+
     # Try moving king's pawn one space
     board = BitBoardState.from_fen(starting_fen)
     board.make_move(Move(12, 20))
@@ -128,7 +128,7 @@ def test_make_move():
     board.make_move(Move(12, 28))
     assert_equal(board.get_enpassant(), 20)
     assert_equal(board.to_fen(), 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1')
-    
+
     # Attempt an en passant capture
     board = BitBoardState.from_fen(starting_fen)
     board.make_move(Move(12, 28))
@@ -216,15 +216,15 @@ def test_make_move():
                  '''.replace(' ','').strip(),
                  board.to_grid()
                  )
-    
-    
+
+
 def test_place_piece():
     fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     bb = BitBoardState.from_fen(fen)
     bb.place_piece(0, 'p')
     new_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/pNBQKBNR w KQkq - 0 1'
     assert_equal(bb.to_fen(), new_fen)
-    
+
 def test_from_fen():
     fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     bb = BitBoardState.from_fen(fen)
@@ -283,9 +283,9 @@ def test_bitboard_io():
         bb = BitBoard.from_str(s)
         assert_equal(s, bb.to_str())
         assert_equal(bb.to_grid(), BitBoard.from_grid(bb.to_grid()).to_grid())
-    
+
     s = '00000000000000000000000000000000000000000000000000000000000000001'
-    
+
     g = '''
              00000000
              00000000
@@ -296,9 +296,9 @@ def test_bitboard_io():
              00000000
              10000000
          '''
-    
+
     assert_equal(BitBoard.from_str(s).to_grid(), BitBoard.from_grid(g).to_grid())
-    
+
 def test_bitboard_slide_north():
     pieces = BitBoard.from_grid('''
              00000000
@@ -310,7 +310,7 @@ def test_bitboard_slide_north():
              00101000
              00000000
              ''')
-    
+
     unoccupied = BitBoard.from_grid('''
                  11111111
                  11111111
@@ -321,7 +321,7 @@ def test_bitboard_slide_north():
                  11010111
                  11111101
                  ''')
-    
+
     expected = BitBoard.from_grid('''
                  00001000
                  00001000
@@ -333,7 +333,7 @@ def test_bitboard_slide_north():
                  00000000
                  ''')
     assert_equal(pieces.slide_north(unoccupied), expected)
-    
+
 def test_bitboard_slide_south():
     pieces = BitBoard.from_grid('''
              00000000
@@ -345,7 +345,7 @@ def test_bitboard_slide_south():
              00100000
              00000000
              ''')
-    
+
     unoccupied = BitBoard.from_grid('''
                  11111111
                  11111111
@@ -356,7 +356,7 @@ def test_bitboard_slide_south():
                  11010111
                  11111101
                  ''')
-    
+
     expected = BitBoard.from_grid('''
                  00000000
                  00001000
@@ -380,7 +380,7 @@ def test_bitboard_slide_east():
              00100000
              00000000
              ''')
-    
+
     unoccupied = BitBoard.from_grid('''
                  11111111
                  11111111
@@ -391,7 +391,7 @@ def test_bitboard_slide_east():
                  11010111
                  11111101
                  ''')
-    
+
     expected = BitBoard.from_grid('''
                  00000000
                  00001111
@@ -415,7 +415,7 @@ def test_bitboard_slide_west():
              00100000
              00000000
              ''')
-    
+
     unoccupied = BitBoard.from_grid('''
                  11111111
                  11111111
@@ -426,7 +426,7 @@ def test_bitboard_slide_west():
                  11010111
                  11111101
                  ''')
-    
+
     expected = BitBoard.from_grid('''
                  00000000
                  11111000
@@ -450,7 +450,7 @@ def test_bitboard_slide_northeast():
              00100000
              00000000
              ''')
-    
+
     unoccupied = BitBoard.from_grid('''
                  11111111
                  11111111
@@ -461,7 +461,7 @@ def test_bitboard_slide_northeast():
                  11010111
                  11111101
                  ''')
-    
+
     expected = BitBoard.from_grid('''
                  00001100
                  00011000
@@ -485,7 +485,7 @@ def test_bitboard_slide_northwest():
              00100000
              00000100
              ''')
-    
+
     unoccupied = BitBoard.from_grid('''
                  11111111
                  11111111
@@ -496,7 +496,7 @@ def test_bitboard_slide_northwest():
                  11010111
                  11111101
                  ''')
-    
+
     expected = BitBoard.from_grid('''
                  10010000
                  01001000
@@ -520,7 +520,7 @@ def test_bitboard_slide_southeast():
              00100000
              00000100
              ''')
-    
+
     unoccupied = BitBoard.from_grid('''
                  11111111
                  11111111
@@ -531,7 +531,7 @@ def test_bitboard_slide_southeast():
                  11010111
                  11111101
                  ''')
-    
+
     expected = BitBoard.from_grid('''
                  00000000
                  00001000
@@ -555,7 +555,7 @@ def test_bitboard_slide_southwest():
              00100000
              00000100
              ''')
-    
+
     unoccupied = BitBoard.from_grid('''
                  11111111
                  11111111
@@ -566,7 +566,7 @@ def test_bitboard_slide_southwest():
                  11010111
                  11111101
                  ''')
-    
+
     expected = BitBoard.from_grid('''
                  00000000
                  00001000
@@ -585,6 +585,51 @@ def test_bitboard_ls1b():
     bb = BitBoard.from_str(s)
     assert_equal(e, bb.ls1b().to_str())
 
+def test_step_north():
+    pieces = BitBoard.from_grid('''
+             00000000
+             00000000
+             00000000
+             00000000
+             00000000
+             00100000
+             00000000
+             00000001
+             ''')
+
+    expected = BitBoard.from_grid('''
+               00000000
+               00000000
+               00000000
+               00000000
+               00100000
+               00000000
+               00000001
+               00000000
+               ''')
+    assert_equal(pieces.step_north(), expected)
+    pieces = BitBoard.from_grid('''
+             00010000
+             00000000
+             00000000
+             00000000
+             00000000
+             00000000
+             00000000
+             00000000
+             ''')
+
+    expected = BitBoard.from_grid('''
+               00000000
+               00000000
+               00000000
+               00000000
+               00000000
+               00000000
+               00000000
+               00000000
+               ''')
+    assert_equal(pieces.step_north(), expected)
 
 
 if __name__ == '__main__':
