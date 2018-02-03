@@ -543,6 +543,8 @@ typedef struct {
 	piece captured;
 	bool lost_castle_king;
 	bool lost_castle_queen;
+	brdidx enpassant;
+	int previous_halfmove_clock;
 	brdidx from_square;
 	brdidx to_square;
 } moverecord;
@@ -566,7 +568,7 @@ inline unsigned int get_halfmove_clock(boardstate *bs){
 };
 
 inline void set_halfmove_clock(boardstate *bs, unsigned int n){
-	bs->halfmove_clock = n;
+	(bs->halfmove_clock) = n;
 };
 
 inline unsigned int get_fullmove_counter(boardstate *bs){
@@ -602,29 +604,28 @@ inline void unset_white_castle_queen(boardstate *bs){
 	bs->white_castle_queen = false;
 };
 
-
 inline bool get_black_castle_king(boardstate *bs){
-	return(bs->white_castle_king);
+	return(bs->black_castle_king);
 };
 
 inline void set_black_castle_king(boardstate *bs){
-	bs->white_castle_king = true;
+	bs->black_castle_king = true;
 };
 
 inline void unset_black_castle_king(boardstate *bs){
-	bs->white_castle_king = false;
+	bs->black_castle_king = false;
 };
 
 inline bool get_black_castle_queen(boardstate *bs){
-	return(bs->white_castle_queen);
+	return(bs->black_castle_queen);
 };
 
 inline void set_black_castle_queen(boardstate *bs){
-	bs->white_castle_queen = true;
+	bs->black_castle_queen = true;
 };
 
 inline void unset_black_castle_queen(boardstate *bs){
-	(bs->white_castle_queen) = false;
+	(bs->black_castle_queen) = false;
 };
 
 inline void flip_turn(boardstate *bs){
@@ -667,13 +668,26 @@ inline void reset_halfmove_clock(boardstate *bs){
 	(bs->halfmove_clock) = 0;
 }
 
+inline void unmake_move(boardstate *brd, moverecord *mv){
+	// switch back whose turn it is
+	flip_turn(brd);
+	
+	// change halfmove clock back
+	set_halfmove_clock(brd, mv->previous_halfmove_clock);
+	
+	
+	
+	
+}
+
 inline moverecord make_move(boardstate *brd, move *mv){
 	piece from_piece, to_piece;
 	bool lost_castle_king = false;
 	bool lost_castle_queen = false;
 	from_piece = brd->piece_map[mv->from_square];
 	to_piece = brd->piece_map[mv->to_square];
-	
+	brdidx old_enpassant = brd->enpassant;
+
 	// check for castle loss
 	switch(from_piece){
 		case K:
@@ -706,25 +720,26 @@ inline moverecord make_move(boardstate *brd, move *mv){
 			break;
 		default:
 			break;
-	
+
 	}// end check for castle loss
-	
+
 	// check for new en passant
 	brdidx new_enpassant;
-	if((from_piece == P) && 
+	if((from_piece == P) &&
 		(square_index_to_rank_index(mv->from_square) == 1) &&
 		(square_index_to_rank_index(mv->to_square) == 3)){
 		new_enpassant = (mv->to_square) - 8;
-	}else if((from_piece == p) && 
+	}else if((from_piece == p) &&
 		(square_index_to_rank_index(mv->from_square) == 6) &&
 		(square_index_to_rank_index(mv->to_square) == 4)){
 		new_enpassant = (mv->to_square) + 8;
 	}else{
 		new_enpassant = no_enpassant;
 	}
-	
+
 	// update board state
 	unplace_piece(brd, mv->from_square);
+	//perform en passant
 	if(to_piece==ep){
 		//remove black pawn for en_passant capture
 		unplace_piece(brd, (mv->to_square) - 8);
@@ -732,6 +747,25 @@ inline moverecord make_move(boardstate *brd, move *mv){
 		//remove white pawn for en_passant capture
 		unplace_piece(brd, (mv->to_square) + 8);
 	}
+	//perform castling
+	if(from_piece==K && (mv->to_square - mv->from_square == 2)){
+		//white castle king side
+		unplace_piece(brd, 7);
+		place_piece(brd, 5, R);
+	}else if(from_piece==K && (mv->from_square - mv->to_square == 2)){
+		//white castle queen side
+		unplace_piece(brd, 0);
+		place_piece(brd, 3, R);
+	}else if(from_piece==k && (mv->to_square - mv->from_square == 2)){
+		//black castle king side
+		unplace_piece(brd, 63);
+		place_piece(brd, 61, r);
+	}else if(from_piece==k && (mv->from_square - mv->to_square == 2)){
+		//black castle queen side
+		unplace_piece(brd, 56);
+		place_piece(brd, 59, r);
+	}
+	//continue regular move stuff
 	place_piece(brd, mv->to_square, from_piece);
 	set_enpassant(brd, new_enpassant);
 	if(brd->whites_turn){
@@ -750,14 +784,19 @@ inline moverecord make_move(boardstate *brd, move *mv){
 			unset_black_castle_queen(brd);
 		}
 	}
+	int previous_halfmove_clock = get_halfmove_clock(brd);
 	if((to_piece != no) || (from_piece == p) || (from_piece == P)){
 		reset_halfmove_clock(brd);
 	}else{
 		increment_halfmove_clock(brd);
 	}
+	
+	// Take turns, people
 	flip_turn(brd);
 	
-	moverecord record = {to_piece, lost_castle_king, lost_castle_queen, 
+	// Remember what we did
+	moverecord record = {to_piece, lost_castle_king, lost_castle_queen,
+						 old_enpassant, previous_halfmove_clock, 
 						 mv->from_square, mv->to_square};
 	return(record);
 }

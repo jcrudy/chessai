@@ -58,6 +58,8 @@ cdef extern from "bitboardlib.h":
         piece captured
         bool lost_castle_king
         bool lost_castle_queen
+        brdidx enpassant
+        int previous_halfmove_clock
         brdidx from_square
         brdidx to_square
 
@@ -466,7 +468,23 @@ cdef class BitBoardState:
     cpdef int get_enpassant(BitBoardState self):
         cdef int result = self.bs.enpassant
         return result
-
+    
+    cpdef bool get_white_castle_king(BitBoardState self):
+        cdef bool result = get_white_castle_king(&(self.bs))
+        return result
+    
+    cpdef bool get_white_castle_queen(BitBoardState self):
+        cdef bool result = get_white_castle_queen(&(self.bs))
+        return result
+    
+    cpdef bool get_black_castle_king(BitBoardState self):
+        cdef bool result = get_black_castle_king(&(self.bs))
+        return result
+    
+    cpdef bool get_black_castle_queen(BitBoardState self):
+        cdef bool result = get_black_castle_queen(&(self.bs))
+        return result
+    
 cpdef int algebraic_to_int(str alg):
     return ord(alg[0].lower()) - ord('a') + 8 * (int(alg[1]) - 1)
 
