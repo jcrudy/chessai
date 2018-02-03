@@ -660,6 +660,10 @@ inline void increment_fullmove_counter(boardstate *bs){
 	(bs->fullmove_counter)++;
 }
 
+inline void decrement_fullmove_counter(boardstate *bs){
+	(bs->fullmove_counter)--;
+}
+
 inline void increment_halfmove_clock(boardstate *bs){
 	(bs->halfmove_clock)++;
 }
@@ -675,8 +679,58 @@ inline void unmake_move(boardstate *brd, moverecord *mv){
 	// change halfmove clock back
 	set_halfmove_clock(brd, mv->previous_halfmove_clock);
 	
+	// fulllmove counter and castle rights
+	if(brd->whites_turn){
+		if(mv->lost_castle_king){
+			set_white_castle_king(brd);
+		}
+		if(mv->lost_castle_queen){
+			set_white_castle_queen(brd);
+		}
+	}else{
+		decrement_fullmove_counter(brd);
+		if(mv->lost_castle_king){
+			set_black_castle_king(brd);
+		}
+		if(mv->lost_castle_queen){
+			set_black_castle_queen(brd);
+		}
+	}
 	
+	// undo the actual move
+	piece from_piece = brd->piece_map[mv->to_square];
+	unplace_piece(brd, mv->to_square);
+	place_piece(brd, mv->from_square, from_piece);
+	// check for castling
+	if(from_piece==K && (mv->to_square - mv->from_square == 2)){
+		//white castle king side
+		unplace_piece(brd, 5);
+		place_piece(brd, 7, R);
+	}else if(from_piece==K && (mv->from_square - mv->to_square == 2)){
+		//white castle queen side
+		unplace_piece(brd, 3);
+		place_piece(brd, 0, R);
+	}else if(from_piece==k && (mv->to_square - mv->from_square == 2)){
+		//black castle king side
+		unplace_piece(brd, 61);
+		place_piece(brd, 63, r);
+	}else if(from_piece==k && (mv->from_square - mv->to_square == 2)){
+		//black castle queen side
+		unplace_piece(brd, 59);
+		place_piece(brd, 56, r);
+	}
 	
+	// undo capture, checking for en passant
+	if(mv->captured==ep){
+		place_piece(brd, (mv->to_square) - 8, p);
+	}else if(mv->captured==EP){
+		place_piece(brd, (mv->to_square) + 8, P);
+	}else{
+		place_piece(brd, mv->to_square, mv->captured);
+	}
+	
+	// reset en passant status
+	set_enpassant(brd, mv->enpassant);
 	
 }
 

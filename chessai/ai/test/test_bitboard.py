@@ -122,17 +122,28 @@ def test_make_move():
     board = BitBoardState.from_fen(starting_fen)
     record = board.make_move(Move(12, 20))
     assert_equal(board.to_fen(), 'rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1')
-
+    board.unmake_move(record)
+    assert_equal(board.to_fen(), starting_fen) 
+    
+    
     # Try moving king's pawn two spaces, thus invoking en passant
     board = BitBoardState.from_fen(starting_fen)
     record = board.make_move(Move(12, 28))
     assert_equal(board.get_enpassant(), 20)
     assert_equal(board.to_fen(), 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1')
-
+    board.unmake_move(record)
+    assert_equal(board.to_fen(), starting_fen) 
+    
     # Attempt an en passant capture
     record_stack = []
+    fen_stack = [starting_fen]
     board = BitBoardState.from_fen(starting_fen)
-    record_stack.append(board.make_move(Move(12, 28)))
+    move = Move(12, 28)
+    record = board.make_move(move)
+    record_stack.append(record)
+    assert_equal(record.from_square, move.from_square)
+    assert_equal(record.to_square, move.to_square)
+    fen_stack.append(board.to_fen())
     assert_equal(
                  '''
                  rnbqkbnr
@@ -146,7 +157,12 @@ def test_make_move():
                  '''.replace(' ','').strip(),
                  board.to_grid()
                  )
-    record_stack.append(board.make_move(Move(48, 40)))
+    move = Move(48, 40)
+    record = board.make_move(move)
+    record_stack.append(record)
+    assert_equal(record.from_square, move.from_square)
+    assert_equal(record.to_square, move.to_square)
+    fen_stack.append(board.to_fen())
     assert_equal(
                  '''
                  rnbqkbnr
@@ -160,7 +176,12 @@ def test_make_move():
                  '''.replace(' ','').strip(),
                  board.to_grid()
                  )
-    record_stack.append(board.make_move(Move(28, 36)))
+    move = Move(28, 36)
+    record = board.make_move(move)
+    record_stack.append(record)
+    assert_equal(record.from_square, move.from_square)
+    assert_equal(record.to_square, move.to_square)
+    fen_stack.append(board.to_fen())
     assert_equal(
                  '''
                  rnbqkbnr
@@ -174,7 +195,12 @@ def test_make_move():
                  '''.replace(' ','').strip(),
                  board.to_grid()
                  )
-    record_stack.append(board.make_move(Move(51, 35)))
+    move = Move(51, 35)
+    record = board.make_move(move)
+    record_stack.append(record)
+    assert_equal(record.from_square, move.from_square)
+    assert_equal(record.to_square, move.to_square)
+    fen_stack.append(board.to_fen())
     assert_equal(
                  '''
                  rnbqkbnr
@@ -189,7 +215,12 @@ def test_make_move():
                  board.to_grid()
                  )
     assert_equal(board.get_enpassant(), 43)
-    record_stack.append(board.make_move(Move(36, 43)))
+    move = Move(36, 43)
+    record = board.make_move(move)
+    record_stack.append(record)
+    assert_equal(record.from_square, move.from_square)
+    assert_equal(record.to_square, move.to_square)
+    fen_stack.append(board.to_fen())
     assert_equal(
                  '''
                  rnbqkbnr
@@ -204,6 +235,7 @@ def test_make_move():
                  board.to_grid()
                  )
     record_stack.append(board.make_move(Move(52, 36)))
+    fen_stack.append(board.to_fen())
     assert_equal(
                  '''
                  rnbqkbnr
@@ -217,27 +249,42 @@ def test_make_move():
                  '''.replace(' ','').strip(),
                  board.to_grid()
                  )
-    
+    fen = fen_stack.pop(-1)
+    assert_equal(fen, board.to_fen())
+    while record_stack:
+        record = record_stack.pop(-1)
+        board.unmake_move(record)
+        fen = fen_stack.pop(-1)
+        assert_equal(fen, board.to_fen())
+    assert_equal(board.to_fen(), starting_fen) 
+        
     # Try white castle king side
     board = BitBoardState.from_fen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQK2R w KQkq - 0 1')
     record = board.make_move(Move(4, 6))
     assert_equal(board.to_fen(), 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1RK1 b kq - 1 1')
+    board.unmake_move(record)
+    assert_equal(board.to_fen(), 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQK2R w KQkq - 0 1')
     
     # Try white castle queen side
     board = BitBoardState.from_fen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3KBNR w KQkq - 0 1')
     record = board.make_move(Move(4, 2))
     assert_equal(board.to_fen(), 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/2KR1BNR b kq - 1 1')
+    board.unmake_move(record)
+    assert_equal(board.to_fen(), 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3KBNR w KQkq - 0 1')
     
     # Try black castle king side
     board = BitBoardState.from_fen('rnbqk2r/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1')
     record = board.make_move(Move(60, 62))
     assert_equal(board.to_fen(), 'rnbq1rk1/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 1 2')
+    board.unmake_move(record)
+    assert_equal(board.to_fen(), 'rnbqk2r/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1')
     
     # Try black castle queen side
     board = BitBoardState.from_fen('r3kbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1')
     record = board.make_move(Move(60, 58))
     assert_equal(board.to_fen(), '2kr1bnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 1 2')
-
+    board.unmake_move(record)
+    assert_equal(board.to_fen(), 'r3kbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1')
     
     
 def test_place_piece():

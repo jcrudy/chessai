@@ -64,6 +64,7 @@ cdef extern from "bitboardlib.h":
         brdidx to_square
 
     cdef moverecord make_move(boardstate *brd, move *mv);
+    cdef void unmake_move(boardstate *brd, moverecord *mv);
     cdef const boardstate emptyboardstate
     cdef bool get_white_castle_king(boardstate *bs)
     cdef void set_white_castle_king(boardstate *bs)
@@ -299,6 +300,17 @@ cdef class Move:
         mv.from_square = from_square
         mv.to_square = to_square
         self.mv = mv
+        
+    property from_square:
+        def __get__(Move self):
+            return self.mv.from_square
+#
+#         def __set__(MoveRecord self, int square_index):
+#             self.rec.from_square = square_index
+
+    property to_square:
+        def __get__(Move self):  # @DuplicatedSignature
+            return self.mv.to_square
 
 cdef class MoveRecord:
     cdef moverecord rec
@@ -355,7 +367,10 @@ cdef class BitBoardState:
         result = MoveRecord()
         result.rec = rec
         return result
-
+    
+    cpdef void unmake_move(BitBoardState self, MoveRecord mv):
+        unmake_move(&(self.bs), &(mv.rec))
+    
     cpdef to_grid_redundant(BitBoardState self):
         '''
         Use the redundant piece_map instead of the bitboards.
