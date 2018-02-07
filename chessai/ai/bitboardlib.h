@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <queue>
+#include <string>
 
 typedef uint64_t bitboard;
 
@@ -144,12 +146,40 @@ inline bitboard bitboard_from_square_index(brdidx i){
 	return(places[i]);
 }
 
+inline const char *bbstr(bitboard bb){
+	// Just for debugging
+	std::string str = std::string();
+	for(int i=0;i<64;i++){
+		if(bb & bitboard_from_square_index(i)){
+			str.push_back('1');
+		}else{
+			str.push_back('0');
+		}
+	}
+	std::string str2 = std::string();
+	for(int j=1; j<=8; j++){
+		str2 += str.substr(64 - 8*j, 8);
+		if(j<8){
+			str2.push_back(10);
+		}
+	}
+	return str2.c_str();
+}
+
 inline brdidx square_index_to_file_index(brdidx i){
 	return(i % 8);
 }
 
 inline brdidx square_index_to_rank_index(brdidx i){
 	return(i / 8);
+}
+
+inline brdidx square_index_to_diag_index(brdidx i){
+	return(square_index_to_rank_index(i) - square_index_to_file_index(i));
+}
+
+inline brdidx square_index_to_antidiag_index(brdidx i){
+	return(square_index_to_rank_index(i) + square_index_to_file_index(i) - 7);
 }
 
 inline brdidx greatest_rank_index(bitboard b){
@@ -178,6 +208,44 @@ inline bitboard unplace(bitboard b, int p){
 
 inline bitboard ls1b(bitboard b){
 	return(b & (-b));
+}
+
+inline bitboard compute_queen_moves_from_square_index(brdidx s){
+	bitboard rank, file, diag, antidiag;
+	rank = square_index_to_rank_index(s);
+	file = square_index_to_file_index(s);
+	diag = square_index_to_diag_index(s);
+	antidiag = square_index_to_antidiag_index(s);
+	return(ranks[rank] | files[file] | diags[diag] | antidiags[antidiag]);
+}
+
+// TODO: replace with lookup
+inline bitboard queen_moves_from_square_index(brdidx s){
+	return(compute_queen_moves_from_square_index(s));
+}
+
+inline bitboard compute_rook_moves_from_square_index(brdidx s){
+	bitboard rank, file;
+	rank = square_index_to_rank_index(s);
+	file = square_index_to_file_index(s);
+	return(ranks[rank] | files[file]);
+}
+
+// TODO: replace with lookup
+inline bitboard rook_moves_from_square_index(brdidx s){
+	return(compute_rook_moves_from_square_index(s));
+}
+
+inline bitboard compute_bishop_moves_from_square_index(brdidx s){
+	bitboard diag, antidiag;
+	diag = square_index_to_diag_index(s);
+	antidiag = square_index_to_antidiag_index(s);
+	return(diags[diag] | antidiags[antidiag]);
+}
+
+// TODO: replace with lookup
+inline bitboard bishop_moves_from_square_index(brdidx s){
+	return(compute_bishop_moves_from_square_index(s));
 }
 
 inline bitboard step_north(bitboard b){
@@ -537,6 +605,7 @@ extern const boardstate emptyboardstate;
 typedef struct {
 	brdidx from_square;
 	brdidx to_square;
+	piece promotion;
 } move;
 
 typedef struct {
@@ -547,6 +616,7 @@ typedef struct {
 	int previous_halfmove_clock;
 	brdidx from_square;
 	brdidx to_square;
+	piece promoted_from;
 } moverecord;
 
 inline uint8_t get_enpassant(boardstate *bs){
@@ -578,7 +648,6 @@ inline unsigned int get_fullmove_counter(boardstate *bs){
 inline void set_fullmove_counter(boardstate *bs, unsigned int n){
 	bs->fullmove_counter = n;
 };
-
 
 inline bool get_white_castle_king(boardstate *bs){
 	return(bs->white_castle_king);
@@ -656,6 +725,22 @@ inline void unset_blacks_turn(boardstate *bs){
 	set_whites_turn(bs);
 };
 
+inline bitboard get_current_movers_bitboard(boardstate *bs){
+	if(get_whites_turn(bs)){
+		return(bs->white);
+	}else{
+		return(bs->black);
+	}
+}
+
+inline bitboard get_opposing_movers_bitboard(boardstate *bs){
+	if(get_whites_turn(bs)){
+		return(bs->black);
+	}else{
+		return(bs->white);
+	}
+}
+
 inline void increment_fullmove_counter(boardstate *bs){
 	(bs->fullmove_counter)++;
 }
@@ -675,6 +760,14 @@ inline void reset_halfmove_clock(boardstate *bs){
 inline void unmake_move(boardstate *brd, moverecord *mv){
 	// switch back whose turn it is
 	flip_turn(brd);
+	
+	// check for promotion
+	piece from_piece = brd->piece_map[mv->to_square];
+	if (mv->promoted_from != from_piece){
+		unplace_piece(brd, mv->to_square);
+		place_piece(brd, mv->to_square, mv->promoted_from);
+		from_piece = mv->promoted_from;
+	}
 	
 	// change halfmove clock back
 	set_halfmove_clock(brd, mv->previous_halfmove_clock);
@@ -698,7 +791,6 @@ inline void unmake_move(boardstate *brd, moverecord *mv){
 	}
 	
 	// undo the actual move
-	piece from_piece = brd->piece_map[mv->to_square];
 	unplace_piece(brd, mv->to_square);
 	place_piece(brd, mv->from_square, from_piece);
 	// check for castling
@@ -845,14 +937,166 @@ inline moverecord make_move(boardstate *brd, move *mv){
 		increment_halfmove_clock(brd);
 	}
 	
+	// check for promotion
+	if (mv->promotion != no){
+		unplace_piece(brd, mv->to_square);
+		place_piece(brd, mv->to_square, mv->promotion);
+	}
+	
 	// Take turns, people
 	flip_turn(brd);
 	
 	// Remember what we did
 	moverecord record = {to_piece, lost_castle_king, lost_castle_queen,
 						 old_enpassant, previous_halfmove_clock, 
-						 mv->from_square, mv->to_square};
+						 mv->from_square, mv->to_square, from_piece};
 	return(record);
+}
+
+inline bitboard checking_rays_intersection(boardstate *brd){
+	// Return the intersection of all rays by which the current mover's king is in check
+	// by sliding pieces.  If no such rays, return the set of all squares (the empty intersection).
+	bitboard king_board = brd->k & get_current_movers_bitboard(brd);
+	bitboard all_but_king_prop = ~((brd->white | brd->black) & (~(brd->k)));
+	brdidx king_square = greatest_square_index(king_board);
+	brdidx king_rank = square_index_to_rank_index(king_square);
+	//brdidx king_file = square_index_to_file_index(king_square);
+	brdidx king_diag = square_index_to_diag_index(king_square);
+	//brdidx king_antidiag = square_index_to_antidiag_index(king_square);
+	
+	bitboard result = full;
+	bitboard slide;
+	bitboard current_attacker;
+	brdidx current_attacker_square;
+	brdidx attacker_file, attacker_rank, attacker_diag, attacker_antidiag;
+	bitboard attackers;
+	
+	// Check for attacking rooks and queens
+	attackers = rook_moves_from_square_index(king_square) & get_opposing_movers_bitboard(brd) & (brd->r | brd->q);
+	while(attackers){
+		current_attacker = ls1b(attackers);
+		attackers &= ~current_attacker;
+		current_attacker_square = greatest_square_index(current_attacker);
+		attacker_rank = square_index_to_rank_index(current_attacker_square);
+		attacker_file = square_index_to_file_index(current_attacker_square);
+		if(current_attacker < king_board){
+			if(king_rank == attacker_rank){
+				slide = slide_east(current_attacker, all_but_king_prop);
+				if(slide & king_board){
+					result &= slide;
+				}
+			}else{//king_file == attacker_file
+				slide = slide_north(current_attacker, all_but_king_prop);
+				if(slide & king_board){
+					result &= slide;
+				}
+			}
+		}else{//current_attacker > king_board
+			if(king_rank == attacker_rank){
+				slide = slide_west(current_attacker, all_but_king_prop);
+				if(slide & king_board){
+					result &= slide;
+				}
+			}else{//king_file == attacker_file
+				slide = slide_south(current_attacker, all_but_king_prop);
+				if(slide & king_board){
+					result &= slide;
+				}
+			}
+		}
+	}
+	// Check for attacking bishops and queens
+	attackers = bishop_moves_from_square_index(king_square) & get_opposing_movers_bitboard(brd) & (brd->r | brd->q);
+	while(attackers){
+		current_attacker = ls1b(attackers);
+		attackers &= ~current_attacker;
+		current_attacker_square = greatest_square_index(current_attacker);
+		attacker_diag = square_index_to_diag_index(current_attacker_square);
+		attacker_antidiag = square_index_to_antidiag_index(current_attacker_square);
+		if(current_attacker < king_board){
+			if(king_diag == attacker_diag){
+				slide = slide_northeast(current_attacker, all_but_king_prop);
+				if(slide & king_board){
+					result &= slide;
+				}
+			}else{//king_antidiag == attacker_antidiag
+				slide = slide_northwest(current_attacker, all_but_king_prop);
+				if(slide & king_board){
+					result &= slide;
+				}
+			}
+		}else{//current_attacker > king_board
+			if(king_diag == attacker_diag){
+				slide = slide_southeast(current_attacker, all_but_king_prop);
+				if(slide & king_board){
+					result &= slide;
+				}
+			}else{//king_antidiag == attacker_antidiag
+				slide = slide_southeast(current_attacker, all_but_king_prop);
+				if(slide & king_board){
+					result &= slide;
+				}
+			}
+		}
+	if(result == king_board){
+		break;
+	}
+	}
+	return(result);
+}
+
+
+inline void quiet_queen_moves(boardstate *brd, std::queue<move> &moves){
+	bitboard unoccupied = ~(brd->white | brd->black);
+	bitboard propagator;
+	bitboard queens;
+	if(get_whites_turn(brd)){
+		queens = brd->white & brd->q;
+	}else{
+		queens = brd->black & brd->q;
+	}
+	bitboard targets;
+	bitboard current_target, current_source;
+	brdidx target_square, source_square;
+	
+	move mv;
+	while(queens){
+		current_source = ls1b(queens);
+		queens &= (~current_source);
+		source_square = greatest_square_index(current_source);
+		
+		// propagator takes care of pinning
+		propagator = unoccupied;
+		unplace_piece(brd, source_square);
+		propagator &= checking_rays_intersection(brd);
+		if(get_whites_turn(brd)){
+			unsafe_place_piece(brd, source_square, Q);
+		}else{
+			unsafe_place_piece(brd, source_square, q);
+		}
+		
+		targets = empty;
+		targets |= slide_east(current_source, propagator);
+		targets |= slide_northeast(current_source, propagator);
+		targets |= slide_north(current_source, propagator);
+		targets |= slide_northwest(current_source, propagator);
+		targets |= slide_west(current_source, propagator);
+		targets |= slide_southwest(current_source, propagator);
+		targets |= slide_south(current_source, propagator);
+		targets |= slide_southeast(current_source, propagator);
+		targets &= (~current_source);
+		
+		while(targets){
+			current_target = ls1b(targets);
+			targets &= (~current_target);
+			target_square = greatest_square_index(current_target);
+			mv = move();
+			mv.from_square = source_square;
+			mv.to_square = target_square;
+			mv.promotion = no;
+			moves.push(mv);
+		}
+	}
 }
 
 

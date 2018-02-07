@@ -4,6 +4,7 @@ from cpython.object cimport Py_EQ
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 from toolz import partition
 from operator import methodcaller
+from libcpp.queue cimport queue
 
 cdef extern from "stdbool.h":
     ctypedef char bool
@@ -53,6 +54,7 @@ cdef extern from "bitboardlib.h":
     ctypedef struct move:
         brdidx from_square
         brdidx to_square
+        piece promotion
 
     ctypedef struct moverecord:
         piece captured
@@ -62,6 +64,7 @@ cdef extern from "bitboardlib.h":
         int previous_halfmove_clock
         brdidx from_square
         brdidx to_square
+        piece promoted_from
 
     cdef moverecord make_move(boardstate *brd, move *mv);
     cdef void unmake_move(boardstate *brd, moverecord *mv);
@@ -111,6 +114,7 @@ cdef extern from "bitboardlib.h":
     cdef bitboard bitboard_from_square_index(int i)
     cdef void unplace_piece(boardstate *bs, brdidx square_index)
     cdef void place_piece(boardstate *bs, brdidx square_index, piece pc)
+    cdef void quiet_queen_moves(boardstate *brd, queue[move] &moves)
 
 cpdef bitboard_to_str(bitboard bb):
     cdef int i
@@ -294,13 +298,28 @@ cdef str piece_to_str(piece pc):
     return c
 
 cdef class Move:
-    cdef move mv
-    def __init__(Move self, int from_square, int to_square):
+    cdef readonly move mv
+    def __init__(Move self, int from_square, int to_square, str promotion='no'):
         cdef move mv
         mv.from_square = from_square
         mv.to_square = to_square
+        mv.promotion = str_to_piece(promotion)
         self.mv = mv
         
+    def __richcmp__(Move self, other, op):
+        if op != Py_EQ or not isinstance(other, Move):
+            return NotImplemented
+        if self.mv == other.mv:
+            return True
+        else:
+            return False
+    
+    def __hash__(Move self):
+        return hash((self.from_square, self.to_square, self.promotion))
+    
+    def __repr__(Move self):
+        return 'Move(%d, %d, %s)' % (self.from_square, self.to_square, self.promotion)
+    
     property from_square:
         def __get__(Move self):
             return self.mv.from_square
@@ -311,6 +330,10 @@ cdef class Move:
     property to_square:
         def __get__(Move self):  # @DuplicatedSignature
             return self.mv.to_square
+        
+    property promotion:
+        def __get__(Move self):  # @DuplicatedSignature
+            return piece_to_str(self.mv.promotion)
 
 cdef class MoveRecord:
     cdef moverecord rec
@@ -345,10 +368,25 @@ cdef class MoveRecord:
                 return True
             else:
                 return False
-
+    
+    property promoted_from:
+        def __get__(Move self):  # @DuplicatedSignature
+            return piece_to_str(self.rec.promoted_from)
+        
 cdef class BitBoardState:
     cdef boardstate bs
-
+    
+    cpdef quiet_queen_moves(BitBoardState self):
+        cdef queue[move] q = queue[move]()
+        quiet_queen_moves(&(self.bs), q)
+        cdef list result = []
+        cdef move mv
+        while not q.empty():
+            mv = q.front()
+            q.pop()
+            result.append(Move(mv.from_square, mv.to_square))
+        return result
+    
     cpdef place_piece(BitBoardState self, int idx, str pc):
         place_piece(&(self.bs), <brdidx> idx, str_to_piece(pc))
 

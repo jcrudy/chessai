@@ -115,6 +115,46 @@ def test_algebraic():
         assert_equal(int_to_algebraic(ind), alg)
         assert_equal(ind, algebraic_to_int(alg))
 
+def test_promotion():
+    fen = '4k3/P7/8/8/8/8/8/8 w - - 0 100'
+    board = BitBoardState.from_fen(fen)
+    move = Move(48, 56, 'Q')
+    record = board.make_move(move)
+    assert_equal(record.promoted_from, 'P')
+    assert_equal(board.to_fen(), 'Q3k3/8/8/8/8/8/8/8 b - - 0 100')
+    board.unmake_move(record)
+    assert_equal(board.to_fen(), fen)
+
+def test_quiet_queen_moves():
+    fen = 'rnbqkbnr/pppppppp/8/8/8/3P4/PPP1PPPP/RNBQKBNR w KQkq - 0 1'
+    moves = set(BitBoardState.from_fen(fen).quiet_queen_moves())
+    assert_equal(moves, {Move(3, 11)})
+     
+    fen = 'rnbqkbnr/pppppppp/8/8/8/2PP4/PP2PPPP/RNBQKBNR w KQkq - 0 1'
+    moves = set(BitBoardState.from_fen(fen).quiet_queen_moves())
+    assert_equal(moves, {Move(3, 11), Move(3, 10), Move(3, 17), Move(3, 24)})
+     
+    fen = 'rnbqkbnr/pppppppp/8/8/8/1pPP4/PP2PPPP/RNBQKBNR w KQkq - 0 1'
+    moves = set(BitBoardState.from_fen(fen).quiet_queen_moves())
+    assert_equal(moves, {Move(3, 11), Move(3, 10)})
+     
+    fen = 'rnbqkbnQ/ppppppp1/8/8/8/1pPP4/PP2PPPP/RNBQKBNR w KQkq - 0 1'
+    moves = set(BitBoardState.from_fen(fen).quiet_queen_moves())
+    assert_equal(moves, {Move(3, 11), Move(3, 10), Move(63, 63-8), Move(63, 63-16),
+                         Move(63, 63-24), Move(63, 63-32), Move(63, 63-40)})
+     
+    fen = 'rnbqkbnr/ppp1pppp/8/8/8/3P4/PPP1PPPP/RNBQKBNR b KQkq - 0 1'
+    moves = set(BitBoardState.from_fen(fen).quiet_queen_moves())
+    assert_equal(moves, {Move(59, 59-8), Move(59, 59-16), Move(59, 59-24), 
+                         Move(59, 59-32)})
+    
+    # Make sure a pinned queen doesn't move out of the pin ray
+    fen = 'rnb1kbnr/4q3/8/8/8/8/PPPPRPPP/RNBQKBNR b KQkq - 0 1'
+    moves = set(BitBoardState.from_fen(fen).quiet_queen_moves())
+    assert_equal(moves, {Move(52, 52-8), Move(52, 52-16), Move(52, 52-24),
+                         Move(52, 52-32)})
+    
+    
 def test_make_move():
     starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 
