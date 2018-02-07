@@ -964,7 +964,6 @@ inline bitboard checking_rays_intersection(boardstate *brd){
 	brdidx king_diag = square_index_to_diag_index(king_square);
 	//brdidx king_antidiag = square_index_to_antidiag_index(king_square);
 	
-	bitboard result = full;
 	bitboard slide;
 	bitboard current_attacker;
 	brdidx current_attacker_square;
@@ -983,24 +982,24 @@ inline bitboard checking_rays_intersection(boardstate *brd){
 			if(king_rank == attacker_rank){
 				slide = slide_east(current_attacker, all_but_king_prop);
 				if(slide & king_board){
-					result &= slide;
+					return(slide);
 				}
 			}else{//king_file == attacker_file
 				slide = slide_north(current_attacker, all_but_king_prop);
 				if(slide & king_board){
-					result &= slide;
+					return(slide);
 				}
 			}
 		}else{//current_attacker > king_board
 			if(king_rank == attacker_rank){
 				slide = slide_west(current_attacker, all_but_king_prop);
 				if(slide & king_board){
-					result &= slide;
+					return(slide);
 				}
 			}else{//king_file == attacker_file
 				slide = slide_south(current_attacker, all_but_king_prop);
 				if(slide & king_board){
-					result &= slide;
+					return(slide);
 				}
 			}
 		}
@@ -1017,32 +1016,29 @@ inline bitboard checking_rays_intersection(boardstate *brd){
 			if(king_diag == attacker_diag){
 				slide = slide_northeast(current_attacker, all_but_king_prop);
 				if(slide & king_board){
-					result &= slide;
+					return(slide);
 				}
 			}else{//king_antidiag == attacker_antidiag
 				slide = slide_northwest(current_attacker, all_but_king_prop);
 				if(slide & king_board){
-					result &= slide;
+					return(slide);
 				}
 			}
 		}else{//current_attacker > king_board
 			if(king_diag == attacker_diag){
 				slide = slide_southeast(current_attacker, all_but_king_prop);
 				if(slide & king_board){
-					result &= slide;
+					return(slide);
 				}
 			}else{//king_antidiag == attacker_antidiag
 				slide = slide_southeast(current_attacker, all_but_king_prop);
 				if(slide & king_board){
-					result &= slide;
+					return(slide);
 				}
 			}
 		}
-	if(result == king_board){
-		break;
 	}
-	}
-	return(result);
+	return(full);
 }
 
 
