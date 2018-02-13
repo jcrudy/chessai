@@ -1,12 +1,12 @@
 from chessai.ai.bitboard import BitBoardState, BitBoard, Move, MoveRecord,\
     int_to_algebraic, algebraic_to_int
-from nose.tools import assert_equal
+from nose.tools import assert_equal, assert_list_equal
 import random
 import chess
 
 def chess_move_to_black_move(chess_move):
     promotion_dict = {5: 'q', 4:'r', 3:'b', 2:'n'}
-    mv = Move(chess_move.from_square, chess_move.to_square(), 
+    mv = Move(chess_move.from_square, chess_move.to_square, 
               promotion_dict[chess_move.promotion] if chess_move.promotion else 'no')
     return mv
 
@@ -508,7 +508,56 @@ def test_to_grid():
            '''.strip().replace(' ', '')
     bb = BitBoardState.from_fen(fen)
     assert_equal(bb.to_grid(), grid)
+    
+def test_perft():
+    starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    def compute_perft(n):
+        return BitBoardState.from_fen(starting_fen).perft(n)
+     
+    perft_result = list(map(compute_perft, range(6)))
+    expected = [1,20,400,8902,197281,4865609]#,119060324]
+    assert_list_equal(perft_result, expected)
 
+def confirm_moves(fen, depth):
+    moves = BitBoardState.from_fen(fen).all_moves()
+    expected_moves = all_moves_from_chess_package(fen)
+    try:
+        assert_equal(set(moves), set(expected_moves))
+    except AssertionError:
+        print(fen)
+        print(BitBoardState.from_fen(fen).to_grid())
+        raise
+    if depth <= 1:
+        return
+    for move in moves:
+        board = BitBoardState.from_fen(fen)
+        board.make_move(move)
+        confirm_moves(board.to_fen(), depth-1)
+
+def test_move_tree_depth_2():
+    starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    confirm_moves(starting_fen, 2)
+
+def test_a_position():
+    fen = 'rnb1kbnr/pppp1ppp/8/4p3/7q/P7/RPPPPPPP/1NBQKBNR w Kkq - 2 3'
+    board = BitBoardState.from_fen(fen)
+    print(board.to_grid())
+    moves = board.all_moves()
+    expected_moves = all_moves_from_chess_package(fen)
+    assert_equal(set(moves), set(expected_moves))
+    
+def test_move_tree_depth_3():
+    starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    confirm_moves(starting_fen, 3)
+
+def test_move_tree_depth_4():
+    starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    confirm_moves(starting_fen, 4)
+
+def test_move_tree_depth_5():
+    starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    confirm_moves(starting_fen, 5)
+    
 def test_move_generation():
     # The following two positions should have 218 moves each.
     # See https://chessprogramming.wikispaces.com/Encoding+Moves
@@ -944,6 +993,8 @@ def test_step_north():
 
 
 if __name__ == '__main__':
+#     test_a_position()
+#     exit()
     # This code will run the test in this file.'
     import sys
     import nose

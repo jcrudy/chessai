@@ -118,6 +118,7 @@ cdef extern from "bitboardlib.h":
     cdef void all_queen_moves(boardstate *brd, queue[move] &moves)
     cdef void queen_captures(boardstate *brd, queue[move] &moves)
     cdef void all_moves(boardstate *brd, queue[move] &moves)
+    cdef unsigned long long perft(boardstate *brd, int depth);
 
 cpdef bitboard_to_str(bitboard bb):
     cdef int i
@@ -383,6 +384,9 @@ cdef class MoveRecord:
         
 cdef class BitBoardState:
     cdef boardstate bs
+    
+    cpdef unsigned long long perft(BitBoardState self, int depth):
+        return perft(&(self.bs), depth)
     
     cpdef all_moves(BitBoardState self):
         cdef queue[move] mvs = queue[move]()

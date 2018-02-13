@@ -133,3 +133,27 @@ const brdidx no_enpassant = 0b11111111;
 const boardstate emptyboardstate = {empty,empty,empty,empty,
 									empty,empty,empty,empty,
 									no_enpassant, 0, 0, 0, 0, 0, 0, 0};
+
+unsigned long long perft(boardstate *brd, int depth){
+    std::queue<move> moves = std::queue<move>();
+    all_moves(brd, moves);
+    int n_moves = moves.size();
+    moverecord rec;
+    move mv;
+    unsigned long long result = 0;
+    if(depth == 0){
+    	return(1);
+    }
+    if(depth == 1){
+    	return(n_moves);
+    }
+    for(int i = 0; i<n_moves; i++){
+    	mv = moves.front();
+    	moves.pop();
+    	rec = make_move(brd, &mv);
+    	result += perft(brd, depth - 1);
+    	unmake_move(brd, &rec);
+    }
+    return(result);
+}
+									

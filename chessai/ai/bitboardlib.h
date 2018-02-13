@@ -175,11 +175,13 @@ inline brdidx square_index_to_rank_index(brdidx i){
 }
 
 inline brdidx square_index_to_diag_index(brdidx i){
-	return(square_index_to_rank_index(i) - square_index_to_file_index(i));
+	return((square_index_to_rank_index(i) - square_index_to_file_index(i)) & 15);
+//	return(7 + square_index_to_rank_index(i) - square_index_to_file_index(i));
 }
 
 inline brdidx square_index_to_antidiag_index(brdidx i){
-	return(square_index_to_rank_index(i) + square_index_to_file_index(i) - 7);
+	return(7 ^ (square_index_to_rank_index(i) + square_index_to_file_index(i)));
+//	return(square_index_to_rank_index(i) + square_index_to_file_index(i));
 }
 
 inline brdidx greatest_rank_index(bitboard b){
@@ -451,7 +453,7 @@ inline bitboard king_moves_from_square_index(brdidx s){
 }
 
 inline bitboard compute_queen_moves_from_square_index(brdidx s){
-	bitboard rank, file, diag, antidiag;
+	brdidx rank, file, diag, antidiag;
 	rank = square_index_to_rank_index(s);
 	file = square_index_to_file_index(s);
 	diag = square_index_to_diag_index(s);
@@ -465,7 +467,7 @@ inline bitboard queen_moves_from_square_index(brdidx s){
 }
 
 inline bitboard compute_rook_moves_from_square_index(brdidx s){
-	bitboard rank, file;
+	brdidx rank, file;
 	rank = square_index_to_rank_index(s);
 	file = square_index_to_file_index(s);
 	return((ranks[rank] | files[file]) ^ bitboard_from_square_index(s));
@@ -477,7 +479,7 @@ inline bitboard rook_moves_from_square_index(brdidx s){
 }
 
 inline bitboard compute_bishop_moves_from_square_index(brdidx s){
-	bitboard diag, antidiag;
+	brdidx diag, antidiag;
 	diag = square_index_to_diag_index(s);
 	antidiag = square_index_to_antidiag_index(s);
 	return((diags[diag] | antidiags[antidiag]) ^ bitboard_from_square_index(s));
@@ -1098,7 +1100,7 @@ inline bitboard checking_rays_intersection(boardstate *brd, const bool pin_check
 	// there is at most one possible pinning ray and we can terminate once we find it.
 	
 	bitboard king_board = brd->k & get_current_movers_bitboard(brd);
-	bitboard all_but_king_prop = ~((brd->white | brd->black) & (~(brd->k)));
+	bitboard all_but_king_prop = ~((brd->white | brd->black) & (~king_board));
 	brdidx king_square = greatest_square_index(king_board);
 	brdidx king_rank = square_index_to_rank_index(king_square);
 	//brdidx king_file = square_index_to_file_index(king_square);
@@ -1163,7 +1165,7 @@ inline bitboard checking_rays_intersection(boardstate *brd, const bool pin_check
 		}
 	}
 	// Check for attacking bishops and queens
-	attackers = bishop_moves_from_square_index(king_square) & get_opposing_movers_bitboard(brd) & (brd->r | brd->q);
+	attackers = bishop_moves_from_square_index(king_square) & get_opposing_movers_bitboard(brd) & (brd->b | brd->q);
 	while(attackers){
 		current_attacker = ls1b(attackers);
 		attackers &= ~current_attacker;
@@ -1192,7 +1194,7 @@ inline bitboard checking_rays_intersection(boardstate *brd, const bool pin_check
 			}
 		}else{//current_attacker > king_board
 			if(king_diag == attacker_diag){
-				slide = slide_southeast(current_attacker, all_but_king_prop);
+				slide = slide_southwest(current_attacker, all_but_king_prop);
 				if(slide & king_board){
 					if(pin_check_only){
 						return(slide);
@@ -1491,9 +1493,8 @@ inline void quiet_knight_moves(boardstate *brd, std::queue<move> &moves){
 inline void pawn_captures(boardstate *brd, std::queue<move> &moves){
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
-	bitboard unoccupied = ~(own | opponent);
-	bitboard potential_targets = opponent & get_enpassant_bitboard(brd);
-	bitboard targets, current_source, propagator, current_target;
+	bitboard potential_targets = opponent | get_enpassant_bitboard(brd);
+	bitboard targets, current_source, pinboard, current_target;
 	brdidx source_square, target_square;
 	move mv;
 	brdidx rank;
@@ -1511,9 +1512,8 @@ inline void pawn_captures(boardstate *brd, std::queue<move> &moves){
 		source_square = greatest_square_index(current_source);
 		
 		// propagator takes care of pinning
-		propagator = unoccupied;
 		unplace_piece(brd, source_square);
-		propagator &= checking_rays_intersection(brd, true);
+		pinboard = checking_rays_intersection(brd, true);
 		if(get_whites_turn(brd)){
 			unsafe_place_piece(brd, source_square, P);
 		}else{
@@ -1522,9 +1522,9 @@ inline void pawn_captures(boardstate *brd, std::queue<move> &moves){
 		
 		targets = empty;
 		if(get_whites_turn(brd)){
-			targets |= ((step_northeast(current_source) | step_northwest(current_source)) & propagator & potential_targets);
+			targets |= ((step_northeast(current_source) | step_northwest(current_source)) & pinboard & potential_targets);
 		}else{
-			targets |= ((step_southeast(current_source) | step_southwest(current_source)) & propagator & potential_targets);
+			targets |= ((step_southeast(current_source) | step_southwest(current_source)) & pinboard & potential_targets);
 		}
 		while(targets){
 			current_target = ls1b(targets);
@@ -1609,8 +1609,9 @@ inline void all_pawn_moves(boardstate *brd, std::queue<move> &moves){
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
-	bitboard potential_targets = opponent & get_enpassant_bitboard(brd);
-	bitboard targets, current_source, propagator, current_target;
+	bitboard potential_targets = opponent | get_enpassant_bitboard(brd);
+	bitboard targets, current_source, current_target;
+	bitboard pinboard;
 	brdidx source_square, target_square;
 	move mv;
 	brdidx rank;
@@ -1627,29 +1628,27 @@ inline void all_pawn_moves(boardstate *brd, std::queue<move> &moves){
 		pawns ^= current_source;
 		source_square = greatest_square_index(current_source);
 		
-		// propagator takes care of pinning
-		propagator = unoccupied;
+		// take care of pinning
 		unplace_piece(brd, source_square);
-		propagator &= checking_rays_intersection(brd, true);
+		pinboard = checking_rays_intersection(brd, true);
 		if(get_whites_turn(brd)){
 			unsafe_place_piece(brd, source_square, P);
 		}else{
 			unsafe_place_piece(brd, source_square, p);
 		}
-		
 		targets = empty;
 		if(get_whites_turn(brd)){
 			// single step push
-			targets |= (step_north(current_source) & propagator);
+			targets |= (step_north(current_source) & unoccupied & pinboard);
 			// double step push
-			targets |= step_north(step_north(rank_2 & current_source)) & propagator & step_south(propagator);
-			targets |= ((step_northeast(current_source) | step_northwest(current_source)) & propagator & potential_targets);
+			targets |= step_north(step_north(rank_2 & current_source)) & unoccupied & step_north(unoccupied) & pinboard;
+			targets |= ((step_northeast(current_source) | step_northwest(current_source)) & pinboard & potential_targets);
 		}else{
 			// single step push
-			targets |= (step_south(current_source) & propagator);
+			targets |= (step_south(current_source) & unoccupied & pinboard);
 			// double step push
-			targets |= step_south(step_south(rank_7 & current_source)) & propagator & step_north(propagator);
-			targets |= ((step_southeast(current_source) | step_southwest(current_source)) & propagator & potential_targets);
+			targets |= step_south(step_south(rank_7 & current_source)) & unoccupied & step_south(unoccupied) & pinboard;
+			targets |= ((step_southeast(current_source) | step_southwest(current_source)) & pinboard & potential_targets);
 		}
 		
 		while(targets){
@@ -1659,12 +1658,6 @@ inline void all_pawn_moves(boardstate *brd, std::queue<move> &moves){
 			rank = square_index_to_rank_index(target_square);
 			if(rank == end_rank){
 				if(get_whites_turn(brd)){
-					mv = move();
-					mv.from_square = source_square;
-					mv.to_square = target_square;
-					mv.promotion = P;
-					moves.push(mv);
-					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
@@ -1689,12 +1682,6 @@ inline void all_pawn_moves(boardstate *brd, std::queue<move> &moves){
 					mv.promotion = Q;
 					moves.push(mv);
 				}else{
-					mv = move();
-					mv.from_square = source_square;
-					mv.to_square = target_square;
-					mv.promotion = p;
-					moves.push(mv);
-					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
@@ -1767,12 +1754,12 @@ inline void quiet_pawn_moves(boardstate *brd, std::queue<move> &moves){
 			// single step push
 			targets |= (step_north(current_source) & propagator);
 			// double step push
-			targets |= step_north(step_north(rank_2 & current_source)) & propagator & step_south(propagator);
+			targets |= step_north(step_north(rank_2 & current_source)) & propagator & step_north(propagator);
 		}else{
 			// single step push
 			targets |= (step_south(current_source) & propagator);
 			// double step push
-			targets |= step_south(step_south(rank_7 & current_source)) & propagator & step_north(propagator);
+			targets |= step_south(step_south(rank_7 & current_source)) & propagator & step_south(propagator);
 		}
 		
 		while(targets){
@@ -1858,7 +1845,7 @@ inline void bishop_captures(boardstate *brd, std::queue<move> &moves){
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
-	bitboard propagator;
+	bitboard pinboard;
 	bitboard bishops;
 	bishops = own & brd->b;
 	bitboard targets;
@@ -1872,10 +1859,9 @@ inline void bishop_captures(boardstate *brd, std::queue<move> &moves){
 		bishops &= (~current_source);
 		source_square = greatest_square_index(current_source);
 		
-		// propagator takes care of pinning
-		propagator = unoccupied;
+		// take care of pinning
 		unplace_piece(brd, source_square);
-		propagator &= checking_rays_intersection(brd, true);
+		pinboard = checking_rays_intersection(brd, true);
 		if(get_whites_turn(brd)){
 			unsafe_place_piece(brd, source_square, B);
 		}else{
@@ -1883,19 +1869,19 @@ inline void bishop_captures(boardstate *brd, std::queue<move> &moves){
 		}
 		
 		targets = empty;
-		tmp = slide_northeast(current_source, propagator);
+		tmp = slide_northeast(current_source, unoccupied);
 		tmp = (step_northeast(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_northwest(current_source, propagator);
+		tmp = slide_northwest(current_source, unoccupied);
 		tmp = (step_northwest(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_southwest(current_source, propagator);
+		tmp = slide_southwest(current_source, unoccupied);
 		tmp = (step_southwest(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_southeast(current_source, propagator);
+		tmp = slide_southeast(current_source, unoccupied);
 		tmp = (step_southeast(tmp) & opponent);
 		targets |= tmp;
-		targets &= (~current_source);
+		targets &= (~current_source) & pinboard;
 		
 		while(targets){
 			current_target = ls1b(targets);
@@ -1914,7 +1900,7 @@ inline void all_bishop_moves(boardstate *brd, std::queue<move> &moves){
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
-	bitboard propagator;
+	bitboard pinboard;
 	bitboard bishops;
 	bishops = own & brd->b;
 	bitboard targets;
@@ -1928,29 +1914,28 @@ inline void all_bishop_moves(boardstate *brd, std::queue<move> &moves){
 		bishops &= (~current_source);
 		source_square = greatest_square_index(current_source);
 		
-		// propagator takes care of pinning
-		propagator = unoccupied;
+		// take care of pinning
 		unplace_piece(brd, source_square);
-		propagator &= checking_rays_intersection(brd, true);
+		pinboard = checking_rays_intersection(brd, true);
 		if(get_whites_turn(brd)){
 			unsafe_place_piece(brd, source_square, B);
 		}else{
 			unsafe_place_piece(brd, source_square, b);
 		}
 		targets = empty;
-		tmp = slide_northeast(current_source, propagator);
+		tmp = slide_northeast(current_source, unoccupied);
 		tmp |= (step_northeast(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_northwest(current_source, propagator);
+		tmp = slide_northwest(current_source, unoccupied);
 		tmp |= (step_northwest(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_southwest(current_source, propagator);
+		tmp = slide_southwest(current_source, unoccupied);
 		tmp |= (step_southwest(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_southeast(current_source, propagator);
+		tmp = slide_southeast(current_source, unoccupied);
 		tmp |= (step_southeast(tmp) & opponent);
 		targets |= tmp;
-		targets &= (~current_source);
+		targets &= (~current_source) & pinboard;
 		while(targets){
 			current_target = ls1b(targets);
 			targets &= (~current_target);
@@ -2016,7 +2001,7 @@ inline void rook_captures(boardstate *brd, std::queue<move> &moves){
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
-	bitboard propagator;
+	bitboard pinboard;
 	bitboard rooks;
 	rooks = own & brd->r;
 	bitboard targets;
@@ -2030,10 +2015,9 @@ inline void rook_captures(boardstate *brd, std::queue<move> &moves){
 		rooks &= (~current_source);
 		source_square = greatest_square_index(current_source);
 		
-		// propagator takes care of pinning
-		propagator = unoccupied;
+		// take care of pinning
 		unplace_piece(brd, source_square);
-		propagator &= checking_rays_intersection(brd, true);
+		pinboard = checking_rays_intersection(brd, true);
 		if(get_whites_turn(brd)){
 			unsafe_place_piece(brd, source_square, R);
 		}else{
@@ -2041,19 +2025,19 @@ inline void rook_captures(boardstate *brd, std::queue<move> &moves){
 		}
 		
 		targets = empty;
-		tmp = slide_east(current_source, propagator);
+		tmp = slide_east(current_source, unoccupied);
 		tmp = (step_east(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_north(current_source, propagator);
+		tmp = slide_north(current_source, unoccupied);
 		tmp = (step_north(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_west(current_source, propagator);
+		tmp = slide_west(current_source, unoccupied);
 		tmp = (step_west(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_south(current_source, propagator);
+		tmp = slide_south(current_source, unoccupied);
 		tmp = (step_south(tmp) & opponent);
 		targets |= tmp;
-		targets &= (~current_source);
+		targets &= (~current_source) & pinboard;
 		
 		while(targets){
 			current_target = ls1b(targets);
@@ -2072,7 +2056,7 @@ inline void all_rook_moves(boardstate *brd, std::queue<move> &moves){
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
-	bitboard propagator;
+	bitboard pinboard;
 	bitboard rooks;
 	rooks = own & brd->r;
 	bitboard targets;
@@ -2086,10 +2070,9 @@ inline void all_rook_moves(boardstate *brd, std::queue<move> &moves){
 		rooks &= (~current_source);
 		source_square = greatest_square_index(current_source);
 		
-		// propagator takes care of pinning
-		propagator = unoccupied;
+		// take care of pinning
 		unplace_piece(brd, source_square);
-		propagator &= checking_rays_intersection(brd, true);
+		pinboard = checking_rays_intersection(brd, true);
 		if(get_whites_turn(brd)){
 			unsafe_place_piece(brd, source_square, R);
 		}else{
@@ -2097,19 +2080,19 @@ inline void all_rook_moves(boardstate *brd, std::queue<move> &moves){
 		}
 		
 		targets = empty;
-		tmp = slide_east(current_source, propagator);
+		tmp = slide_east(current_source, unoccupied);
 		tmp |= (step_east(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_north(current_source, propagator);
+		tmp = slide_north(current_source, unoccupied);
 		tmp |= (step_north(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_west(current_source, propagator);
+		tmp = slide_west(current_source, unoccupied);
 		tmp |= (step_west(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_south(current_source, propagator);
+		tmp = slide_south(current_source, unoccupied);
 		tmp |= (step_south(tmp) & opponent);
 		targets |= tmp;
-		targets &= (~current_source);
+		targets &= (~current_source) & pinboard;
 		
 		while(targets){
 			current_target = ls1b(targets);
@@ -2176,7 +2159,7 @@ inline void queen_captures(boardstate *brd, std::queue<move> &moves){
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
-	bitboard propagator;
+	bitboard pinboard;
 	bitboard queens;
 	queens = own & brd->q;
 	bitboard targets;
@@ -2190,10 +2173,9 @@ inline void queen_captures(boardstate *brd, std::queue<move> &moves){
 		queens &= (~current_source);
 		source_square = greatest_square_index(current_source);
 		
-		// propagator takes care of pinning
-		propagator = unoccupied;
+		// take care of pinning
 		unplace_piece(brd, source_square);
-		propagator &= checking_rays_intersection(brd, true);
+		pinboard = checking_rays_intersection(brd, true);
 		if(get_whites_turn(brd)){
 			unsafe_place_piece(brd, source_square, Q);
 		}else{
@@ -2201,31 +2183,31 @@ inline void queen_captures(boardstate *brd, std::queue<move> &moves){
 		}
 		
 		targets = empty;
-		tmp = slide_east(current_source, propagator);
+		tmp = slide_east(current_source, unoccupied);
 		tmp = (step_east(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_northeast(current_source, propagator);
+		tmp = slide_northeast(current_source, unoccupied);
 		tmp = (step_northeast(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_north(current_source, propagator);
+		tmp = slide_north(current_source, unoccupied);
 		tmp = (step_north(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_northwest(current_source, propagator);
+		tmp = slide_northwest(current_source, unoccupied);
 		tmp = (step_northwest(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_west(current_source, propagator);
+		tmp = slide_west(current_source, unoccupied);
 		tmp = (step_west(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_southwest(current_source, propagator);
+		tmp = slide_southwest(current_source, unoccupied);
 		tmp = (step_southwest(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_south(current_source, propagator);
+		tmp = slide_south(current_source, unoccupied);
 		tmp = (step_south(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_southeast(current_source, propagator);
+		tmp = slide_southeast(current_source, unoccupied);
 		tmp = (step_southeast(tmp) & opponent);
 		targets |= tmp;
-		targets &= (~current_source);
+		targets &= (~current_source) & pinboard;
 		
 		while(targets){
 			current_target = ls1b(targets);
@@ -2244,7 +2226,7 @@ inline void all_queen_moves(boardstate *brd, std::queue<move> &moves){
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
-	bitboard propagator;
+	bitboard pinboard;
 	bitboard queens;
 	queens = own & brd->q;
 	bitboard targets;
@@ -2258,10 +2240,9 @@ inline void all_queen_moves(boardstate *brd, std::queue<move> &moves){
 		queens &= (~current_source);
 		source_square = greatest_square_index(current_source);
 		
-		// propagator takes care of pinning
-		propagator = unoccupied;
+		// take care of pinning
 		unplace_piece(brd, source_square);
-		propagator &= checking_rays_intersection(brd, true);
+		pinboard = checking_rays_intersection(brd, true);
 		if(get_whites_turn(brd)){
 			unsafe_place_piece(brd, source_square, Q);
 		}else{
@@ -2269,31 +2250,31 @@ inline void all_queen_moves(boardstate *brd, std::queue<move> &moves){
 		}
 		
 		targets = empty;
-		tmp = slide_east(current_source, propagator);
+		tmp = slide_east(current_source, unoccupied);
 		tmp |= (step_east(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_northeast(current_source, propagator);
+		tmp = slide_northeast(current_source, unoccupied);
 		tmp |= (step_northeast(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_north(current_source, propagator);
+		tmp = slide_north(current_source, unoccupied);
 		tmp |= (step_north(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_northwest(current_source, propagator);
+		tmp = slide_northwest(current_source, unoccupied);
 		tmp |= (step_northwest(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_west(current_source, propagator);
+		tmp = slide_west(current_source, unoccupied);
 		tmp |= (step_west(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_southwest(current_source, propagator);
+		tmp = slide_southwest(current_source, unoccupied);
 		tmp |= (step_southwest(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_south(current_source, propagator);
+		tmp = slide_south(current_source, unoccupied);
 		tmp |= (step_south(tmp) & opponent);
 		targets |= tmp;
-		tmp = slide_southeast(current_source, propagator);
+		tmp = slide_southeast(current_source, unoccupied);
 		tmp |= (step_southeast(tmp) & opponent);
 		targets |= tmp;
-		targets &= (~current_source);
+		targets &= (~current_source) & pinboard;
 		
 		while(targets){
 			current_target = ls1b(targets);
@@ -2389,7 +2370,6 @@ inline void all_quiet_moves(boardstate *brd, std::queue<move> &moves){
 	quiet_knight_moves(brd, moves);
 }
 
-void bitboard_to_arr(boardstate *bb, char* arr);
-
+unsigned long long perft(boardstate *brd, int depth);
 
 #endif
