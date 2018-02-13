@@ -93,10 +93,10 @@ cdef extern from "bitboardlib.h":
     cdef void set_fullmove_counter(boardstate *bs, unsigned int n)
     cdef uint8_t get_enpassant(boardstate *bs)
     cdef void set_enpassant(boardstate *bs, uint8_t pos)
-    cdef void bitboard_to_arr(boardstate *bb, char* arr)
     cdef const bitboard places[64]
     cdef const bitboard empty;
     cdef bitboard slide_north(bitboard pieces, bitboard unoccupied)
+#     cdef bitboard slide_capture_north(bitboard pieces, bitboard own, bitboard opponent)
     cdef bitboard slide_south(bitboard pieces, bitboard unoccupied)
     cdef bitboard slide_east(bitboard pieces, bitboard unoccupied)
     cdef bitboard slide_west(bitboard pieces, bitboard unoccupied)
@@ -115,6 +115,9 @@ cdef extern from "bitboardlib.h":
     cdef void unplace_piece(boardstate *bs, brdidx square_index)
     cdef void place_piece(boardstate *bs, brdidx square_index, piece pc)
     cdef void quiet_queen_moves(boardstate *brd, queue[move] &moves)
+    cdef void all_queen_moves(boardstate *brd, queue[move] &moves)
+    cdef void queen_captures(boardstate *brd, queue[move] &moves)
+    cdef void all_moves(boardstate *brd, queue[move] &moves)
 
 cpdef bitboard_to_str(bitboard bb):
     cdef int i
@@ -175,6 +178,11 @@ cdef class BitBoard:
         cdef BitBoard result = BitBoard()  # @DuplicatedSignature
         result.bb = slide_north(self.bb, unoccupied.bb)
         return result
+    
+#     cpdef BitBoard slide_capture_north(BitBoard self, BitBoard own, BitBoard opponent):
+#         cdef BitBoard result = BitBoard()  # @DuplicatedSignature
+#         result.bb = slide_capture_north(self.bb, own.bb, opponent.bb)
+#         return result
 
     cpdef BitBoard slide_south(BitBoard self, BitBoard unoccupied):
         cdef BitBoard result = BitBoard()  # @DuplicatedSignature
@@ -376,11 +384,44 @@ cdef class MoveRecord:
 cdef class BitBoardState:
     cdef boardstate bs
     
+    cpdef all_moves(BitBoardState self):
+        cdef queue[move] mvs = queue[move]()
+        all_moves(&(self.bs), mvs)
+        cdef list result = []
+        cdef move mv
+        while not mvs.empty():
+            mv = mvs.front()
+            mvs.pop()
+            result.append(Move(mv.from_square, mv.to_square))
+        return result
+    
     cpdef quiet_queen_moves(BitBoardState self):
         cdef queue[move] q = queue[move]()
         quiet_queen_moves(&(self.bs), q)
         cdef list result = []
         cdef move mv
+        while not q.empty():
+            mv = q.front()
+            q.pop()
+            result.append(Move(mv.from_square, mv.to_square))
+        return result
+    
+    cpdef all_queen_moves(BitBoardState self):
+        cdef queue[move] q = queue[move]()  # @DuplicatedSignature
+        all_queen_moves(&(self.bs), q)
+        cdef list result = []  # @DuplicatedSignature
+        cdef move mv  # @DuplicatedSignature
+        while not q.empty():
+            mv = q.front()
+            q.pop()
+            result.append(Move(mv.from_square, mv.to_square))
+        return result
+    
+    cpdef queen_captures(BitBoardState self):
+        cdef queue[move] q = queue[move]()  # @DuplicatedSignature
+        queen_captures(&(self.bs), q)
+        cdef list result = []  # @DuplicatedSignature
+        cdef move mv  # @DuplicatedSignature
         while not q.empty():
             mv = q.front()
             q.pop()
@@ -409,10 +450,7 @@ cdef class BitBoardState:
     cpdef void unmake_move(BitBoardState self, MoveRecord mv):
         unmake_move(&(self.bs), &(mv.rec))
     
-    cpdef to_grid_redundant(BitBoardState self):
-        '''
-        Use the redundant piece_map instead of the bitboards.
-        '''
+    cpdef str to_str(BitBoardState self):
         cdef int i
         cdef piece pc
         result = ''
@@ -424,26 +462,18 @@ cdef class BitBoardState:
             if c.lower() == 'ep':
                 c = '*'
             result = result + c
-        return '\n'.join(reversed(map(''.join, partition(8, result))))
-
+        return result
+    
     cpdef str to_grid(BitBoardState self):
-        # Get raw positions
-        cdef char *arr = <char *>PyMem_Malloc(64 * sizeof(char))
-        bitboard_to_arr(&(self.bs), arr)
-        raw_positions = str(arr)
-        PyMem_Free(arr)
-        if self.bs.enpassant != 255:
-            ins = '*'
-            raw_positions = raw_positions[:(self.bs.enpassant)] + ins + raw_positions[(self.bs.enpassant+1):]
-        return '\n'.join(reversed(map(''.join, partition(8, raw_positions))))
+        '''
+        Use the redundant piece_map instead of the bitboards.
+        '''
+        return '\n'.join(reversed(map(''.join, partition(8, self.to_str()))))
 
     cpdef str to_fen(BitBoardState self):
 
         # Get raw positions
-        cdef char *arr = <char *>PyMem_Malloc(64 * sizeof(char))  # @DuplicatedSignature
-        bitboard_to_arr(&(self.bs), arr)
-        raw_positions = str(arr)
-        PyMem_Free(arr)
+        raw_positions = self.to_str().replace('*', '-')
 
         # Compress positions into fen format
         rows = list(map(''.join, partition(8, raw_positions)))

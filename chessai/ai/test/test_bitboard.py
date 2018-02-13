@@ -2,6 +2,27 @@ from chessai.ai.bitboard import BitBoardState, BitBoard, Move, MoveRecord,\
     int_to_algebraic, algebraic_to_int
 from nose.tools import assert_equal
 import random
+import chess
+
+def chess_move_to_black_move(chess_move):
+    promotion_dict = {5: 'q', 4:'r', 3:'b', 2:'n'}
+    mv = Move(chess_move.from_square, chess_move.to_square(), 
+              promotion_dict[chess_move.promotion] if chess_move.promotion else 'no')
+    return mv
+
+def chess_move_to_white_move(chess_move):
+    promotion_dict = {5: 'Q', 4:'R', 3:'B', 2:'N'}
+    mv = Move(chess_move.from_square, chess_move.to_square, 
+              promotion_dict[chess_move.promotion] if chess_move.promotion else 'no')
+    return mv
+
+def all_moves_from_chess_package(fen):
+    board = chess.Board(fen)
+    moves = board.legal_moves
+    if board.turn:
+        return list(map(chess_move_to_white_move, moves))
+    else:
+        return list(map(chess_move_to_black_move, moves))
 
 def test_boardstate_to_grid():
     starting_fen = 'rnbqkbnr/pppppppr/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
@@ -124,6 +145,49 @@ def test_promotion():
     assert_equal(board.to_fen(), 'Q3k3/8/8/8/8/8/8/8 b - - 0 100')
     board.unmake_move(record)
     assert_equal(board.to_fen(), fen)
+
+def test_queen_captures():
+    fen = 'rnbqkbnr/pppppppp/8/8/8/3P4/PPP1PPPP/RNBQKBNR w KQkq - 0 1'
+    moves = set(BitBoardState.from_fen(fen).queen_captures())
+    assert_equal(moves, set())
+    
+    fen = 'rnbqkbnr/pppppppp/8/8/8/3p4/PPP1PPPP/RNBQKBNR w KQkq - 0 1'
+    moves = set(BitBoardState.from_fen(fen).queen_captures())
+    assert_equal(moves, {Move(3, 19)})
+
+    fen = 'rnbqkbnr/pppppppp/8/8/8/1pPP4/PP2PPPP/RNBQKBNR w KQkq - 0 1'
+    moves = set(BitBoardState.from_fen(fen).queen_captures())
+    assert_equal(moves, {Move(3, 17)})
+    
+    # Make sure a pinned queen doesn't move out of the pin ray
+    fen = 'rnb1kbnr/4q3/8/8/8/8/PPPPRPPP/RNBQKBNR b KQkq - 0 1'
+    moves = set(BitBoardState.from_fen(fen).queen_captures())
+    assert_equal(moves, {Move(52, 52-40)})
+
+def test_all_queen_moves():
+    fen = 'rnbqkbnr/pppppppp/8/8/8/3P4/PPP1PPPP/RNBQKBNR w KQkq - 0 1'
+    moves = set(BitBoardState.from_fen(fen).all_queen_moves())
+    assert_equal(moves, {Move(3, 11)})
+    
+    fen = 'rnbqkbnr/pppppppp/8/8/8/3p4/PPP1PPPP/RNBQKBNR w KQkq - 0 1'
+    moves = set(BitBoardState.from_fen(fen).all_queen_moves())
+    assert_equal(moves, {Move(3, 11), Move(3, 19)})
+
+    fen = 'rnbqkbnr/pppppppp/8/8/8/1pPP4/PP2PPPP/RNBQKBNR w KQkq - 0 1'
+    moves = set(BitBoardState.from_fen(fen).all_queen_moves())
+    assert_equal(moves, {Move(3, 11), Move(3, 10), Move(3, 17)})
+                 
+    # Make sure a pinned queen doesn't move out of the pin ray
+    fen = 'rnb1kbnr/4q3/8/8/8/8/PPPPRPPP/RNBQKBNR b KQkq - 0 1'
+    moves = set(BitBoardState.from_fen(fen).all_queen_moves())
+    assert_equal(moves, {Move(52, 52-8), Move(52, 52-16), Move(52, 52-24),
+                         Move(52, 52-32), Move(52, 52-40)})
+
+def test_all_moves():
+    fen = 'rnbqkbnr/pppppppr/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    moves = BitBoardState.from_fen(fen).all_moves()
+    expected_moves = all_moves_from_chess_package(fen)
+    assert_equal(set(moves), set(expected_moves))
 
 def test_quiet_queen_moves():
     fen = 'rnbqkbnr/pppppppp/8/8/8/3P4/PPP1PPPP/RNBQKBNR w KQkq - 0 1'
@@ -347,18 +411,103 @@ def test_from_fen():
     assert_equal(bb.get_black().to_str(), '1111111111111111000000000000000000000000000000000000000000000000')
 
 def test_to_grid():
-    fens = [
-            'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-            '8/5N2/4p2p/5p1k/1p4rP/1P2Q1P1/P4P1K/5q2 w - - 15 44',
-            'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
-            'rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2',
-            'rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2',
-            'R6R/3Q4/1Q4Q1/4Q3/2Q4Q/Q4Q2/pp1Q4/kBNN1KB1 w - - 0 1',
-            '3Q4/1Q4Q1/4Q3/2Q4R/Q4Q2/3Q4/1Q4Rp/1K1BBNNk w - - 0 1',
-            ]
-    for fen in fens:
-        bb = BitBoardState.from_fen(fen)
-        assert_equal(bb.to_grid(), bb.to_grid_redundant())
+    fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    grid = '''
+           rnbqkbnr
+           pppppppp
+           --------
+           --------
+           --------
+           --------
+           PPPPPPPP
+           RNBQKBNR
+           '''.strip().replace(' ', '')
+    bb = BitBoardState.from_fen(fen)
+    assert_equal(bb.to_grid(), grid)
+    
+    fen = '8/5N2/4p2p/5p1k/1p4rP/1P2Q1P1/P4P1K/5q2 w - - 15 44'
+    grid = '''
+           --------
+           -----N--
+           ----p--p
+           -----p-k
+           -p----rP
+           -P--Q-P-
+           P----P-K
+           -----q--
+           '''.strip().replace(' ', '')
+    bb = BitBoardState.from_fen(fen)
+    assert_equal(bb.to_grid(), grid)
+    
+    fen = 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1'
+    grid = '''
+           rnbqkbnr
+           pppppppp
+           --------
+           --------
+           ----P---
+           ----*---
+           PPPP-PPP
+           RNBQKBNR
+           '''.strip().replace(' ', '')
+    bb = BitBoardState.from_fen(fen)
+    assert_equal(bb.to_grid(), grid)
+    
+    fen = 'rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2'
+    grid = '''
+           rnbqkbnr
+           pp-ppppp
+           --*-----
+           --p-----
+           ----P---
+           --------
+           PPPP-PPP
+           RNBQKBNR
+           '''.strip().replace(' ', '')
+    bb = BitBoardState.from_fen(fen)
+    assert_equal(bb.to_grid(), grid)
+    
+    fen = 'rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2'
+    grid = '''
+           rnbqkbnr
+           pp-ppppp
+           --------
+           --p-----
+           ----P---
+           -----N--
+           PPPP-PPP
+           RNBQKB-R
+           '''.strip().replace(' ', '')
+    bb = BitBoardState.from_fen(fen)
+    assert_equal(bb.to_grid(), grid)
+    
+    fen = 'R6R/3Q4/1Q4Q1/4Q3/2Q4Q/Q4Q2/pp1Q4/kBNN1KB1 w - - 0 1'
+    grid = '''
+           R------R
+           ---Q----
+           -Q----Q-
+           ----Q---
+           --Q----Q
+           Q----Q--
+           pp-Q----
+           kBNN-KB-
+           '''.strip().replace(' ', '')
+    bb = BitBoardState.from_fen(fen)
+    assert_equal(bb.to_grid(), grid)
+    
+    fen = '3Q4/1Q4Q1/4Q3/2Q4R/Q4Q2/3Q4/1Q4Rp/1K1BBNNk w - - 0 1'
+    grid = '''
+           ---Q----
+           -Q----Q-
+           ----Q---
+           --Q----R
+           Q----Q--
+           ---Q----
+           -Q----Rp
+           -K-BBNNk
+           '''.strip().replace(' ', '')
+    bb = BitBoardState.from_fen(fen)
+    assert_equal(bb.to_grid(), grid)
 
 def test_move_generation():
     # The following two positions should have 218 moves each.
@@ -367,6 +516,11 @@ def test_move_generation():
                      'R6R/3Q4/1Q4Q1/4Q3/2Q4Q/Q4Q2/pp1Q4/kBNN1KB1 w - - 0 1',
                      '3Q4/1Q4Q1/4Q3/2Q4R/Q4Q2/3Q4/1Q4Rp/1K1BBNNk w - - 0 1',
                      ]
+    for fen in positions_218:
+        moves = BitBoardState.from_fen(fen).all_moves()
+        expected_moves = all_moves_from_chess_package(fen)
+        assert_equal(set(moves), set(expected_moves))
+        assert_equal(len(moves), 218)
 
 def test_to_fen():
     fens = [
@@ -442,6 +596,54 @@ def test_bitboard_slide_north():
                  00000000
                  ''')
     assert_equal(pieces.slide_north(unoccupied), expected)
+
+# def test_bitboard_slide_capture_north():
+#     pieces = BitBoard.from_grid('''
+#              00000000
+#              00000000
+#              00000000
+#              00000000
+#              00000000
+#              00001000
+#              00101000
+#              00000000
+#              ''')
+# 
+#     own = BitBoard.from_grid('''
+#                  00000000
+#                  00000000
+#                  00000000
+#                  00000000
+#                  00000000
+#                  00001000
+#                  00101000
+#                  00000000
+#                  ''')
+# 
+#     opponent = BitBoard.from_grid('''
+#                  00000000
+#                  00001000
+#                  00001000
+#                  00000000
+#                  00000000
+#                  00000000
+#                  00000000
+#                  00000000
+#                  ''')
+#     expected = BitBoard.from_grid('''
+#                  00000000
+#                  00000000
+#                  00001000
+#                  00000000
+#                  00000000
+#                  00000000
+#                  00000000
+#                  00000000
+#                  ''')
+#     
+#     assert_equal(pieces.slide_capture_north(own, opponent), expected)
+
+
 
 def test_bitboard_slide_south():
     pieces = BitBoard.from_grid('''

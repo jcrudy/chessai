@@ -210,44 +210,6 @@ inline bitboard ls1b(bitboard b){
 	return(b & (-b));
 }
 
-inline bitboard compute_queen_moves_from_square_index(brdidx s){
-	bitboard rank, file, diag, antidiag;
-	rank = square_index_to_rank_index(s);
-	file = square_index_to_file_index(s);
-	diag = square_index_to_diag_index(s);
-	antidiag = square_index_to_antidiag_index(s);
-	return(ranks[rank] | files[file] | diags[diag] | antidiags[antidiag]);
-}
-
-// TODO: replace with lookup
-inline bitboard queen_moves_from_square_index(brdidx s){
-	return(compute_queen_moves_from_square_index(s));
-}
-
-inline bitboard compute_rook_moves_from_square_index(brdidx s){
-	bitboard rank, file;
-	rank = square_index_to_rank_index(s);
-	file = square_index_to_file_index(s);
-	return(ranks[rank] | files[file]);
-}
-
-// TODO: replace with lookup
-inline bitboard rook_moves_from_square_index(brdidx s){
-	return(compute_rook_moves_from_square_index(s));
-}
-
-inline bitboard compute_bishop_moves_from_square_index(brdidx s){
-	bitboard diag, antidiag;
-	diag = square_index_to_diag_index(s);
-	antidiag = square_index_to_antidiag_index(s);
-	return(diags[diag] | antidiags[antidiag]);
-}
-
-// TODO: replace with lookup
-inline bitboard bishop_moves_from_square_index(brdidx s){
-	return(compute_bishop_moves_from_square_index(s));
-}
-
 inline bitboard step_north(bitboard b){
 	return(b << 8);
 }
@@ -257,27 +219,27 @@ inline bitboard step_south(bitboard b){
 }
 
 inline bitboard step_east(bitboard b){
-	return((b << 1) & (~file_a));
+	return((b & (~file_h)) << 1);
 }
 
 inline bitboard step_west(bitboard b){
-	return((b >> 1) & (~file_h));
+	return((b & (~file_a)) >> 1);
 }
 
 inline bitboard step_northwest(bitboard b){
-	return((b << 9) & (~file_a));
+	return((b & (~file_a)) << 7);
 }
 
 inline bitboard step_northeast(bitboard b){
-	return((b << 7) & (~file_a));
+	return((b & (~file_h)) << 9);
 }
 
 inline bitboard step_southwest(bitboard b){
-	return((b >> 7) & (~file_h));
+	return((b & (~file_a)) >> 9);
 }
 
 inline bitboard step_southeast(bitboard b){
-	return((b >> 9) & (~file_h));
+	return((b & (~file_h)) >> 7);
 }
 
 inline bitboard slide_north(bitboard pieces, bitboard unoccupied){
@@ -289,6 +251,18 @@ inline bitboard slide_north(bitboard pieces, bitboard unoccupied){
 	result |= ((result << 32) & unoccupied);
 	return result;
 }
+
+//inline bitboard slide_capture_north(bitboard pieces, bitboard own, bitboard opponent){
+//	bitboard result = pieces;
+//	bitboard open = ~opponent;
+//	bitboard unoccupied = ~own;
+//	result |= (((result & open) << 8) & unoccupied);
+//	unoccupied &= (unoccupied << 8);
+//	result |= (((result & open) << 16) & unoccupied);
+//	unoccupied &= (unoccupied << 16);
+//	result |= (((result & open) << 32) & unoccupied);
+//	return result & opponent;
+//}
 
 inline bitboard slide_south(bitboard pieces, bitboard unoccupied){
 	bitboard result = pieces;
@@ -365,6 +339,155 @@ inline bitboard slide_southwest(bitboard pieces, bitboard unoccupied){
 	result |= ((result >> 36) & unoccupied);
 	return result;
 }
+
+inline bitboard compute_knight_moves_from_square_index(brdidx s){
+	bitboard knight_square = bitboard_from_square_index(s);
+	bitboard nee = step_north(step_east(step_east(knight_square)));
+	bitboard nne = step_north(step_north(step_east(knight_square)));
+	bitboard nww = step_north(step_west(step_west(knight_square)));
+	bitboard nnw = step_north(step_north(step_west(knight_square)));
+	bitboard see = step_south(step_east(step_east(knight_square)));
+	bitboard sse = step_south(step_south(step_east(knight_square)));
+	bitboard sww = step_south(step_west(step_west(knight_square)));
+	bitboard ssw = step_south(step_south(step_west(knight_square)));
+	return(nee | nne | nww | nnw | see | sse | sww | ssw);
+}
+
+// TODO: Change to lookup
+inline bitboard knight_moves_from_square_index(brdidx s){
+	return(compute_knight_moves_from_square_index(s));
+}
+
+inline bitboard compute_white_pawn_push_moves_from_square_index(brdidx s){
+	bitboard pawn_square = bitboard_from_square_index(s);
+	return(step_north(pawn_square) | (step_north(step_north(pawn_square & rank_2))));
+}
+
+// TODO: Change to lookup
+inline bitboard white_pawn_push_moves_from_square_index(brdidx s){
+	return(compute_white_pawn_push_moves_from_square_index(s));
+}
+
+inline bitboard compute_white_pawn_inverse_push_moves_from_square_index(brdidx s){
+	bitboard pawn_square = bitboard_from_square_index(s);
+	return((step_south(pawn_square) | (step_south(step_south(pawn_square)) & rank_2)) & (~rank_1));
+}
+
+// TODO: Change to lookup
+inline bitboard white_pawn_inverse_push_moves_from_square_index(brdidx s){
+	return(compute_white_pawn_inverse_push_moves_from_square_index(s));
+}
+
+inline bitboard compute_white_pawn_capture_moves_from_square_index(brdidx s){
+	bitboard pawn_square = bitboard_from_square_index(s);
+	return(step_east(step_north(pawn_square)) | step_west(step_north(pawn_square)));
+}
+
+// TODO: Change to lookup
+inline bitboard white_pawn_capture_moves_from_square_index(brdidx s){
+	return(compute_white_pawn_capture_moves_from_square_index(s));
+}
+
+inline bitboard compute_white_pawn_inverse_capture_moves_from_square_index(brdidx s){
+	bitboard pawn_square = bitboard_from_square_index(s);
+	return((step_east(step_south(pawn_square)) | step_west(step_south(pawn_square))) &(~rank_1));
+}
+
+// TODO: Change to lookup
+inline bitboard white_pawn_inverse_capture_moves_from_square_index(brdidx s){
+	return(compute_white_pawn_inverse_capture_moves_from_square_index(s));
+}
+
+inline bitboard compute_black_pawn_push_moves_from_square_index(brdidx s){
+	bitboard pawn_square = bitboard_from_square_index(s);
+	return(step_south(pawn_square) | (step_south(step_south(pawn_square & rank_7))));
+}
+
+// TODO: Change to lookup
+inline bitboard black_pawn_push_moves_from_square_index(brdidx s){
+	return(compute_black_pawn_push_moves_from_square_index(s));
+}
+
+inline bitboard compute_black_pawn_inverse_push_moves_from_square_index(brdidx s){
+	bitboard pawn_square = bitboard_from_square_index(s);
+	return((step_north(pawn_square) | (step_north(step_north(pawn_square)) & rank_7)) & (~rank_8));
+}
+
+// TODO: Change to lookup
+inline bitboard black_pawn_inverse_push_moves_from_square_index(brdidx s){
+	return(compute_black_pawn_inverse_push_moves_from_square_index(s));
+}
+
+inline bitboard compute_black_pawn_capture_moves_from_square_index(brdidx s){
+	bitboard pawn_square = bitboard_from_square_index(s);
+	return(step_east(step_south(pawn_square)) | step_west(step_south(pawn_square)));
+}
+
+// TODO: Change to lookup
+inline bitboard black_pawn_capture_moves_from_square_index(brdidx s){
+	return(compute_black_pawn_capture_moves_from_square_index(s));
+}
+
+inline bitboard compute_black_pawn_inverse_capture_moves_from_square_index(brdidx s){
+	bitboard pawn_square = bitboard_from_square_index(s);
+	return((step_east(step_north(pawn_square)) | step_west(step_north(pawn_square))) & (~rank_8));
+}
+
+// TODO: Change to lookup
+inline bitboard black_pawn_inverse_capture_moves_from_square_index(brdidx s){
+	return(compute_black_pawn_inverse_capture_moves_from_square_index(s));
+}
+
+inline bitboard compute_king_moves_from_square_index(brdidx s){
+	bitboard king_square = bitboard_from_square_index(s);
+	return(step_east(king_square) | step_northeast(king_square) | 
+	       step_north(king_square) | step_northwest(king_square) | step_west(king_square) |
+	       step_southwest(king_square) | step_south(king_square) | step_southeast(king_square));
+}
+
+// TODO: replace with lookup
+inline bitboard king_moves_from_square_index(brdidx s){
+	return(compute_king_moves_from_square_index(s));
+}
+
+inline bitboard compute_queen_moves_from_square_index(brdidx s){
+	bitboard rank, file, diag, antidiag;
+	rank = square_index_to_rank_index(s);
+	file = square_index_to_file_index(s);
+	diag = square_index_to_diag_index(s);
+	antidiag = square_index_to_antidiag_index(s);
+	return((ranks[rank] | files[file] | diags[diag] | antidiags[antidiag]) ^ bitboard_from_square_index(s));
+}
+
+// TODO: replace with lookup
+inline bitboard queen_moves_from_square_index(brdidx s){
+	return(compute_queen_moves_from_square_index(s));
+}
+
+inline bitboard compute_rook_moves_from_square_index(brdidx s){
+	bitboard rank, file;
+	rank = square_index_to_rank_index(s);
+	file = square_index_to_file_index(s);
+	return((ranks[rank] | files[file]) ^ bitboard_from_square_index(s));
+}
+
+// TODO: replace with lookup
+inline bitboard rook_moves_from_square_index(brdidx s){
+	return(compute_rook_moves_from_square_index(s));
+}
+
+inline bitboard compute_bishop_moves_from_square_index(brdidx s){
+	bitboard diag, antidiag;
+	diag = square_index_to_diag_index(s);
+	antidiag = square_index_to_antidiag_index(s);
+	return((diags[diag] | antidiags[antidiag]) ^ bitboard_from_square_index(s));
+}
+
+// TODO: replace with lookup
+inline bitboard bishop_moves_from_square_index(brdidx s){
+	return(compute_bishop_moves_from_square_index(s));
+}
+
 
 typedef enum {no=0,K,Q,B,N,R,P,EP,k,q,b,n,r,p,ep} piece;
 
@@ -619,17 +742,31 @@ typedef struct {
 	piece promoted_from;
 } moverecord;
 
-inline uint8_t get_enpassant(boardstate *bs){
+inline brdidx get_enpassant(boardstate *bs){
 	return(bs->enpassant);
+}
+
+inline bitboard get_enpassant_bitboard(boardstate *bs){
+	brdidx enpassant = get_enpassant(bs);
+	if(enpassant != no_enpassant){
+		return(bitboard_from_square_index(enpassant));
+	}else{
+		return(empty);
+	}
 }
 
 inline void set_enpassant(boardstate *bs, uint8_t pos){
 	// Should be called before flip_turn
+	if(bs->enpassant != no_enpassant){
+		(bs->piece_map)[bs->enpassant] = no;
+	}
 	bs->enpassant = pos;
-	if(bs->whites_turn){
-		(bs->piece_map)[pos] = EP;
-	}else{
-		(bs->piece_map)[pos] = ep;
+	if(bs->enpassant != no_enpassant){
+		if(bs->whites_turn){
+			(bs->piece_map)[pos] = EP;
+		}else{
+			(bs->piece_map)[pos] = ep;
+		}
 	}
 };
 
@@ -953,9 +1090,13 @@ inline moverecord make_move(boardstate *brd, move *mv){
 	return(record);
 }
 
-inline bitboard checking_rays_intersection(boardstate *brd){
+inline bitboard checking_rays_intersection(boardstate *brd, const bool pin_check_only){
 	// Return the intersection of all rays by which the current mover's king is in check
 	// by sliding pieces.  If no such rays, return the set of all squares (the empty intersection).
+	// If pin_check_only, this is being used to detect an absolute pin and, under the 
+	// assumption that there is no king capture available (which there should never be),
+	// there is at most one possible pinning ray and we can terminate once we find it.
+	
 	bitboard king_board = brd->k & get_current_movers_bitboard(brd);
 	bitboard all_but_king_prop = ~((brd->white | brd->black) & (~(brd->k)));
 	brdidx king_square = greatest_square_index(king_board);
@@ -969,6 +1110,7 @@ inline bitboard checking_rays_intersection(boardstate *brd){
 	brdidx current_attacker_square;
 	brdidx attacker_file, attacker_rank, attacker_diag, attacker_antidiag;
 	bitboard attackers;
+	bitboard result = full;
 	
 	// Check for attacking rooks and queens
 	attackers = rook_moves_from_square_index(king_square) & get_opposing_movers_bitboard(brd) & (brd->r | brd->q);
@@ -982,24 +1124,40 @@ inline bitboard checking_rays_intersection(boardstate *brd){
 			if(king_rank == attacker_rank){
 				slide = slide_east(current_attacker, all_but_king_prop);
 				if(slide & king_board){
-					return(slide);
+					if(pin_check_only){
+						return(slide);
+					}else{
+						result &= slide;
+					}
 				}
 			}else{//king_file == attacker_file
 				slide = slide_north(current_attacker, all_but_king_prop);
 				if(slide & king_board){
-					return(slide);
+					if(pin_check_only){
+						return(slide);
+					}else{
+						result &= slide;
+					}
 				}
 			}
 		}else{//current_attacker > king_board
 			if(king_rank == attacker_rank){
 				slide = slide_west(current_attacker, all_but_king_prop);
 				if(slide & king_board){
-					return(slide);
+					if(pin_check_only){
+						return(slide);
+					}else{
+						result &= slide;
+					}
 				}
 			}else{//king_file == attacker_file
 				slide = slide_south(current_attacker, all_but_king_prop);
 				if(slide & king_board){
-					return(slide);
+					if(pin_check_only){
+						return(slide);
+					}else{
+						result &= slide;
+					}
 				}
 			}
 		}
@@ -1016,29 +1174,1138 @@ inline bitboard checking_rays_intersection(boardstate *brd){
 			if(king_diag == attacker_diag){
 				slide = slide_northeast(current_attacker, all_but_king_prop);
 				if(slide & king_board){
-					return(slide);
+					if(pin_check_only){
+						return(slide);
+					}else{
+						result &= slide;
+					}
 				}
 			}else{//king_antidiag == attacker_antidiag
 				slide = slide_northwest(current_attacker, all_but_king_prop);
 				if(slide & king_board){
-					return(slide);
+					if(pin_check_only){
+						return(slide);
+					}else{
+						result &= slide;
+					}
 				}
 			}
 		}else{//current_attacker > king_board
 			if(king_diag == attacker_diag){
 				slide = slide_southeast(current_attacker, all_but_king_prop);
 				if(slide & king_board){
-					return(slide);
+					if(pin_check_only){
+						return(slide);
+					}else{
+						result &= slide;
+					}
 				}
 			}else{//king_antidiag == attacker_antidiag
 				slide = slide_southeast(current_attacker, all_but_king_prop);
 				if(slide & king_board){
-					return(slide);
+					if(pin_check_only){
+						return(slide);
+					}else{
+						result &= slide;
+					}
 				}
 			}
 		}
 	}
-	return(full);
+	return(result);
+}
+
+inline bitboard attackers_from_square_index(boardstate *brd, brdidx s){
+	bitboard result = empty;
+	bitboard rooks_and_queens = brd->r | brd->q;
+	bitboard bishops_and_queens = brd->b | brd->q;
+	
+	bitboard tmp;
+	bitboard unoccupied = ~(brd->white | brd->black);
+	bitboard source = bitboard_from_square_index(s);
+	tmp = slide_east(source, unoccupied);
+	tmp |= step_east(tmp) & rooks_and_queens;
+	result |= tmp;
+	tmp = slide_northeast(source, unoccupied);
+	tmp |= step_northeast(tmp) & bishops_and_queens;
+	result |= tmp;
+	tmp = slide_north(source, unoccupied);
+	tmp |= step_north(tmp) & rooks_and_queens;
+	result |= tmp;
+	tmp = slide_northwest(source, unoccupied);
+	tmp |= step_northwest(tmp) & bishops_and_queens;
+	result |= tmp;
+	tmp = slide_west(source, unoccupied);
+	tmp |= step_west(tmp) & rooks_and_queens;
+	result |= tmp;
+	tmp = slide_southwest(source, unoccupied);
+	tmp |= step_southwest(tmp) & bishops_and_queens;
+	result |= tmp;
+	tmp = slide_south(source, unoccupied);
+	tmp |= step_south(tmp) & rooks_and_queens;
+	result |= tmp;
+	tmp = slide_southeast(source, unoccupied);
+	tmp |= step_southeast(tmp) & bishops_and_queens;
+	result |= tmp;
+	result |= black_pawn_inverse_capture_moves_from_square_index(s) & (brd->black & brd->p);
+	result |= white_pawn_inverse_capture_moves_from_square_index(s) & (brd->white & brd->p);
+	result |= knight_moves_from_square_index(s) & brd->n;
+	result |= king_moves_from_square_index(s) & brd->k;
+	return(result);
+}
+
+inline void king_captures(boardstate *brd, std::queue<move> &moves){
+	bitboard own = get_current_movers_bitboard(brd);
+	bitboard opponent = get_opposing_movers_bitboard(brd);
+	brdidx king_square = greatest_square_index(brd->k & own); // there is only one king
+	bitboard king_targets = king_moves_from_square_index(king_square);
+	king_targets &= ~own;
+	king_targets &= opponent;
+	bitboard target;
+	bitboard target_square;
+	bitboard attackers;
+	move mv;
+	while(king_targets){
+		target = ls1b(king_targets);
+		king_targets ^= target;
+		target_square = ls1b(target);
+		attackers = attackers_from_square_index(brd, target_square) & opponent;
+		if(!attackers){
+			mv = move();
+			mv.from_square = king_square;
+			mv.to_square = target_square;
+			mv.promotion = no;
+			moves.push(mv);
+		}
+		
+	}
+		
+}
+
+
+inline void all_king_moves(boardstate *brd, std::queue<move> &moves){
+	bitboard own = get_current_movers_bitboard(brd);
+	bitboard opponent = get_opposing_movers_bitboard(brd);
+	brdidx king_square = greatest_square_index(brd->k & own); // there is only one king
+	bitboard king_targets = king_moves_from_square_index(king_square);
+	king_targets &= ~own;
+	bitboard target;
+	brdidx target_square;
+	bitboard attackers;
+	move mv;
+	while(king_targets){
+		target = ls1b(king_targets);
+		king_targets ^= target;
+		target_square = greatest_square_index(target);
+		attackers = attackers_from_square_index(brd, target_square) & opponent;
+		if(!attackers){
+			mv = move();
+			mv.from_square = king_square;
+			mv.to_square = target_square;
+			mv.promotion = no;
+			moves.push(mv);
+		}
+		
+	}
+		
+}
+
+inline void quiet_king_moves(boardstate *brd, std::queue<move> &moves){
+	bitboard own = get_current_movers_bitboard(brd);
+	bitboard opponent = get_opposing_movers_bitboard(brd);
+	brdidx king_square = greatest_square_index(brd->k & own); // there is only one king
+	bitboard king_targets = king_moves_from_square_index(king_square);
+	king_targets &= ~own;
+	king_targets &= ~opponent;
+	bitboard target;
+	bitboard target_square;
+	bitboard attackers;
+	move mv;
+	while(king_targets){
+		target = ls1b(king_targets);
+		king_targets ^= target;
+		target_square = ls1b(target);
+		attackers = attackers_from_square_index(brd, target_square) & opponent;
+		if(!attackers){
+			mv = move();
+			mv.from_square = king_square;
+			mv.to_square = target_square;
+			mv.promotion = no;
+			moves.push(mv);
+		}
+		
+	}
+		
+}
+
+inline void knight_captures(boardstate *brd, std::queue<move> &moves){
+	bitboard own = get_current_movers_bitboard(brd);
+	bitboard opponent = get_opposing_movers_bitboard(brd);
+	
+	bitboard targets, current_source, current_target, propagator;
+	brdidx source_square, target_square;
+	move mv;
+	
+	bitboard knights = own & (brd->n);
+	while(knights){
+		current_source = ls1b(knights);
+		knights ^= current_source;
+		source_square = greatest_square_index(current_source);
+		
+		// propagator takes care of pinning
+		propagator = full;
+		unplace_piece(brd, source_square);
+		propagator &= checking_rays_intersection(brd, true);
+		if(get_whites_turn(brd)){
+			unsafe_place_piece(brd, source_square, N);
+		}else{
+			unsafe_place_piece(brd, source_square, n);
+		}
+		
+		targets = empty;
+		targets |= step_north(step_north(step_east(current_source)));
+		targets |= step_north(step_north(step_west(current_source)));
+		targets |= step_south(step_south(step_east(current_source)));
+		targets |= step_south(step_south(step_west(current_source)));
+		
+		targets |= step_east(step_east(step_south(current_source)));
+		targets |= step_east(step_east(step_north(current_source)));
+		targets |= step_west(step_west(step_south(current_source)));
+		targets |= step_west(step_west(step_north(current_source)));
+		
+		targets &= opponent & propagator;
+		
+		while(targets){
+			current_target = ls1b(targets);
+			targets &= (~current_target);
+			target_square = greatest_square_index(current_target);
+			mv = move();
+			mv.from_square = source_square;
+			mv.to_square = target_square;
+			mv.promotion = no;
+			moves.push(mv);
+		}
+	}
+}
+
+inline void all_knight_moves(boardstate *brd, std::queue<move> &moves){
+	bitboard own = get_current_movers_bitboard(brd);
+	
+	bitboard targets, current_source, current_target, propagator;
+	brdidx source_square, target_square;
+	move mv;
+	
+	bitboard knights = own & (brd->n);
+	while(knights){
+		current_source = ls1b(knights);
+		knights ^= current_source;
+		source_square = greatest_square_index(current_source);
+		
+		// propagator takes care of pinning
+		propagator = full;
+		unplace_piece(brd, source_square);
+		propagator &= checking_rays_intersection(brd, true);
+		if(get_whites_turn(brd)){
+			unsafe_place_piece(brd, source_square, N);
+		}else{
+			unsafe_place_piece(brd, source_square, n);
+		}
+		
+		targets = empty;
+		targets |= step_north(step_north(step_east(current_source)));
+		targets |= step_north(step_north(step_west(current_source)));
+		targets |= step_south(step_south(step_east(current_source)));
+		targets |= step_south(step_south(step_west(current_source)));
+		
+		targets |= step_east(step_east(step_south(current_source)));
+		targets |= step_east(step_east(step_north(current_source)));
+		targets |= step_west(step_west(step_south(current_source)));
+		targets |= step_west(step_west(step_north(current_source)));
+		
+		targets &= (~own) & propagator;
+		
+		while(targets){
+			current_target = ls1b(targets);
+			targets &= (~current_target);
+			target_square = greatest_square_index(current_target);
+			mv = move();
+			mv.from_square = source_square;
+			mv.to_square = target_square;
+			mv.promotion = no;
+			moves.push(mv);
+		}
+	}
+}
+
+inline void quiet_knight_moves(boardstate *brd, std::queue<move> &moves){
+	bitboard own = get_current_movers_bitboard(brd);
+	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard unoccupied = ~(own | opponent);
+	
+	bitboard targets, current_source, current_target, propagator;
+	brdidx source_square, target_square;
+	move mv;
+	
+	bitboard knights = own & (brd->n);
+	while(knights){
+		current_source = ls1b(knights);
+		knights ^= current_source;
+		source_square = greatest_square_index(current_source);
+		
+		// propagator takes care of pinning
+		propagator = full;
+		unplace_piece(brd, source_square);
+		propagator &= checking_rays_intersection(brd, true);
+		if(get_whites_turn(brd)){
+			unsafe_place_piece(brd, source_square, N);
+		}else{
+			unsafe_place_piece(brd, source_square, n);
+		}
+		
+		targets = empty;
+		targets |= step_north(step_north(step_east(current_source)));
+		targets |= step_north(step_north(step_west(current_source)));
+		targets |= step_south(step_south(step_east(current_source)));
+		targets |= step_south(step_south(step_west(current_source)));
+		
+		targets |= step_east(step_east(step_south(current_source)));
+		targets |= step_east(step_east(step_north(current_source)));
+		targets |= step_west(step_west(step_south(current_source)));
+		targets |= step_west(step_west(step_north(current_source)));
+		
+		targets &= unoccupied & propagator;
+		
+		while(targets){
+			current_target = ls1b(targets);
+			targets &= (~current_target);
+			target_square = greatest_square_index(current_target);
+			mv = move();
+			mv.from_square = source_square;
+			mv.to_square = target_square;
+			mv.promotion = no;
+			moves.push(mv);
+		}
+	}
+}
+
+inline void pawn_captures(boardstate *brd, std::queue<move> &moves){
+	bitboard own = get_current_movers_bitboard(brd);
+	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard unoccupied = ~(own | opponent);
+	bitboard potential_targets = opponent & get_enpassant_bitboard(brd);
+	bitboard targets, current_source, propagator, current_target;
+	brdidx source_square, target_square;
+	move mv;
+	brdidx rank;
+	brdidx end_rank;
+	if(get_whites_turn(brd)){
+		end_rank = 8;
+	}else{
+		end_rank = 1;
+	}
+	
+	bitboard pawns = own & (brd->p);
+	while(pawns){
+		current_source = ls1b(pawns);
+		pawns ^= current_source;
+		source_square = greatest_square_index(current_source);
+		
+		// propagator takes care of pinning
+		propagator = unoccupied;
+		unplace_piece(brd, source_square);
+		propagator &= checking_rays_intersection(brd, true);
+		if(get_whites_turn(brd)){
+			unsafe_place_piece(brd, source_square, P);
+		}else{
+			unsafe_place_piece(brd, source_square, p);
+		}
+		
+		targets = empty;
+		if(get_whites_turn(brd)){
+			targets |= ((step_northeast(current_source) | step_northwest(current_source)) & propagator & potential_targets);
+		}else{
+			targets |= ((step_southeast(current_source) | step_southwest(current_source)) & propagator & potential_targets);
+		}
+		while(targets){
+			current_target = ls1b(targets);
+			targets &= (~current_target);
+			target_square = greatest_square_index(current_target);
+			rank = square_index_to_rank_index(target_square);
+			if(rank == end_rank){
+				if(get_whites_turn(brd)){
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = P;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = R;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = N;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = B;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = Q;
+					moves.push(mv);
+				}else{
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = p;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = r;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = n;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = b;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = q;
+					moves.push(mv);
+				}
+			}else{
+				mv = move();
+				mv.from_square = source_square;
+				mv.to_square = target_square;
+				mv.promotion = no;
+				moves.push(mv);
+			}
+			
+		}
+	}
+}
+
+inline void all_pawn_moves(boardstate *brd, std::queue<move> &moves){
+	bitboard own = get_current_movers_bitboard(brd);
+	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard unoccupied = ~(own | opponent);
+	bitboard potential_targets = opponent & get_enpassant_bitboard(brd);
+	bitboard targets, current_source, propagator, current_target;
+	brdidx source_square, target_square;
+	move mv;
+	brdidx rank;
+	brdidx end_rank;
+	if(get_whites_turn(brd)){
+		end_rank = 8;
+	}else{
+		end_rank = 1;
+	}
+	
+	bitboard pawns = own & (brd->p);
+	while(pawns){
+		current_source = ls1b(pawns);
+		pawns ^= current_source;
+		source_square = greatest_square_index(current_source);
+		
+		// propagator takes care of pinning
+		propagator = unoccupied;
+		unplace_piece(brd, source_square);
+		propagator &= checking_rays_intersection(brd, true);
+		if(get_whites_turn(brd)){
+			unsafe_place_piece(brd, source_square, P);
+		}else{
+			unsafe_place_piece(brd, source_square, p);
+		}
+		
+		targets = empty;
+		if(get_whites_turn(brd)){
+			// single step push
+			targets |= (step_north(current_source) & propagator);
+			// double step push
+			targets |= step_north(step_north(rank_2 & current_source)) & propagator & step_south(propagator);
+			targets |= ((step_northeast(current_source) | step_northwest(current_source)) & propagator & potential_targets);
+		}else{
+			// single step push
+			targets |= (step_south(current_source) & propagator);
+			// double step push
+			targets |= step_south(step_south(rank_7 & current_source)) & propagator & step_north(propagator);
+			targets |= ((step_southeast(current_source) | step_southwest(current_source)) & propagator & potential_targets);
+		}
+		
+		while(targets){
+			current_target = ls1b(targets);
+			targets &= (~current_target);
+			target_square = greatest_square_index(current_target);
+			rank = square_index_to_rank_index(target_square);
+			if(rank == end_rank){
+				if(get_whites_turn(brd)){
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = P;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = R;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = N;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = B;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = Q;
+					moves.push(mv);
+				}else{
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = p;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = r;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = n;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = b;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = q;
+					moves.push(mv);
+				}
+			}else{
+				mv = move();
+				mv.from_square = source_square;
+				mv.to_square = target_square;
+				mv.promotion = no;
+				moves.push(mv);
+			}
+			
+		}
+	}
+}
+
+inline void quiet_pawn_moves(boardstate *brd, std::queue<move> &moves){
+	bitboard own = get_current_movers_bitboard(brd);
+	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard unoccupied = ~(own | opponent);
+	bitboard targets, current_source, propagator, current_target;
+	brdidx source_square, target_square;
+	move mv;
+	brdidx rank;
+	brdidx end_rank;
+	if(get_whites_turn(brd)){
+		end_rank = 8;
+	}else{
+		end_rank = 1;
+	}
+	
+	bitboard pawns = own & (brd->p);
+	while(pawns){
+		current_source = ls1b(pawns);
+		pawns ^= current_source;
+		source_square = greatest_square_index(current_source);
+		
+		// propagator takes care of pinning
+		propagator = unoccupied;
+		unplace_piece(brd, source_square);
+		propagator &= checking_rays_intersection(brd, true);
+		if(get_whites_turn(brd)){
+			unsafe_place_piece(brd, source_square, P);
+		}else{
+			unsafe_place_piece(brd, source_square, p);
+		}
+		
+		targets = empty;
+		if(get_whites_turn(brd)){
+			// single step push
+			targets |= (step_north(current_source) & propagator);
+			// double step push
+			targets |= step_north(step_north(rank_2 & current_source)) & propagator & step_south(propagator);
+		}else{
+			// single step push
+			targets |= (step_south(current_source) & propagator);
+			// double step push
+			targets |= step_south(step_south(rank_7 & current_source)) & propagator & step_north(propagator);
+		}
+		
+		while(targets){
+			current_target = ls1b(targets);
+			targets &= (~current_target);
+			target_square = greatest_square_index(current_target);
+			rank = square_index_to_rank_index(target_square);
+			if(rank == end_rank){
+				if(get_whites_turn(brd)){
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = P;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = R;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = N;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = B;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = Q;
+					moves.push(mv);
+				}else{
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = p;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = r;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = n;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = b;
+					moves.push(mv);
+					
+					mv = move();
+					mv.from_square = source_square;
+					mv.to_square = target_square;
+					mv.promotion = q;
+					moves.push(mv);
+				}
+			}else{
+				mv = move();
+				mv.from_square = source_square;
+				mv.to_square = target_square;
+				mv.promotion = no;
+				moves.push(mv);
+			}
+			
+		}
+	}
+}
+
+inline void bishop_captures(boardstate *brd, std::queue<move> &moves){
+	bitboard own = get_current_movers_bitboard(brd);
+	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard unoccupied = ~(own | opponent);
+	bitboard propagator;
+	bitboard bishops;
+	bishops = own & brd->b;
+	bitboard targets;
+	bitboard current_target, current_source;
+	brdidx target_square, source_square;
+	bitboard tmp;
+	
+	move mv;
+	while(bishops){
+		current_source = ls1b(bishops);
+		bishops &= (~current_source);
+		source_square = greatest_square_index(current_source);
+		
+		// propagator takes care of pinning
+		propagator = unoccupied;
+		unplace_piece(brd, source_square);
+		propagator &= checking_rays_intersection(brd, true);
+		if(get_whites_turn(brd)){
+			unsafe_place_piece(brd, source_square, B);
+		}else{
+			unsafe_place_piece(brd, source_square, b);
+		}
+		
+		targets = empty;
+		tmp = slide_northeast(current_source, propagator);
+		tmp = (step_northeast(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_northwest(current_source, propagator);
+		tmp = (step_northwest(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_southwest(current_source, propagator);
+		tmp = (step_southwest(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_southeast(current_source, propagator);
+		tmp = (step_southeast(tmp) & opponent);
+		targets |= tmp;
+		targets &= (~current_source);
+		
+		while(targets){
+			current_target = ls1b(targets);
+			targets &= (~current_target);
+			target_square = greatest_square_index(current_target);
+			mv = move();
+			mv.from_square = source_square;
+			mv.to_square = target_square;
+			mv.promotion = no;
+			moves.push(mv);
+		}
+	}
+}
+
+inline void all_bishop_moves(boardstate *brd, std::queue<move> &moves){
+	bitboard own = get_current_movers_bitboard(brd);
+	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard unoccupied = ~(own | opponent);
+	bitboard propagator;
+	bitboard bishops;
+	bishops = own & brd->b;
+	bitboard targets;
+	bitboard current_target, current_source;
+	brdidx target_square, source_square;
+	bitboard tmp;
+	
+	move mv;
+	while(bishops){
+		current_source = ls1b(bishops);
+		bishops &= (~current_source);
+		source_square = greatest_square_index(current_source);
+		
+		// propagator takes care of pinning
+		propagator = unoccupied;
+		unplace_piece(brd, source_square);
+		propagator &= checking_rays_intersection(brd, true);
+		if(get_whites_turn(brd)){
+			unsafe_place_piece(brd, source_square, B);
+		}else{
+			unsafe_place_piece(brd, source_square, b);
+		}
+		targets = empty;
+		tmp = slide_northeast(current_source, propagator);
+		tmp |= (step_northeast(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_northwest(current_source, propagator);
+		tmp |= (step_northwest(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_southwest(current_source, propagator);
+		tmp |= (step_southwest(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_southeast(current_source, propagator);
+		tmp |= (step_southeast(tmp) & opponent);
+		targets |= tmp;
+		targets &= (~current_source);
+		while(targets){
+			current_target = ls1b(targets);
+			targets &= (~current_target);
+			target_square = greatest_square_index(current_target);
+			mv = move();
+			mv.from_square = source_square;
+			mv.to_square = target_square;
+			mv.promotion = no;
+			moves.push(mv);
+		}
+	}
+}
+
+
+inline void quiet_bishop_moves(boardstate *brd, std::queue<move> &moves){
+	bitboard own = get_current_movers_bitboard(brd);
+	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard unoccupied = ~(own | opponent);
+	bitboard propagator;
+	bitboard bishops;
+	bishops = own & brd->b;
+	bitboard targets;
+	bitboard current_target, current_source;
+	brdidx target_square, source_square;
+	
+	move mv;
+	while(bishops){
+		current_source = ls1b(bishops);
+		bishops &= (~current_source);
+		source_square = greatest_square_index(current_source);
+		
+		// propagator takes care of pinning
+		propagator = unoccupied;
+		unplace_piece(brd, source_square);
+		propagator &= checking_rays_intersection(brd, true);
+		if(get_whites_turn(brd)){
+			unsafe_place_piece(brd, source_square, B);
+		}else{
+			unsafe_place_piece(brd, source_square, b);
+		}
+		
+		targets = empty;
+		targets |= slide_northeast(current_source, propagator);
+		targets |= slide_northwest(current_source, propagator);
+		targets |= slide_southwest(current_source, propagator);
+		targets |= slide_southeast(current_source, propagator);
+		targets &= (~current_source);
+		
+		while(targets){
+			current_target = ls1b(targets);
+			targets &= (~current_target);
+			target_square = greatest_square_index(current_target);
+			mv = move();
+			mv.from_square = source_square;
+			mv.to_square = target_square;
+			mv.promotion = no;
+			moves.push(mv);
+		}
+	}
+}
+
+inline void rook_captures(boardstate *brd, std::queue<move> &moves){
+	bitboard own = get_current_movers_bitboard(brd);
+	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard unoccupied = ~(own | opponent);
+	bitboard propagator;
+	bitboard rooks;
+	rooks = own & brd->r;
+	bitboard targets;
+	bitboard current_target, current_source;
+	brdidx target_square, source_square;
+	bitboard tmp;
+	
+	move mv;
+	while(rooks){
+		current_source = ls1b(rooks);
+		rooks &= (~current_source);
+		source_square = greatest_square_index(current_source);
+		
+		// propagator takes care of pinning
+		propagator = unoccupied;
+		unplace_piece(brd, source_square);
+		propagator &= checking_rays_intersection(brd, true);
+		if(get_whites_turn(brd)){
+			unsafe_place_piece(brd, source_square, R);
+		}else{
+			unsafe_place_piece(brd, source_square, r);
+		}
+		
+		targets = empty;
+		tmp = slide_east(current_source, propagator);
+		tmp = (step_east(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_north(current_source, propagator);
+		tmp = (step_north(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_west(current_source, propagator);
+		tmp = (step_west(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_south(current_source, propagator);
+		tmp = (step_south(tmp) & opponent);
+		targets |= tmp;
+		targets &= (~current_source);
+		
+		while(targets){
+			current_target = ls1b(targets);
+			targets &= (~current_target);
+			target_square = greatest_square_index(current_target);
+			mv = move();
+			mv.from_square = source_square;
+			mv.to_square = target_square;
+			mv.promotion = no;
+			moves.push(mv);
+		}
+	}
+}
+
+inline void all_rook_moves(boardstate *brd, std::queue<move> &moves){
+	bitboard own = get_current_movers_bitboard(brd);
+	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard unoccupied = ~(own | opponent);
+	bitboard propagator;
+	bitboard rooks;
+	rooks = own & brd->r;
+	bitboard targets;
+	bitboard current_target, current_source;
+	brdidx target_square, source_square;
+	bitboard tmp;
+	
+	move mv;
+	while(rooks){
+		current_source = ls1b(rooks);
+		rooks &= (~current_source);
+		source_square = greatest_square_index(current_source);
+		
+		// propagator takes care of pinning
+		propagator = unoccupied;
+		unplace_piece(brd, source_square);
+		propagator &= checking_rays_intersection(brd, true);
+		if(get_whites_turn(brd)){
+			unsafe_place_piece(brd, source_square, R);
+		}else{
+			unsafe_place_piece(brd, source_square, r);
+		}
+		
+		targets = empty;
+		tmp = slide_east(current_source, propagator);
+		tmp |= (step_east(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_north(current_source, propagator);
+		tmp |= (step_north(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_west(current_source, propagator);
+		tmp |= (step_west(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_south(current_source, propagator);
+		tmp |= (step_south(tmp) & opponent);
+		targets |= tmp;
+		targets &= (~current_source);
+		
+		while(targets){
+			current_target = ls1b(targets);
+			targets &= (~current_target);
+			target_square = greatest_square_index(current_target);
+			mv = move();
+			mv.from_square = source_square;
+			mv.to_square = target_square;
+			mv.promotion = no;
+			moves.push(mv);
+		}
+	}
+}
+
+
+inline void quiet_rook_moves(boardstate *brd, std::queue<move> &moves){
+	bitboard own = get_current_movers_bitboard(brd);
+	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard unoccupied = ~(own | opponent);
+	bitboard propagator;
+	bitboard rooks;
+	rooks = own & brd->r;
+	bitboard targets;
+	bitboard current_target, current_source;
+	brdidx target_square, source_square;
+	
+	move mv;
+	while(rooks){
+		current_source = ls1b(rooks);
+		rooks &= (~current_source);
+		source_square = greatest_square_index(current_source);
+		
+		// propagator takes care of pinning
+		propagator = unoccupied;
+		unplace_piece(brd, source_square);
+		propagator &= checking_rays_intersection(brd, true);
+		if(get_whites_turn(brd)){
+			unsafe_place_piece(brd, source_square, R);
+		}else{
+			unsafe_place_piece(brd, source_square, r);
+		}
+		
+		targets = empty;
+		targets |= slide_east(current_source, propagator);
+		targets |= slide_north(current_source, propagator);
+		targets |= slide_west(current_source, propagator);
+		targets |= slide_south(current_source, propagator);
+		targets &= (~current_source);
+		
+		while(targets){
+			current_target = ls1b(targets);
+			targets &= (~current_target);
+			target_square = greatest_square_index(current_target);
+			mv = move();
+			mv.from_square = source_square;
+			mv.to_square = target_square;
+			mv.promotion = no;
+			moves.push(mv);
+		}
+	}
+}
+
+inline void queen_captures(boardstate *brd, std::queue<move> &moves){
+	bitboard own = get_current_movers_bitboard(brd);
+	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard unoccupied = ~(own | opponent);
+	bitboard propagator;
+	bitboard queens;
+	queens = own & brd->q;
+	bitboard targets;
+	bitboard current_target, current_source;
+	brdidx target_square, source_square;
+	bitboard tmp;
+	
+	move mv;
+	while(queens){
+		current_source = ls1b(queens);
+		queens &= (~current_source);
+		source_square = greatest_square_index(current_source);
+		
+		// propagator takes care of pinning
+		propagator = unoccupied;
+		unplace_piece(brd, source_square);
+		propagator &= checking_rays_intersection(brd, true);
+		if(get_whites_turn(brd)){
+			unsafe_place_piece(brd, source_square, Q);
+		}else{
+			unsafe_place_piece(brd, source_square, q);
+		}
+		
+		targets = empty;
+		tmp = slide_east(current_source, propagator);
+		tmp = (step_east(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_northeast(current_source, propagator);
+		tmp = (step_northeast(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_north(current_source, propagator);
+		tmp = (step_north(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_northwest(current_source, propagator);
+		tmp = (step_northwest(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_west(current_source, propagator);
+		tmp = (step_west(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_southwest(current_source, propagator);
+		tmp = (step_southwest(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_south(current_source, propagator);
+		tmp = (step_south(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_southeast(current_source, propagator);
+		tmp = (step_southeast(tmp) & opponent);
+		targets |= tmp;
+		targets &= (~current_source);
+		
+		while(targets){
+			current_target = ls1b(targets);
+			targets &= (~current_target);
+			target_square = greatest_square_index(current_target);
+			mv = move();
+			mv.from_square = source_square;
+			mv.to_square = target_square;
+			mv.promotion = no;
+			moves.push(mv);
+		}
+	}
+}
+
+inline void all_queen_moves(boardstate *brd, std::queue<move> &moves){
+	bitboard own = get_current_movers_bitboard(brd);
+	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard unoccupied = ~(own | opponent);
+	bitboard propagator;
+	bitboard queens;
+	queens = own & brd->q;
+	bitboard targets;
+	bitboard current_target, current_source;
+	brdidx target_square, source_square;
+	bitboard tmp;
+	
+	move mv;
+	while(queens){
+		current_source = ls1b(queens);
+		queens &= (~current_source);
+		source_square = greatest_square_index(current_source);
+		
+		// propagator takes care of pinning
+		propagator = unoccupied;
+		unplace_piece(brd, source_square);
+		propagator &= checking_rays_intersection(brd, true);
+		if(get_whites_turn(brd)){
+			unsafe_place_piece(brd, source_square, Q);
+		}else{
+			unsafe_place_piece(brd, source_square, q);
+		}
+		
+		targets = empty;
+		tmp = slide_east(current_source, propagator);
+		tmp |= (step_east(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_northeast(current_source, propagator);
+		tmp |= (step_northeast(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_north(current_source, propagator);
+		tmp |= (step_north(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_northwest(current_source, propagator);
+		tmp |= (step_northwest(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_west(current_source, propagator);
+		tmp |= (step_west(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_southwest(current_source, propagator);
+		tmp |= (step_southwest(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_south(current_source, propagator);
+		tmp |= (step_south(tmp) & opponent);
+		targets |= tmp;
+		tmp = slide_southeast(current_source, propagator);
+		tmp |= (step_southeast(tmp) & opponent);
+		targets |= tmp;
+		targets &= (~current_source);
+		
+		while(targets){
+			current_target = ls1b(targets);
+			targets &= (~current_target);
+			target_square = greatest_square_index(current_target);
+			mv = move();
+			mv.from_square = source_square;
+			mv.to_square = target_square;
+			mv.promotion = no;
+			moves.push(mv);
+		}
+	}
 }
 
 
@@ -1064,7 +2331,7 @@ inline void quiet_queen_moves(boardstate *brd, std::queue<move> &moves){
 		// propagator takes care of pinning
 		propagator = unoccupied;
 		unplace_piece(brd, source_square);
-		propagator &= checking_rays_intersection(brd);
+		propagator &= checking_rays_intersection(brd, true);
 		if(get_whites_turn(brd)){
 			unsafe_place_piece(brd, source_square, Q);
 		}else{
@@ -1095,6 +2362,32 @@ inline void quiet_queen_moves(boardstate *brd, std::queue<move> &moves){
 	}
 }
 
+inline void all_captures(boardstate *brd, std::queue<move> &moves){
+	king_captures(brd, moves);
+	queen_captures(brd, moves);
+	bishop_captures(brd, moves);
+	rook_captures(brd, moves);
+	pawn_captures(brd, moves);
+	knight_captures(brd, moves);
+}
+
+inline void all_moves(boardstate *brd, std::queue<move> &moves){
+	all_king_moves(brd, moves);
+	all_queen_moves(brd, moves);
+	all_bishop_moves(brd, moves);
+	all_rook_moves(brd, moves);
+	all_pawn_moves(brd, moves);
+	all_knight_moves(brd, moves);
+}
+
+inline void all_quiet_moves(boardstate *brd, std::queue<move> &moves){
+	quiet_king_moves(brd, moves);
+	quiet_queen_moves(brd, moves);
+	quiet_bishop_moves(brd, moves);
+	quiet_rook_moves(brd, moves);
+	quiet_pawn_moves(brd, moves);
+	quiet_knight_moves(brd, moves);
+}
 
 void bitboard_to_arr(boardstate *bb, char* arr);
 

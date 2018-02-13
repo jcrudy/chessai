@@ -7,3 +7,4 @@ dependencies:
     - pip:
         - toolz==0.8.2
         - frozendict
+        - python-chess
