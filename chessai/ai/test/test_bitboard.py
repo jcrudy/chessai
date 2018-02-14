@@ -514,12 +514,45 @@ def test_perft():
     def compute_perft(n):
         return BitBoardState.from_fen(starting_fen).perft(n)
      
-    perft_result = list(map(compute_perft, range(6)))
-    expected = [1,20,400,8902,197281,4865609]#,119060324]
+    perft_result = list(map(compute_perft, range(7)))
+    expected = [1,20,400,8902,197281,4865609,119060324]
     assert_list_equal(perft_result, expected)
+
+def compare_to_python(fen, depth):
+    board = BitBoardState.from_fen(fen)
+    pyboard = chess.Board(fen)
+    def _compare_to_python(board, pyboard, depth):
+        fen = board.to_fen()
+        moves = board.all_moves()
+        pymoves_ = list(pyboard.legal_moves)
+        if pyboard.turn:
+            pymoves = list(map(chess_move_to_white_move, pymoves_))
+        else:
+            pymoves = list(map(chess_move_to_black_move, pymoves_))
+        assert_equal(set(moves), set(pymoves))
+        order = list(map(pymoves.index, moves))
+        if depth <= 1:
+            return
+        for i, move in enumerate(moves):
+            record = board.make_move(move)
+            pyboard.push(pymoves_[order[i]])
+            try:
+                _compare_to_python(board, pyboard, depth-1)
+            except AssertionError:
+                print(board.to_grid())
+                print(pyboard)
+                print(move)
+                print(pymoves_[order[i]])
+                print(i)
+                raise
+            record = board.unmake_move(record)
+            pyboard.pop()
+            assert_equal(board.to_fen(), fen)
+    _compare_to_python(board, pyboard, depth)
 
 def confirm_moves(fen, depth):
     moves = BitBoardState.from_fen(fen).all_moves()
+    random.shuffle(moves)
     expected_moves = all_moves_from_chess_package(fen)
     try:
         assert_equal(set(moves), set(expected_moves))
@@ -528,35 +561,59 @@ def confirm_moves(fen, depth):
         print(BitBoardState.from_fen(fen).to_grid())
         raise
     if depth <= 1:
-        return
+        return len(moves)
+    total = 0
     for move in moves:
         board = BitBoardState.from_fen(fen)
-        board.make_move(move)
-        confirm_moves(board.to_fen(), depth-1)
+        record = board.make_move(move)
+        total += confirm_moves(board.to_fen(), depth-1)
+        board.unmake_move(record)
+        try:
+            assert_equal(board, BitBoardState.from_fen(fen))
+        except AssertionError:
+            print(board.to_grid())
+            print(BitBoardState.from_fen(fen).to_grid())
+            raise
+    return total
 
 def test_move_tree_depth_2():
     starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-    confirm_moves(starting_fen, 2)
+    compare_to_python(starting_fen, 2)
 
 def test_a_position():
-    fen = 'rnb1kbnr/pppp1ppp/8/4p3/7q/P7/RPPPPPPP/1NBQKBNR w Kkq - 2 3'
+    fen = 'rnbq1bnr/pppkpppp/2P5/3p4/8/8/PP1PPPPP/RNBQKBNR b KQ - 0 3'
     board = BitBoardState.from_fen(fen)
-    print(board.to_grid())
     moves = board.all_moves()
     expected_moves = all_moves_from_chess_package(fen)
     assert_equal(set(moves), set(expected_moves))
     
 def test_move_tree_depth_3():
     starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-    confirm_moves(starting_fen, 3)
+    compare_to_python(starting_fen, 3)
 
-def test_move_tree_depth_4():
-    starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-    confirm_moves(starting_fen, 4)
-
-def test_move_tree_depth_5():
-    starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-    confirm_moves(starting_fen, 5)
+# def test_move_tree_depth_4():
+#     starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+#     compare_to_python(starting_fen, 4)
+    
+def test_white_castling():
+    fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1'
+    moves = BitBoardState.from_fen(fen).all_moves()
+    expected_moves = all_moves_from_chess_package(fen)
+    assert_equal(set(moves), set(expected_moves))
+    
+def test_black_castling():
+    fen = 'r3k2r/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1'
+    moves = BitBoardState.from_fen(fen).all_moves()
+    expected_moves = all_moves_from_chess_package(fen)
+    assert_equal(set(moves), set(expected_moves))
+# 
+# def test_move_tree_depth_5():
+#     starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+#     confirm_moves(starting_fen, 5)
+# #     
+# def test_move_tree_depth_6():
+#     starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+#     confirm_moves(starting_fen, 6)
     
 def test_move_generation():
     # The following two positions should have 218 moves each.
@@ -645,54 +702,6 @@ def test_bitboard_slide_north():
                  00000000
                  ''')
     assert_equal(pieces.slide_north(unoccupied), expected)
-
-# def test_bitboard_slide_capture_north():
-#     pieces = BitBoard.from_grid('''
-#              00000000
-#              00000000
-#              00000000
-#              00000000
-#              00000000
-#              00001000
-#              00101000
-#              00000000
-#              ''')
-# 
-#     own = BitBoard.from_grid('''
-#                  00000000
-#                  00000000
-#                  00000000
-#                  00000000
-#                  00000000
-#                  00001000
-#                  00101000
-#                  00000000
-#                  ''')
-# 
-#     opponent = BitBoard.from_grid('''
-#                  00000000
-#                  00001000
-#                  00001000
-#                  00000000
-#                  00000000
-#                  00000000
-#                  00000000
-#                  00000000
-#                  ''')
-#     expected = BitBoard.from_grid('''
-#                  00000000
-#                  00000000
-#                  00001000
-#                  00000000
-#                  00000000
-#                  00000000
-#                  00000000
-#                  00000000
-#                  ''')
-#     
-#     assert_equal(pieces.slide_capture_north(own, opponent), expected)
-
-
 
 def test_bitboard_slide_south():
     pieces = BitBoard.from_grid('''

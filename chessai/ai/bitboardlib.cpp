@@ -92,6 +92,13 @@ const bitboard rank_7 = 0x00FF000000000000ULL;
 const bitboard rank_8 = 0xFF00000000000000ULL;
 const bitboard ranks[8] = {rank_1, rank_2, rank_3, rank_4, rank_5, rank_6, rank_7, rank_8};
 
+const bitboard white_castle_king_open = 0x0000000000000060ULL;
+const bitboard black_castle_king_open = 0x6000000000000000ULL;
+const bitboard castle_king_rook = 0x8000000000000080ULL;
+const bitboard white_castle_queen_open = 0x000000000000000EULL;
+const bitboard black_castle_queen_open = 0x0E00000000000000ULL;
+const bitboard castle_queen_rook = 0x0100000000000001ULL;
+
 const bitboard diag_0 = 0x8040201008040201ULL;
 const bitboard diag_1 = step_west(diag_0);
 const bitboard diag_2 = step_west(diag_1);

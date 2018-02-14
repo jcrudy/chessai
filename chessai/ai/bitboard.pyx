@@ -112,7 +112,7 @@ cdef extern from "bitboardlib.h":
     cdef int greatest_diag_index(bitboard b)
     cdef int greatest_antidiag_index(bitboard b)
     cdef bitboard bitboard_from_square_index(int i)
-    cdef void unplace_piece(boardstate *bs, brdidx square_index)
+    cdef piece unplace_piece(boardstate *bs, brdidx square_index)
     cdef void place_piece(boardstate *bs, brdidx square_index, piece pc)
     cdef void quiet_queen_moves(boardstate *brd, queue[move] &moves)
     cdef void all_queen_moves(boardstate *brd, queue[move] &moves)
@@ -316,7 +316,7 @@ cdef class Move:
         self.mv = mv
         
     def __richcmp__(Move self, other, op):
-        if op != Py_EQ or not isinstance(other, Move):
+        if (op != Py_EQ) or not isinstance(other, Move):
             return NotImplemented
         if self.mv == other.mv:
             return True
@@ -383,7 +383,36 @@ cdef class MoveRecord:
             return piece_to_str(self.rec.promoted_from)
         
 cdef class BitBoardState:
-    cdef boardstate bs
+    cdef readonly boardstate bs
+    
+    def __richcmp__(BitBoardState self, other, int op):
+        if not isinstance(other, BitBoardState) or op != Py_EQ:
+            return NotImplemented
+        cdef BitBoardState other_ = other
+        if not (self.bs.k == other_.bs.k and
+           self.bs.q == other_.bs.q and
+           self.bs.b == other_.bs.b and
+           self.bs.r == other_.bs.r and
+           self.bs.k == other_.bs.k and
+           self.bs.p == other_.bs.p and
+           self.bs.white == other_.bs.white and
+           self.bs.black == other_.bs.black and
+           self.bs.enpassant == other_.bs.enpassant and
+           self.bs.whites_turn == other_.bs.whites_turn and
+           self.bs.white_castle_king == other_.bs.white_castle_king and
+           self.bs.white_castle_queen == other_.bs.white_castle_queen and
+           self.bs.black_castle_king == other_.bs.black_castle_king and
+           self.bs.black_castle_queen == other_.bs.black_castle_queen and
+           self.bs.halfmove_clock == other_.bs.halfmove_clock and
+           self.bs.fullmove_counter == other_.bs.fullmove_counter):
+            return False
+        for i in range(64):
+            if self.bs.piece_map[i] != other_.bs.piece_map[i]:
+                print(i)
+                print(piece_to_str(self.bs.piece_map[i]))
+                print(piece_to_str(other_.bs.piece_map[i]))
+                return False
+        return True
     
     cpdef unsigned long long perft(BitBoardState self, int depth):
         return perft(&(self.bs), depth)
