@@ -163,4 +163,65 @@ unsigned long long perft(boardstate *brd, int depth){
     }
     return(result);
 }
+
+double simple_evaluation(boardstate *brd){
+	double white_score, black_score;
+	white_score = 0;
+	black_score = 0;
+	white_score += 100 * population_count(brd->white & brd->p);
+	white_score += 320 * population_count(brd->white & brd->n);
+	white_score += 330 * population_count(brd->white & brd->b);
+	white_score += 500 * population_count(brd->white & brd->r);
+	white_score += 900 * population_count(brd->white & brd->q);
+	white_score += 20000 * population_count(brd->white & brd->k);
+	black_score += 100 * population_count(brd->black & brd->p);
+	black_score += 320 * population_count(brd->black & brd->n);
+	black_score += 330 * population_count(brd->black & brd->b);
+	black_score += 500 * population_count(brd->black & brd->r);
+	black_score += 900 * population_count(brd->black & brd->q);
+	black_score += 20000 * population_count(brd->black & brd->k);
+	if(get_whites_turn(brd)){
+		return(white_score - black_score);
+	}else{
+		return(black_score - white_score);
+	}
+}
+
+movechoice negamax(boardstate *brd, int depth){
+	movechoice choice, result;
+	if(depth == 0){
+		result = movechoice();
+		result.score = simple_evaluation(brd);
+		return(result);
+	}
+	std::queue<move> moves = std::queue<move>();
+	all_moves(brd, moves);
+	double value;
+	double best_value;
+	move best_move;
+	move mv;
+	bool init = true;
+	moverecord rec;
+	while(!moves.empty()){
+		mv = moves.front();
+		moves.pop();
+		rec = make_move(brd, &mv);
+		choice = negamax(brd, depth-1);
+		value = -choice.score;
+		unmake_move(brd, &rec);
+		if(init){
+			best_value = value;
+			best_move = mv;
+			init = false;
+		}
+		if(value > best_value){
+			best_value = value;
+			best_move = mv;
+		}
+	}
+	result = movechoice();
+	result.score = best_value;
+	result.mv = best_move;
+	return(result);
+}
 									

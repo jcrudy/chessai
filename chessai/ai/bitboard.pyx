@@ -118,7 +118,11 @@ cdef extern from "bitboardlib.h":
     cdef void all_queen_moves(boardstate *brd, queue[move] &moves)
     cdef void queen_captures(boardstate *brd, queue[move] &moves)
     cdef void all_moves(boardstate *brd, queue[move] &moves)
-    cdef unsigned long long perft(boardstate *brd, int depth);
+    cdef unsigned long long perft(boardstate *brd, int depth)
+    ctypedef struct movechoice:
+        move mv
+        double score
+    cdef movechoice negamax(boardstate *brd, int depth)
 
 cpdef bitboard_to_str(bitboard bb):
     cdef int i
@@ -273,7 +277,7 @@ cdef piece str_to_piece(str s):
         return no
 
 cdef str piece_to_str(piece pc):
-    cdef str c
+    cdef str c = 'error'
     if pc == K:
         c =  'K'
     elif pc == k:
@@ -307,8 +311,8 @@ cdef str piece_to_str(piece pc):
     return c
 
 cdef class Move:
-    cdef readonly move mv
-    def __init__(Move self, int from_square, int to_square, str promotion='no'):
+    cdef public move mv
+    def __init__(Move self, int from_square=0, int to_square=0, str promotion='no'):
         cdef move mv
         mv.from_square = from_square
         mv.to_square = to_square
@@ -318,7 +322,10 @@ cdef class Move:
     def __richcmp__(Move self, other, op):
         if (op != Py_EQ) or not isinstance(other, Move):
             return NotImplemented
-        if self.mv == other.mv:
+        cdef Move other_ = other
+        if (self.mv.from_square == other_.mv.from_square and 
+            self.mv.to_square == other_.mv.to_square and 
+            self.mv.promotion == other_.mv.promotion):
             return True
         else:
             return False
@@ -327,7 +334,7 @@ cdef class Move:
         return hash((self.from_square, self.to_square, self.promotion))
     
     def __repr__(Move self):
-        return 'Move(%d, %d, %s)' % (self.from_square, self.to_square, self.promotion)
+        return 'Move(%d, %d, "%s")' % (self.from_square, self.to_square, self.promotion)
     
     property from_square:
         def __get__(Move self):
@@ -408,11 +415,14 @@ cdef class BitBoardState:
             return False
         for i in range(64):
             if self.bs.piece_map[i] != other_.bs.piece_map[i]:
-                print(i)
-                print(piece_to_str(self.bs.piece_map[i]))
-                print(piece_to_str(other_.bs.piece_map[i]))
                 return False
         return True
+    
+    cpdef Move negamax(BitBoardState self, int depth):
+        cdef movechoice choice = negamax(&(self.bs), depth)
+        cdef Move result = Move()
+        result.mv = choice.mv
+        return result
     
     cpdef unsigned long long perft(BitBoardState self, int depth):
         return perft(&(self.bs), depth)
@@ -425,7 +435,7 @@ cdef class BitBoardState:
         while not mvs.empty():
             mv = mvs.front()
             mvs.pop()
-            result.append(Move(mv.from_square, mv.to_square))
+            result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))
         return result
     
     cpdef quiet_queen_moves(BitBoardState self):

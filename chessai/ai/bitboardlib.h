@@ -219,6 +219,15 @@ inline bitboard ls1b(bitboard b){
 	return(b & (-b));
 }
 
+inline int population_count(bitboard b){
+	int result = 0;
+	while(b){
+		b ^= ls1b(b);
+		result++;
+	}
+	return(result);
+}
+
 inline bitboard step_north(bitboard b){
 	return(b << 8);
 }
@@ -1004,134 +1013,6 @@ inline void unmake_move(boardstate *brd, moverecord *mv){
 	set_enpassant(brd, mv->enpassant);
 }
 
-inline moverecord make_move(boardstate *brd, move *mv){
-	piece from_piece, to_piece;
-	bool lost_castle_king = false;
-	bool lost_castle_queen = false;
-	from_piece = brd->piece_map[mv->from_square];
-	to_piece = brd->piece_map[mv->to_square];
-	brdidx old_enpassant = brd->enpassant;
-
-	// check for castle loss
-	switch(from_piece){
-		case K:
-			lost_castle_king = get_white_castle_king(brd);
-			lost_castle_queen = get_white_castle_queen(brd);
-			break;
-		case R:
-			if((mv->from_square) == 7){
-				lost_castle_king = get_white_castle_king(brd);
-				lost_castle_queen = false;
-			}
-			if((mv->from_square) == 0){
-				lost_castle_queen = get_white_castle_queen(brd);
-				lost_castle_king = false;
-			}
-			break;
-		case k:
-			lost_castle_king = get_black_castle_king(brd);
-			lost_castle_queen = get_black_castle_queen(brd);
-			break;
-		case r:
-			if((mv->from_square) == 63){
-				lost_castle_king = get_black_castle_king(brd);
-				lost_castle_queen = false;
-			}
-			if((mv->from_square) == 55){
-				lost_castle_queen = get_black_castle_queen(brd);
-				lost_castle_king = false;
-			}
-			break;
-		default:
-			break;
-
-	}// end check for castle loss
-
-	// check for new en passant
-	brdidx new_enpassant;
-	if((from_piece == P) &&
-		(square_index_to_rank_index(mv->from_square) == 1) &&
-		(square_index_to_rank_index(mv->to_square) == 3)){
-		new_enpassant = (mv->to_square) - 8;
-	}else if((from_piece == p) &&
-		(square_index_to_rank_index(mv->from_square) == 6) &&
-		(square_index_to_rank_index(mv->to_square) == 4)){
-		new_enpassant = (mv->to_square) + 8;
-	}else{
-		new_enpassant = no_enpassant;
-	}
-
-	// update board state
-	unplace_piece(brd, mv->from_square);
-	//perform en passant
-	if(to_piece==ep && from_piece == P){
-		//remove black pawn for en_passant capture
-		unplace_piece(brd, (mv->to_square) - 8);
-	}else if(to_piece==EP && from_piece == p){
-		//remove white pawn for en_passant capture
-		unplace_piece(brd, (mv->to_square) + 8);
-	}
-	//perform castling
-	if(from_piece==K && (mv->to_square - mv->from_square == 2)){
-		//white castle king side
-		unplace_piece(brd, 7);
-		place_piece(brd, 5, R);
-	}else if(from_piece==K && (mv->from_square - mv->to_square == 2)){
-		//white castle queen side
-		unplace_piece(brd, 0);
-		place_piece(brd, 3, R);
-	}else if(from_piece==k && (mv->to_square - mv->from_square == 2)){
-		//black castle king side
-		unplace_piece(brd, 63);
-		place_piece(brd, 61, r);
-	}else if(from_piece==k && (mv->from_square - mv->to_square == 2)){
-		//black castle queen side
-		unplace_piece(brd, 56);
-		place_piece(brd, 59, r);
-	}
-	//continue regular move stuff
-	place_piece(brd, mv->to_square, from_piece);
-	if(brd->whites_turn){
-		if(lost_castle_king){
-			unset_white_castle_king(brd);
-		}
-		if(lost_castle_queen){
-			unset_white_castle_queen(brd);
-		}
-	}else{
-		increment_fullmove_counter(brd);
-		if(lost_castle_king){
-			unset_black_castle_king(brd);
-		}
-		if(lost_castle_queen){
-			unset_black_castle_queen(brd);
-		}
-	}
-	int previous_halfmove_clock = get_halfmove_clock(brd);
-	if((to_piece != no) || (from_piece == p) || (from_piece == P)){
-		reset_halfmove_clock(brd);
-	}else{
-		increment_halfmove_clock(brd);
-	}
-	
-	// check for promotion
-	if (mv->promotion != no){
-		unplace_piece(brd, mv->to_square);
-		place_piece(brd, mv->to_square, mv->promotion);
-	}
-	
-	// Take turns, people
-	flip_turn(brd);
-	
-	// Set en_passant
-	set_enpassant(brd, new_enpassant);
-	
-	// Remember what we did
-	moverecord record = {to_piece, lost_castle_king, lost_castle_queen,
-						 old_enpassant, previous_halfmove_clock, 
-						 mv->from_square, mv->to_square, from_piece};
-	return(record);
-}
 
 inline bitboard checking_rays_intersection(boardstate *brd, const bool pin_check_only){
 	// Return the intersection of all rays by which the current mover's king is in check
@@ -1282,6 +1163,140 @@ inline bitboard checking_rays_intersection(boardstate *brd, const bool pin_check
 	return(result);
 }
 
+inline moverecord make_move(boardstate *brd, move *mv){
+	piece from_piece, to_piece;
+	bool lost_castle_king = false;
+	bool lost_castle_queen = false;
+	from_piece = brd->piece_map[mv->from_square];
+	to_piece = brd->piece_map[mv->to_square];
+	brdidx old_enpassant = brd->enpassant;
+	
+	// check for castle loss
+	switch(from_piece){
+		case K:
+			lost_castle_king = get_white_castle_king(brd);
+			lost_castle_queen = get_white_castle_queen(brd);
+			break;
+		case R:
+			if((mv->from_square) == 7){
+				lost_castle_king = get_white_castle_king(brd);
+				lost_castle_queen = false;
+			}
+			if((mv->from_square) == 0){
+				lost_castle_queen = get_white_castle_queen(brd);
+				lost_castle_king = false;
+			}
+			break;
+		case k:
+			lost_castle_king = get_black_castle_king(brd);
+			lost_castle_queen = get_black_castle_queen(brd);
+			break;
+		case r:
+			if((mv->from_square) == 63){
+				lost_castle_king = get_black_castle_king(brd);
+				lost_castle_queen = false;
+			}
+			if((mv->from_square) == 56){
+				lost_castle_queen = get_black_castle_queen(brd);
+				lost_castle_king = false;
+			}
+			break;
+		default:
+			break;
+
+	}// end check for castle loss
+
+	// check for new en passant
+	brdidx new_enpassant;
+	if((from_piece == P) &&
+		(square_index_to_rank_index(mv->from_square) == 1) &&
+		(square_index_to_rank_index(mv->to_square) == 3)){
+		new_enpassant = (mv->to_square) - 8;
+	}else if((from_piece == p) &&
+		(square_index_to_rank_index(mv->from_square) == 6) &&
+		(square_index_to_rank_index(mv->to_square) == 4)){
+		new_enpassant = (mv->to_square) + 8;
+	}else{
+		new_enpassant = no_enpassant;
+	}
+
+	// update board state
+	unplace_piece(brd, mv->from_square);
+	//perform en passant
+	if(to_piece==ep && from_piece == P){
+		//remove black pawn for en_passant capture
+		unplace_piece(brd, (mv->to_square) - 8);
+	}else if(to_piece==EP && from_piece == p){
+		//remove white pawn for en_passant capture
+		unplace_piece(brd, (mv->to_square) + 8);
+	}
+	//perform castling
+	if(from_piece==K && (mv->to_square - mv->from_square == 2)){
+		//white castle king side
+		unplace_piece(brd, 7);
+		place_piece(brd, 5, R);
+	}else if(from_piece==K && (mv->from_square - mv->to_square == 2)){
+		//white castle queen side
+		unplace_piece(brd, 0);
+		place_piece(brd, 3, R);
+	}else if(from_piece==k && (mv->to_square - mv->from_square == 2)){
+		//black castle king side
+		unplace_piece(brd, 63);
+		place_piece(brd, 61, r);
+	}else if(from_piece==k && (mv->from_square - mv->to_square == 2)){
+		//black castle queen side
+		unplace_piece(brd, 56);
+		place_piece(brd, 59, r);
+	}
+	//continue regular move stuff
+	place_piece(brd, mv->to_square, from_piece);
+	if(brd->whites_turn){
+		if(lost_castle_king){
+			unset_white_castle_king(brd);
+		}
+		if(lost_castle_queen){
+			unset_white_castle_queen(brd);
+		}
+	}else{
+		increment_fullmove_counter(brd);
+		if(lost_castle_king){
+			unset_black_castle_king(brd);
+		}
+		if(lost_castle_queen){
+			unset_black_castle_queen(brd);
+		}
+	}
+	int previous_halfmove_clock = get_halfmove_clock(brd);
+	if((to_piece != no) || (from_piece == p) || (from_piece == P)){
+		reset_halfmove_clock(brd);
+	}else{
+		increment_halfmove_clock(brd);
+	}
+	
+	// check for promotion
+	if (mv->promotion != no){
+		unplace_piece(brd, mv->to_square);
+		place_piece(brd, mv->to_square, mv->promotion);
+	}
+	
+	// Take turns, people
+	flip_turn(brd);
+	
+//	if(new_enpassant != no_enpassant){
+//		potential_capturers = black_pawn_inverse_capture_moves_from_square_index(new_enpassant);
+//		
+//	}
+	
+	// Set en_passant
+	set_enpassant(brd, new_enpassant);
+	
+	// Remember what we did
+	moverecord record = {to_piece, lost_castle_king, lost_castle_queen,
+						 old_enpassant, previous_halfmove_clock, 
+						 mv->from_square, mv->to_square, from_piece};
+	return(record);
+}
+
 inline bitboard attackers_from_square_index(boardstate *brd, brdidx s){
 	bitboard result = empty;
 	bitboard rooks_and_queens = brd->r | brd->q;
@@ -1320,6 +1335,30 @@ inline bitboard attackers_from_square_index(boardstate *brd, brdidx s){
 	result |= king_moves_from_square_index(s) & brd->k;
 	result ^= source;
 	return(result);
+}
+
+inline bool own_check(boardstate *brd){
+	bitboard own = get_current_movers_bitboard(brd);
+	bitboard opponent = get_opposing_movers_bitboard(brd);
+	brdidx king_square = greatest_square_index(own & brd->k);
+	bitboard attackers = attackers_from_square_index(brd, king_square) & opponent;
+	if(attackers){
+		return(true);
+	}else{
+		return(false);
+	}
+}
+
+inline bool opponent_check(boardstate *brd){
+	bitboard own = get_current_movers_bitboard(brd);
+	bitboard opponent = get_opposing_movers_bitboard(brd);
+	brdidx king_square = greatest_square_index(opponent & brd->k);
+	bitboard attackers = attackers_from_square_index(brd, king_square) & own;
+	if(attackers){
+		return(true);
+	}else{
+		return(false);
+	}
 }
 
 inline void king_captures(boardstate *brd, std::queue<move> &moves){
@@ -1372,7 +1411,7 @@ inline void all_king_moves(boardstate *brd, std::queue<move> &moves){
 		if(get_white_castle_king(brd)){
 			if((brd->white & brd->r & castle_king_rook) && !((own | opponent) & white_castle_king_open)){
 				attackers = attackers_from_square_index(brd, 4) & opponent;
-				attackers = attackers_from_square_index(brd, 5) & opponent;
+				attackers |= attackers_from_square_index(brd, 5) & opponent;
 				attackers |= attackers_from_square_index(brd, 6) & opponent;
 				if(!attackers){
 					mv = move();
@@ -1386,7 +1425,7 @@ inline void all_king_moves(boardstate *brd, std::queue<move> &moves){
 		if(get_white_castle_queen(brd)){
 			if((brd->white & brd->r & castle_queen_rook) && !((own | opponent) & white_castle_queen_open)){
 				attackers = attackers_from_square_index(brd, 2) & opponent;
-				attackers = attackers_from_square_index(brd, 3) & opponent;
+				attackers |= attackers_from_square_index(brd, 3) & opponent;
 				attackers |= attackers_from_square_index(brd, 4) & opponent;
 				if(!attackers){
 					mv = move();
@@ -1400,9 +1439,9 @@ inline void all_king_moves(boardstate *brd, std::queue<move> &moves){
 	}else{
 		if(get_black_castle_king(brd)){
 			if((brd->black & brd->r & castle_king_rook) && !((own | opponent) & black_castle_king_open)){
-				attackers = attackers_from_square_index(brd, 59) & opponent;
 				attackers = attackers_from_square_index(brd, 60) & opponent;
 				attackers |= attackers_from_square_index(brd, 61) & opponent;
+				attackers |= attackers_from_square_index(brd, 62) & opponent;
 				if(!attackers){
 					mv = move();
 					mv.from_square = king_square;
@@ -1412,11 +1451,11 @@ inline void all_king_moves(boardstate *brd, std::queue<move> &moves){
 				}
 			}
 		}
-		if(get_white_castle_queen(brd)){
-			if((brd->white & brd->r & castle_queen_rook) && !((own | opponent) & black_castle_queen_open)){
-				attackers = attackers_from_square_index(brd, 57) & opponent;
+		if(get_black_castle_queen(brd)){
+			if((brd->black & brd->r & castle_queen_rook) && !((own | opponent) & black_castle_queen_open)){
 				attackers = attackers_from_square_index(brd, 58) & opponent;
 				attackers |= attackers_from_square_index(brd, 59) & opponent;
+				attackers |= attackers_from_square_index(brd, 60) & opponent;
 				if(!attackers){
 					mv = move();
 					mv.from_square = king_square;
@@ -1466,6 +1505,72 @@ inline void quiet_king_moves(boardstate *brd, std::queue<move> &moves){
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	brdidx king_square = greatest_square_index(brd->k & own); // there is only one king
 	bitboard king_targets = king_moves_from_square_index(king_square);
+	bitboard attackers;
+	move mv;
+	
+	// Castling
+	if(get_whites_turn(brd)){
+		if(get_white_castle_king(brd)){
+			if((brd->white & brd->r & castle_king_rook) && !((own | opponent) & white_castle_king_open)){
+				attackers = attackers_from_square_index(brd, 4) & opponent;
+				attackers |= attackers_from_square_index(brd, 5) & opponent;
+				attackers |= attackers_from_square_index(brd, 6) & opponent;
+				if(!attackers){
+					mv = move();
+					mv.from_square = king_square;
+					mv.to_square = king_square + 2;
+					mv.promotion = no;
+					moves.push(mv);
+				}
+			}
+		}
+		if(get_white_castle_queen(brd)){
+			if((brd->white & brd->r & castle_queen_rook) && !((own | opponent) & white_castle_queen_open)){
+				attackers = attackers_from_square_index(brd, 2) & opponent;
+				attackers |= attackers_from_square_index(brd, 3) & opponent;
+				attackers |= attackers_from_square_index(brd, 4) & opponent;
+				if(!attackers){
+					mv = move();
+					mv.from_square = king_square;
+					mv.to_square = king_square - 2;
+					mv.promotion = no;
+					moves.push(mv);
+				}
+			}
+		}
+	}else{
+		if(get_black_castle_king(brd)){
+			if((brd->black & brd->r & castle_king_rook) && !((own | opponent) & black_castle_king_open)){
+				attackers = attackers_from_square_index(brd, 60) & opponent;
+				attackers |= attackers_from_square_index(brd, 61) & opponent;
+				attackers |= attackers_from_square_index(brd, 62) & opponent;
+				if(!attackers){
+					mv = move();
+					mv.from_square = king_square;
+					mv.to_square = king_square + 2;
+					mv.promotion = no;
+					moves.push(mv);
+				}
+			}
+		}
+		if(get_black_castle_queen(brd)){
+			
+			if((brd->black & brd->r & castle_queen_rook) && !((own | opponent) & black_castle_queen_open)){
+				attackers = attackers_from_square_index(brd, 58) & opponent;
+				attackers |= attackers_from_square_index(brd, 59) & opponent;
+				attackers |= attackers_from_square_index(brd, 60) & opponent;
+				if(!attackers){
+					mv = move();
+					mv.from_square = king_square;
+					mv.to_square = king_square - 2;
+					mv.promotion = no;
+					moves.push(mv);
+				}
+			}
+		}
+	
+	}
+	
 	piece own_king;
 	if(get_whites_turn(brd)){
 		own_king = K;
@@ -1476,8 +1581,6 @@ inline void quiet_king_moves(boardstate *brd, std::queue<move> &moves){
 	king_targets &= ~opponent;
 	bitboard target;
 	bitboard target_square;
-	bitboard attackers;
-	move mv;
 	while(king_targets){
 		target = ls1b(king_targets);
 		king_targets ^= target;
@@ -1653,13 +1756,16 @@ inline void pawn_captures(boardstate *brd, std::queue<move> &moves){
 	bitboard potential_targets = opponent | get_enpassant_bitboard(brd);
 	bitboard targets, current_source, pinboard, current_target;
 	brdidx source_square, target_square;
+	piece target_piece;
+	moverecord rec;
+	
 	move mv;
 	brdidx rank;
 	brdidx end_rank;
 	if(get_whites_turn(brd)){
-		end_rank = 8;
+		end_rank = 7;
 	}else{
-		end_rank = 1;
+		end_rank = 0;
 	}
 	
 	bitboard pawns = own & (brd->p);
@@ -1671,6 +1777,9 @@ inline void pawn_captures(boardstate *brd, std::queue<move> &moves){
 		// propagator takes care of pinning
 		unplace_piece(brd, source_square);
 		pinboard = checking_rays_intersection(brd, false);
+		if(brd->enpassant != no_enpassant){
+			pinboard |= get_enpassant_bitboard(brd);
+		}
 		if(get_whites_turn(brd)){
 			unsafe_place_piece(brd, source_square, P);
 		}else{
@@ -1687,15 +1796,10 @@ inline void pawn_captures(boardstate *brd, std::queue<move> &moves){
 			current_target = ls1b(targets);
 			targets &= (~current_target);
 			target_square = greatest_square_index(current_target);
+			target_piece = brd->piece_map[target_square];
 			rank = square_index_to_rank_index(target_square);
 			if(rank == end_rank){
 				if(get_whites_turn(brd)){
-					mv = move();
-					mv.from_square = source_square;
-					mv.to_square = target_square;
-					mv.promotion = P;
-					moves.push(mv);
-					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
@@ -1723,12 +1827,6 @@ inline void pawn_captures(boardstate *brd, std::queue<move> &moves){
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
-					mv.promotion = p;
-					moves.push(mv);
-					
-					mv = move();
-					mv.from_square = source_square;
-					mv.to_square = target_square;
 					mv.promotion = r;
 					moves.push(mv);
 					
@@ -1750,6 +1848,17 @@ inline void pawn_captures(boardstate *brd, std::queue<move> &moves){
 					mv.promotion = q;
 					moves.push(mv);
 				}
+			}else if(target_piece == ep || target_piece == EP){
+				// check whether the en passant capture puts the king in check
+				mv = move();
+				mv.from_square = source_square;
+				mv.to_square = target_square;
+				mv.promotion = no;
+				rec = make_move(brd, &mv);
+				if(!opponent_check(brd)){
+					moves.push(mv);
+				}
+				unmake_move(brd, &rec);
 			}else{
 				mv = move();
 				mv.from_square = source_square;
@@ -1770,14 +1879,17 @@ inline void all_pawn_moves(boardstate *brd, std::queue<move> &moves){
 	bitboard targets, current_source, current_target;
 	bitboard pinboard;
 	brdidx source_square, target_square;
+	piece target_piece;
+	moverecord rec;
+	
 	move mv;
 	piece pc;
 	brdidx rank;
 	brdidx end_rank;
 	if(get_whites_turn(brd)){
-		end_rank = 8;
+		end_rank = 7;
 	}else{
-		end_rank = 1;
+		end_rank = 0;
 	}
 	
 	bitboard pawns = own & (brd->p);
@@ -1789,6 +1901,9 @@ inline void all_pawn_moves(boardstate *brd, std::queue<move> &moves){
 		// take care of pinning
 		pc = unplace_piece(brd, source_square);
 		pinboard = checking_rays_intersection(brd, false);
+		if(brd->enpassant != no_enpassant){
+			pinboard |= get_enpassant_bitboard(brd);
+		}
 		unsafe_place_piece(brd, source_square, pc);
 		targets = empty;
 		if(get_whites_turn(brd)){
@@ -1804,11 +1919,11 @@ inline void all_pawn_moves(boardstate *brd, std::queue<move> &moves){
 			targets |= step_south(step_south(rank_7 & current_source)) & unoccupied & step_south(unoccupied) & pinboard;
 			targets |= ((step_southeast(current_source) | step_southwest(current_source)) & pinboard & potential_targets);
 		}
-		
 		while(targets){
 			current_target = ls1b(targets);
 			targets &= (~current_target);
 			target_square = greatest_square_index(current_target);
+			target_piece = brd->piece_map[target_square];
 			rank = square_index_to_rank_index(target_square);
 			if(rank == end_rank){
 				if(get_whites_turn(brd)){
@@ -1860,6 +1975,17 @@ inline void all_pawn_moves(boardstate *brd, std::queue<move> &moves){
 					mv.promotion = q;
 					moves.push(mv);
 				}
+			}else if(target_piece == ep || target_piece == EP){
+				// check whether the en passant capture puts the king in check
+				mv = move();
+				mv.from_square = source_square;
+				mv.to_square = target_square;
+				mv.promotion = no;
+				rec = make_move(brd, &mv);
+				if(!opponent_check(brd)){
+					moves.push(mv);
+				}
+				unmake_move(brd, &rec);
 			}else{
 				mv = move();
 				mv.from_square = source_square;
@@ -2525,5 +2651,12 @@ inline void all_quiet_moves(boardstate *brd, std::queue<move> &moves){
 }
 
 unsigned long long perft(boardstate *brd, int depth);
+
+typedef struct {
+	move mv;
+	double score;
+} movechoice;
+
+movechoice negamax(boardstate *brd, int depth);
 
 #endif
