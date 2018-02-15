@@ -783,8 +783,10 @@ typedef struct {
 
 typedef struct {
 	piece captured;
-	bool lost_castle_king;
-	bool lost_castle_queen;
+	bool lost_own_castle_king;
+	bool lost_own_castle_queen;
+	bool lost_opponent_castle_king;
+	bool lost_opponent_castle_queen;
 	brdidx enpassant;
 	int previous_halfmove_clock;
 	brdidx from_square;
@@ -962,19 +964,31 @@ inline void unmake_move(boardstate *brd, moverecord *mv){
 	
 	// fulllmove counter and castle rights
 	if(brd->whites_turn){
-		if(mv->lost_castle_king){
+		if(mv->lost_own_castle_king){
 			set_white_castle_king(brd);
 		}
-		if(mv->lost_castle_queen){
+		if(mv->lost_own_castle_queen){
 			set_white_castle_queen(brd);
+		}
+		if(mv->lost_opponent_castle_king){
+			set_black_castle_king(brd);
+		}
+		if(mv->lost_opponent_castle_queen){
+			set_black_castle_queen(brd);
 		}
 	}else{
 		decrement_fullmove_counter(brd);
-		if(mv->lost_castle_king){
+		if(mv->lost_own_castle_king){
 			set_black_castle_king(brd);
 		}
-		if(mv->lost_castle_queen){
+		if(mv->lost_own_castle_queen){
 			set_black_castle_queen(brd);
+		}
+		if(mv->lost_opponent_castle_king){
+			set_white_castle_king(brd);
+		}
+		if(mv->lost_opponent_castle_queen){
+			set_white_castle_queen(brd);
 		}
 	}
 	
@@ -1165,46 +1179,58 @@ inline bitboard checking_rays_intersection(boardstate *brd, const bool pin_check
 
 inline moverecord make_move(boardstate *brd, move *mv){
 	piece from_piece, to_piece;
-	bool lost_castle_king = false;
-	bool lost_castle_queen = false;
+	bool lost_own_castle_king = false;
+	bool lost_own_castle_queen = false;
+	bool lost_opponent_castle_king = false;
+	bool lost_opponent_castle_queen = false;
 	from_piece = brd->piece_map[mv->from_square];
 	to_piece = brd->piece_map[mv->to_square];
 	brdidx old_enpassant = brd->enpassant;
 	
 	// check for castle loss
-	switch(from_piece){
-		case K:
-			lost_castle_king = get_white_castle_king(brd);
-			lost_castle_queen = get_white_castle_queen(brd);
-			break;
-		case R:
-			if((mv->from_square) == 7){
-				lost_castle_king = get_white_castle_king(brd);
-				lost_castle_queen = false;
-			}
-			if((mv->from_square) == 0){
-				lost_castle_queen = get_white_castle_queen(brd);
-				lost_castle_king = false;
-			}
-			break;
-		case k:
-			lost_castle_king = get_black_castle_king(brd);
-			lost_castle_queen = get_black_castle_queen(brd);
-			break;
-		case r:
-			if((mv->from_square) == 63){
-				lost_castle_king = get_black_castle_king(brd);
-				lost_castle_queen = false;
-			}
-			if((mv->from_square) == 56){
-				lost_castle_queen = get_black_castle_queen(brd);
-				lost_castle_king = false;
-			}
-			break;
-		default:
-			break;
-
-	}// end check for castle loss
+	if(from_piece == K){
+		lost_own_castle_king = get_white_castle_king(brd);
+		lost_own_castle_queen = get_white_castle_queen(brd);
+	}else if(from_piece == R){
+		if((mv->from_square) == 7){
+			lost_own_castle_king = get_white_castle_king(brd);
+			lost_own_castle_queen = false;
+		}
+		if((mv->from_square) == 0){
+			lost_own_castle_queen = get_white_castle_queen(brd);
+			lost_own_castle_king = false;
+		}
+	}else if(from_piece == k){
+		lost_own_castle_king = get_black_castle_king(brd);
+		lost_own_castle_queen = get_black_castle_queen(brd);
+	}else if(from_piece == r){
+		if((mv->from_square) == 63){
+			lost_own_castle_king = get_black_castle_king(brd);
+			lost_own_castle_queen = false;
+		}
+		if((mv->from_square) == 56){
+			lost_own_castle_queen = get_black_castle_queen(brd);
+			lost_own_castle_king = false;
+		}
+	}else if(to_piece == R){
+		if((mv->to_square) == 7){
+			lost_opponent_castle_king = get_white_castle_king(brd);
+			lost_opponent_castle_queen = false;
+		}
+		if((mv->to_square) == 0){
+			lost_opponent_castle_queen = get_white_castle_queen(brd);
+			lost_opponent_castle_king = false;
+		}
+	}else if(to_piece == r){
+		if((mv->to_square) == 63){
+			lost_opponent_castle_king = get_black_castle_king(brd);
+			lost_opponent_castle_queen = false;
+		}
+		if((mv->to_square) == 56){
+			lost_opponent_castle_queen = get_black_castle_queen(brd);
+			lost_opponent_castle_king = false;
+		}
+	}
 
 	// check for new en passant
 	brdidx new_enpassant;
@@ -1251,19 +1277,31 @@ inline moverecord make_move(boardstate *brd, move *mv){
 	//continue regular move stuff
 	place_piece(brd, mv->to_square, from_piece);
 	if(brd->whites_turn){
-		if(lost_castle_king){
+		if(lost_own_castle_king){
 			unset_white_castle_king(brd);
 		}
-		if(lost_castle_queen){
+		if(lost_own_castle_queen){
 			unset_white_castle_queen(brd);
+		}
+		if(lost_opponent_castle_king){
+			unset_black_castle_king(brd);
+		}
+		if(lost_opponent_castle_queen){
+			unset_black_castle_queen(brd);
 		}
 	}else{
 		increment_fullmove_counter(brd);
-		if(lost_castle_king){
+		if(lost_own_castle_king){
 			unset_black_castle_king(brd);
 		}
-		if(lost_castle_queen){
+		if(lost_own_castle_queen){
 			unset_black_castle_queen(brd);
+		}
+		if(lost_opponent_castle_king){
+			unset_white_castle_king(brd);
+		}
+		if(lost_opponent_castle_queen){
+			unset_white_castle_queen(brd);
 		}
 	}
 	int previous_halfmove_clock = get_halfmove_clock(brd);
@@ -1291,7 +1329,8 @@ inline moverecord make_move(boardstate *brd, move *mv){
 	set_enpassant(brd, new_enpassant);
 	
 	// Remember what we did
-	moverecord record = {to_piece, lost_castle_king, lost_castle_queen,
+	moverecord record = {to_piece, lost_own_castle_king, lost_own_castle_queen,
+						 lost_opponent_castle_king, lost_opponent_castle_queen,
 						 old_enpassant, previous_halfmove_clock, 
 						 mv->from_square, mv->to_square, from_piece};
 	return(record);

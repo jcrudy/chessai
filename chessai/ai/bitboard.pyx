@@ -58,8 +58,10 @@ cdef extern from "bitboardlib.h":
 
     ctypedef struct moverecord:
         piece captured
-        bool lost_castle_king
-        bool lost_castle_queen
+        bool lost_own_castle_king
+        bool lost_own_castle_queen
+        bool lost_opponent_castle_king
+        bool lost_opponent_castle_queen
         brdidx enpassant
         int previous_halfmove_clock
         brdidx from_square
@@ -371,16 +373,30 @@ cdef class MoveRecord:
         def __get__(MoveRecord self):  # @DuplicatedSignature
             return piece_to_str(self.rec.captured)
 
-    property lost_castle_king:
+    property lost_own_castle_king:
         def __get__(MoveRecord self):  # @DuplicatedSignature
-            if self.rec.lost_castle_king:
+            if self.rec.lost_own_castle_king:
                 return True
             else:
                 return False
 
-    property lost_castle_queen:
+    property lost_own_castle_queen:
         def __get__(MoveRecord self):  # @DuplicatedSignature
-            if self.rec.lost_castle_queen:
+            if self.rec.lost_own_castle_queen:
+                return True
+            else:
+                return False
+    
+    property lost_opponent_castle_king:
+        def __get__(MoveRecord self):  # @DuplicatedSignature
+            if self.rec.lost_opponent_castle_king:
+                return True
+            else:
+                return False
+
+    property lost_opponent_castle_queen:
+        def __get__(MoveRecord self):  # @DuplicatedSignature
+            if self.rec.lost_opponent_castle_queen:
                 return True
             else:
                 return False
@@ -391,6 +407,13 @@ cdef class MoveRecord:
         
 cdef class BitBoardState:
     cdef readonly boardstate bs
+    
+    property whites_turn:
+        def __get__(BitBoardState self):  # @DuplicatedSignature
+            if self.bs.whites_turn:
+                return True
+            else:
+                return False
     
     def __richcmp__(BitBoardState self, other, int op):
         if not isinstance(other, BitBoardState) or op != Py_EQ:

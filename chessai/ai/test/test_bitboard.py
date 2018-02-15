@@ -649,9 +649,9 @@ def confirm_moves(fen, depth):
             raise
     return total
 
-def test_move_tree_depth_6():
-    fen = 'r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1'
-    compare_to_python(fen, 6)
+def test_move_tree_depth_5():
+    fen = '1k6/1b6/8/8/7R/8/8/4K2R b K - 0 1'
+    compare_to_python(fen, 5)
 
 def test_a_position():
     fen = 'rnbq1bnr/pppkpppp/2P5/3p4/8/8/PP1PPPPP/RNBQKBNR b KQ - 0 3'
@@ -1083,7 +1083,7 @@ def test_step_north():
 
 
 if __name__ == '__main__':
-#     test_move_tree_depth_6()
+#     test_move_tree_depth_5()
 #     exit()
 #     test_a_position()
 #     exit()
