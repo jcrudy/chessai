@@ -1791,7 +1791,7 @@ static PyObject *__pyx_codeobj__21;
 static PyObject *__pyx_codeobj__23;
 
 /* "chessai/ai/bitboard.pyx":129
- *     cdef movechoice negamax(boardstate *brd, int depth)
+ *     cdef movechoice negamax(boardstate *brd, int depth, double alpha, double beta)
  * 
  * cpdef bitboard_to_str(bitboard bb):             # <<<<<<<<<<<<<<
  *     cdef int i
@@ -1890,7 +1890,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_bitboard_to_str(bitboard __pyx_v
   goto __pyx_L0;
 
   /* "chessai/ai/bitboard.pyx":129
- *     cdef movechoice negamax(boardstate *brd, int depth)
+ *     cdef movechoice negamax(boardstate *brd, int depth, double alpha, double beta)
  * 
  * cpdef bitboard_to_str(bitboard bb):             # <<<<<<<<<<<<<<
  *     cdef int i
@@ -8208,7 +8208,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState___richcmp__(str
  *         return True
  * 
  *     cpdef Move negamax(BitBoardState self, int depth):             # <<<<<<<<<<<<<<
- *         cdef movechoice choice = negamax(&(self.bs), depth)
+ *         cdef movechoice choice = negamax(&(self.bs), depth, -1000000., 1000000.)
  *         cdef Move result = Move()
  */
 
@@ -8295,15 +8295,15 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_Move *__pyx_f_7chessai_2ai_8bitbo
   /* "chessai/ai/bitboard.pyx":445
  * 
  *     cpdef Move negamax(BitBoardState self, int depth):
- *         cdef movechoice choice = negamax(&(self.bs), depth)             # <<<<<<<<<<<<<<
+ *         cdef movechoice choice = negamax(&(self.bs), depth, -1000000., 1000000.)             # <<<<<<<<<<<<<<
  *         cdef Move result = Move()
  *         result.mv = choice.mv
  */
-  __pyx_v_choice = negamax((&__pyx_v_self->bs), __pyx_v_depth);
+  __pyx_v_choice = negamax((&__pyx_v_self->bs), __pyx_v_depth, -1000000., 1000000.);
 
   /* "chessai/ai/bitboard.pyx":446
  *     cpdef Move negamax(BitBoardState self, int depth):
- *         cdef movechoice choice = negamax(&(self.bs), depth)
+ *         cdef movechoice choice = negamax(&(self.bs), depth, -1000000., 1000000.)
  *         cdef Move result = Move()             # <<<<<<<<<<<<<<
  *         result.mv = choice.mv
  *         return result
@@ -8314,7 +8314,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_Move *__pyx_f_7chessai_2ai_8bitbo
   __pyx_t_1 = 0;
 
   /* "chessai/ai/bitboard.pyx":447
- *         cdef movechoice choice = negamax(&(self.bs), depth)
+ *         cdef movechoice choice = negamax(&(self.bs), depth, -1000000., 1000000.)
  *         cdef Move result = Move()
  *         result.mv = choice.mv             # <<<<<<<<<<<<<<
  *         return result
@@ -8339,7 +8339,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_Move *__pyx_f_7chessai_2ai_8bitbo
  *         return True
  * 
  *     cpdef Move negamax(BitBoardState self, int depth):             # <<<<<<<<<<<<<<
- *         cdef movechoice choice = negamax(&(self.bs), depth)
+ *         cdef movechoice choice = negamax(&(self.bs), depth, -1000000., 1000000.)
  *         cdef Move result = Move()
  */
 

@@ -187,7 +187,7 @@ double simple_evaluation(boardstate *brd){
 	}
 }
 
-movechoice negamax(boardstate *brd, int depth){
+movechoice negamax(boardstate *brd, int depth, double alpha, double beta){
 	movechoice choice, result;
 	if(depth == 0){
 		result = movechoice();
@@ -206,8 +206,14 @@ movechoice negamax(boardstate *brd, int depth){
 		mv = moves.front();
 		moves.pop();
 		rec = make_move(brd, &mv);
-		choice = negamax(brd, depth-1);
+		choice = negamax(brd, depth-1, -beta, -alpha);
 		value = -choice.score;
+		if(value > alpha){
+			alpha = value;
+		}
+		if(alpha > beta){
+			break;
+		}
 		unmake_move(brd, &rec);
 		if(init){
 			best_value = value;

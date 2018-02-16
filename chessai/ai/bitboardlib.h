@@ -2696,6 +2696,6 @@ typedef struct {
 	double score;
 } movechoice;
 
-movechoice negamax(boardstate *brd, int depth);
+movechoice negamax(boardstate *brd, int depth, double alpha, double beta);
 
 #endif

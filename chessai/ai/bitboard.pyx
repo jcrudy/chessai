@@ -124,7 +124,7 @@ cdef extern from "bitboardlib.h":
     ctypedef struct movechoice:
         move mv
         double score
-    cdef movechoice negamax(boardstate *brd, int depth)
+    cdef movechoice negamax(boardstate *brd, int depth, double alpha, double beta)
 
 cpdef bitboard_to_str(bitboard bb):
     cdef int i
@@ -442,7 +442,7 @@ cdef class BitBoardState:
         return True
     
     cpdef Move negamax(BitBoardState self, int depth):
-        cdef movechoice choice = negamax(&(self.bs), depth)
+        cdef movechoice choice = negamax(&(self.bs), depth, -1000000., 1000000.)
         cdef Move result = Move()
         result.mv = choice.mv
         return result
