@@ -5,6 +5,7 @@ from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 from toolz import partition
 from operator import methodcaller
 from libcpp.queue cimport queue
+import time
 
 cdef extern from "stdbool.h":
     ctypedef char bool
@@ -124,7 +125,8 @@ cdef extern from "bitboardlib.h":
     ctypedef struct movechoice:
         move mv
         double score
-    cdef movechoice negamax(boardstate *brd, int depth, double alpha, double beta)
+    cdef move movesearch(boardstate *brd, double time_limit, int *depth)
+    cdef move movesearch_depth(boardstate *brd, int depth)
 
 cpdef bitboard_to_str(bitboard bb):
     cdef int i
@@ -441,11 +443,20 @@ cdef class BitBoardState:
                 return False
         return True
     
-    cpdef Move negamax(BitBoardState self, int depth):
-        cdef movechoice choice = negamax(&(self.bs), depth, -1000000., 1000000.)
+    cpdef tuple movesearch(BitBoardState self, double time_limit):
+        cdef int depth = 0;
+        cdef move mv = movesearch(&(self.bs), time_limit, &depth)
         cdef Move result = Move()
-        result.mv = choice.mv
-        return result
+        result.mv = mv
+        return result, depth
+    
+    cpdef tuple movesearch_depth(BitBoardState self, int depth):
+        t0 = time.time()
+        cdef move mv = movesearch_depth(&(self.bs), depth)  # @DuplicatedSignature
+        t1 = time.time()
+        cdef Move result = Move()  # @DuplicatedSignature
+        result.mv = mv
+        return result, t1 - t0
     
     cpdef unsigned long long perft(BitBoardState self, int depth):
         return perft(&(self.bs), depth)

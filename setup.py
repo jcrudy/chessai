@@ -23,10 +23,14 @@ else:
     cmdclass = {'build_ext': build_ext}
 
 ext_modules = [Extension('chessai.ai.bitboard', 
-                         [os.path.join('chessai', 'ai',
+                         [
+                          os.path.join('chessai', 'ai',
+                                       'tinythread.cpp'),
+                          os.path.join('chessai', 'ai',
                                        'bitboardlib.cpp'),
                           os.path.join('chessai', 'ai',
                                        'bitboard.%s' % ext),],
+#                          extra_compile_args=['-std=c++14']
                          )]
 
 setup(name='chessai',

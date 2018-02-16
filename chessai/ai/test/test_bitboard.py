@@ -1,8 +1,10 @@
 from chessai.ai.bitboard import BitBoardState, BitBoard, Move, MoveRecord,\
     int_to_algebraic, algebraic_to_int
-from nose.tools import assert_equal, assert_list_equal
+from nose.tools import assert_equal, assert_list_equal, assert_almost_equal,\
+    assert_greater_equal
 import random
 import chess
+import time
 
 def chess_move_to_black_move(chess_move):
     promotion_dict = {5: 'q', 4:'r', 3:'b', 2:'n'}
@@ -509,11 +511,28 @@ def test_to_grid():
     bb = BitBoardState.from_fen(fen)
     assert_equal(bb.to_grid(), grid)
 
-def test_negamax():
+def test_movesearch_depth():
     starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     board = BitBoardState.from_fen(starting_fen)
     for _ in range(10):
-        move = board.negamax(13)
+        print(board.to_grid())
+        move, t = board.movesearch_depth(6)
+        board.make_move(move)
+        print(t)
+
+def test_movesearch():
+    starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    board = BitBoardState.from_fen(starting_fen)
+    print(board.to_grid())
+    for _ in range(10):
+        t0 = time.time()
+        print(board.to_grid())
+        move, depth = board.movesearch(10.)
+        print(board.to_grid())
+        t1 = time.time()
+        assert_almost_equal(t1 - t0, 10., places=1)
+        print(board.to_grid())
+        assert_greater_equal(depth, 14)
         board.make_move(move)
 
 def compare_to_python(fen, depth):

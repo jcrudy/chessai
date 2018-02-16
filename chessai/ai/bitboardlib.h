@@ -2692,10 +2692,13 @@ inline void all_quiet_moves(boardstate *brd, std::queue<move> &moves){
 unsigned long long perft(boardstate *brd, int depth);
 
 typedef struct {
-	move mv;
-	double score;
-} movechoice;
+	boardstate *brd;
+	move *best_move;
+	bool *stop;
+	bool blank;
+	int depth;
+} searcharg;
 
-movechoice negamax(boardstate *brd, int depth, double alpha, double beta);
-
+move movesearch(boardstate *brd, double time_limit, int *depth);
+move movesearch_depth(boardstate *brd, int depth);
 #endif

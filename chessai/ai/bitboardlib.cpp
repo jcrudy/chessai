@@ -1,5 +1,9 @@
 #include "bitboardlib.h"
 #include <stdio.h>
+#include <tinythread.h>
+#include <unistd.h>
+
+using namespace tthread;
 
 const bitboard empty = 0x0000000000000000ULL;
 const bitboard full = 0xFFFFFFFFFFFFFFFFULL;
@@ -187,18 +191,18 @@ double simple_evaluation(boardstate *brd){
 	}
 }
 
-movechoice negamax(boardstate *brd, int depth, double alpha, double beta){
-	movechoice choice, result;
+double negamax(boardstate *brd, int depth, double alpha, double beta, move *best_move, bool *stop, bool blank){
 	if(depth == 0){
-		result = movechoice();
-		result.score = simple_evaluation(brd);
-		return(result);
+		return(simple_evaluation(brd));
 	}
 	std::queue<move> moves = std::queue<move>();
+	if(!blank){
+		moves.push(*best_move);
+	}
 	all_moves(brd, moves);
 	double value;
 	double best_value;
-	move best_move;
+	move best_counter;
 	move mv;
 	bool init = true;
 	moverecord rec;
@@ -206,28 +210,57 @@ movechoice negamax(boardstate *brd, int depth, double alpha, double beta){
 		mv = moves.front();
 		moves.pop();
 		rec = make_move(brd, &mv);
-		choice = negamax(brd, depth-1, -beta, -alpha);
-		value = -choice.score;
+		value = -negamax(brd, depth-1, -beta, -alpha, &best_counter, stop, true);
+		unmake_move(brd, &rec);
 		if(value > alpha){
 			alpha = value;
 		}
-		if(alpha > beta){
-			break;
-		}
-		unmake_move(brd, &rec);
 		if(init){
 			best_value = value;
-			best_move = mv;
+			*best_move = mv;
 			init = false;
 		}
 		if(value > best_value){
 			best_value = value;
-			best_move = mv;
+			*best_move = mv;
 		}
+		if(alpha > beta || (*stop)){
+			break;
+		}
+		
 	}
-	result = movechoice();
-	result.score = best_value;
-	result.mv = best_move;
-	return(result);
+	return(best_value);
+}
+
+void iterative_negamax(void *varg){
+	searcharg *arg = (searcharg *) varg;
+	int depth = 1;
+	double result;
+	while(!(*(arg->stop))){
+		result = negamax(arg->brd, depth, -1000000.0, 1000000.0, arg->best_move, arg->stop, arg->blank);
+		arg->blank = false;
+		arg->depth = depth;
+		depth++;
+	}
+}
+
+move movesearch_depth(boardstate *brd, int depth){
+	move best_move;
+	bool blank = true;
+	bool stop = false;
+	negamax(brd, depth, -1000000.0, 1000000.0, &best_move, &stop, blank);
+	return(best_move);
+}
+
+move movesearch(boardstate *brd, double time_limit, int *depth){
+	bool stop = false;
+	move best_move;
+	searcharg arg = {brd, &best_move, &stop, true, 0};
+	thread * searcher = new thread(&iterative_negamax, (void *) &arg);
+	usleep(time_limit * 1000000.0);
+	stop = true;
+	searcher->join();
+	*depth = arg.depth;
+	return(best_move);
 }
 									
