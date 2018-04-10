@@ -5,6 +5,7 @@ from nose.tools import assert_equal, assert_list_equal, assert_almost_equal,\
 import random
 import chess
 import time
+from toolz.functoolz import curry
 
 def chess_move_to_black_move(chess_move):
     promotion_dict = {5: 'q', 4:'r', 3:'b', 2:'n'}
@@ -12,6 +13,10 @@ def chess_move_to_black_move(chess_move):
               promotion_dict[chess_move.promotion] if chess_move.promotion else 'no')
     return mv
 
+@curry
+def move_is_capture(board, move):
+    return board.get_piece_at_square_index(move.to_square) != 'no'
+    
 def chess_move_to_white_move(chess_move):
     promotion_dict = {5: 'Q', 4:'R', 3:'B', 2:'N'}
     mv = Move(chess_move.from_square, chess_move.to_square, 
@@ -190,6 +195,18 @@ def test_all_moves():
     moves = BitBoardState.from_fen(fen).all_moves()
     expected_moves = all_moves_from_chess_package(fen)
     assert_equal(set(moves), set(expected_moves))
+
+def test_all_captures():
+    fens = [
+            'rnbqkbnr/pppppppr/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+            '1k6/1b6/8/8/7R/8/8/4K2R b K - 0 1',
+            '5k2/8/8/8/8/8/8/4K2R w K - 0 1'
+            ]
+    for fen in fens:
+        board = BitBoardState.from_fen(fen)
+        moves = board.all_moves()
+        captures = board.all_captures()
+        assert_equal(set(captures), set(filter(move_is_capture(board), moves)))
 
 def test_quiet_queen_moves():
     fen = 'rnbqkbnr/pppppppp/8/8/8/3P4/PPP1PPPP/RNBQKBNR w KQkq - 0 1'
@@ -510,30 +527,6 @@ def test_to_grid():
            '''.strip().replace(' ', '')
     bb = BitBoardState.from_fen(fen)
     assert_equal(bb.to_grid(), grid)
-
-def test_movesearch_depth():
-    starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-    board = BitBoardState.from_fen(starting_fen)
-    for _ in range(10):
-        print(board.to_grid())
-        move, t = board.movesearch_depth(6)
-        board.make_move(move)
-        print(t)
-
-def test_movesearch():
-    starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-    board = BitBoardState.from_fen(starting_fen)
-    print(board.to_grid())
-    for _ in range(10):
-        t0 = time.time()
-        print(board.to_grid())
-        move, depth = board.movesearch(10.)
-        print(board.to_grid())
-        t1 = time.time()
-        assert_almost_equal(t1 - t0, 10., places=1)
-        print(board.to_grid())
-        assert_greater_equal(depth, 14)
-        board.make_move(move)
 
 def compare_to_python(fen, depth):
     board = BitBoardState.from_fen(fen)

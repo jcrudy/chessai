@@ -1,13 +1,32 @@
 from nose.tools import assert_equal
 from chessai.ai.bitboard import BitBoardState
+import time
 
 def test_perft():
     # https://www.chessprogramming.net/perfect-perft/
     print('')
     print('Running perft tests...')
     fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-    assert_equal(BitBoardState.from_fen(fen).perft(6), 119060324)
-    print('%s perft passed' % fen)
+    depth = 3
+    state = BitBoardState.from_fen(fen)
+    t0 = time.time()
+    assert_equal(state.perft(depth), 8902)
+    t1 = time.time()
+    print('%s perft(%d) passed in %f seconds' % (fen, depth, t1-t0))
+    fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    depth = 5
+    state = BitBoardState.from_fen(fen)
+    t0 = time.time()
+    assert_equal(state.perft(depth), 4865609)
+    t1 = time.time()
+    print('%s perft(%d) passed in %f seconds' % (fen, depth, t1-t0))
+    fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    depth = 6
+    state = BitBoardState.from_fen(fen)
+    t0 = time.time()
+    assert_equal(state.perft(depth), 119060324)
+    t1 = time.time()
+    print('%s perft(%d) passed in %f seconds' % (fen, depth, t1-t0))
     fen = 'r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1'
     assert_equal(BitBoardState.from_fen(fen).perft(5), 193690690)
     print('%s perft passed' % fen)

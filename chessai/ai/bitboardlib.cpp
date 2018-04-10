@@ -191,9 +191,43 @@ double simple_evaluation(boardstate *brd){
 	}
 }
 
+double quiescence(boardstate *brd, double alpha, double beta, bool *stop){
+	double stand_pat = simple_evaluation(brd);
+	std::queue<move> moves = std::queue<move>();
+	bool is_check = own_check(brd);
+	if(is_check){
+		all_moves(brd, moves);
+	}else{
+		all_captures(brd, moves);
+	}
+	if(stand_pat >= beta){
+		return(beta);
+	}
+	if(stand_pat > alpha){
+		alpha = stand_pat;
+	}
+	move mv;
+	moverecord rec;
+	double score;
+	while((!moves.empty()) & (!(*stop))){
+		mv = moves.front();
+		moves.pop();
+		rec = make_move(brd, &mv);
+		score = quiescence(brd, -beta, -alpha, stop);
+		unmake_move(brd, &rec);
+		if(score >= beta){
+			return(beta);
+		}
+		if(score > alpha){
+			alpha = score;
+		}
+	}
+	return(alpha);
+}
+
 double negamax(boardstate *brd, int depth, double alpha, double beta, move *best_move, bool *stop, bool blank){
 	if(depth == 0){
-		return(simple_evaluation(brd));
+		return(quiescence(brd, alpha, beta, stop));
 	}
 	std::queue<move> moves = std::queue<move>();
 	if(!blank){

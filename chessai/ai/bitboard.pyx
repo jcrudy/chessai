@@ -121,6 +121,7 @@ cdef extern from "bitboardlib.h":
     cdef void all_queen_moves(boardstate *brd, queue[move] &moves)
     cdef void queen_captures(boardstate *brd, queue[move] &moves)
     cdef void all_moves(boardstate *brd, queue[move] &moves)
+    cdef void all_captures(boardstate *brd, queue[move] &moves)
     cdef unsigned long long perft(boardstate *brd, int depth)
     ctypedef struct movechoice:
         move mv
@@ -410,6 +411,10 @@ cdef class MoveRecord:
 cdef class BitBoardState:
     cdef readonly boardstate bs
     
+    cpdef str get_piece_at_square_index(BitBoardState self, int i):
+        cdef brdidx square = <brdidx> i
+        return piece_to_str(self.bs.piece_map[square])
+    
     property whites_turn:
         def __get__(BitBoardState self):  # @DuplicatedSignature
             if self.bs.whites_turn:
@@ -466,6 +471,17 @@ cdef class BitBoardState:
         all_moves(&(self.bs), mvs)
         cdef list result = []
         cdef move mv
+        while not mvs.empty():
+            mv = mvs.front()
+            mvs.pop()
+            result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))
+        return result
+    
+    cpdef all_captures(BitBoardState self):
+        cdef queue[move] mvs = queue[move]()  # @DuplicatedSignature
+        all_captures(&(self.bs), mvs)
+        cdef list result = []  # @DuplicatedSignature
+        cdef move mv  # @DuplicatedSignature
         while not mvs.empty():
             mv = mvs.front()
             mvs.pop()
