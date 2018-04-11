@@ -103,6 +103,9 @@ const bitboard white_castle_queen_open = 0x000000000000000EULL;
 const bitboard black_castle_queen_open = 0x0E00000000000000ULL;
 const bitboard castle_queen_rook = 0x0100000000000001ULL;
 
+const bitboard center4 = (rank_4 | rank_5) & (file_d | file_e);
+const bitboard center16 = (rank_3 | rank_4 | rank_5 | rank_6) & (file_c | file_d | file_e | file_f);;
+
 const bitboard diag_0 = 0x8040201008040201ULL;
 const bitboard diag_1 = step_west(diag_0);
 const bitboard diag_2 = step_west(diag_1);
@@ -178,17 +181,68 @@ double simple_evaluation(boardstate *brd){
 	white_score += 500 * population_count(brd->white & brd->r);
 	white_score += 900 * population_count(brd->white & brd->q);
 	white_score += 20000 * population_count(brd->white & brd->k);
+	
+	white_score += .4 * 100 * population_count(brd->white & center4);
+	white_score += .1 * 100 * population_count(brd->white & center16);
+	
 	black_score += 100 * population_count(brd->black & brd->p);
 	black_score += 320 * population_count(brd->black & brd->n);
 	black_score += 330 * population_count(brd->black & brd->b);
 	black_score += 500 * population_count(brd->black & brd->r);
 	black_score += 900 * population_count(brd->black & brd->q);
 	black_score += 20000 * population_count(brd->black & brd->k);
+	
+	black_score += .4 * 100 * population_count(brd->black & center4);
+	black_score += .1 * 100 * population_count(brd->black & center16);
+	
 	if(get_whites_turn(brd)){
 		return(white_score - black_score);
 	}else{
 		return(black_score - white_score);
 	}
+}
+
+double negafrax(boardstate *brd, double current, double threshold, double alpha, 
+				double beta, move *best_move, bool *stop){
+	if (current < threshold){
+		return simple_evaluation(brd);
+	}
+	
+	// Generate all legal moves
+	std::queue<move> moves = std::queue<move>();
+	all_moves(brd, moves);
+	int num_moves = moves.size();
+	
+	double value;
+	double best_value;
+	move best_counter;
+	move mv;
+	bool init = true;
+	moverecord rec;
+	double quotient = current / num_moves;
+	while(!moves.empty()){
+		mv = moves.front();
+		moves.pop();
+		rec = make_move(brd, &mv);
+		value = -negafrax(brd, quotient, threshold, -beta, -alpha, &best_counter, stop);
+		unmake_move(brd, &rec);
+		if(value > alpha){
+			alpha = value;
+		}
+		if(init){
+			best_value = value;
+			*best_move = mv;
+			init = false;
+		}
+		if(value > best_value){
+			best_value = value;
+			*best_move = mv;
+		}
+		if(alpha > beta || (*stop)){
+			break;
+		}
+	}
+	return best_value;
 }
 
 double quiescence(boardstate *brd, double alpha, double beta, bool *stop){
@@ -278,11 +332,13 @@ void iterative_negamax(void *varg){
 	}
 }
 
-move movesearch_depth(boardstate *brd, int depth){
+move movesearch_threshold(boardstate *brd, double threshold){
 	move best_move;
 	bool blank = true;
 	bool stop = false;
-	negamax(brd, depth, -1000000.0, 1000000.0, &best_move, &stop, blank);
+	negafrax(brd, 1.0, threshold, -1000000.0, 
+				1000000.0, &best_move, &stop);
+//	negfrax(brd, depth, -1000000.0, 1000000.0, &best_move, &stop, blank);
 	return(best_move);
 }
 

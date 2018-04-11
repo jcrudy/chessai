@@ -2700,5 +2700,5 @@ typedef struct {
 } searcharg;
 
 move movesearch(boardstate *brd, double time_limit, int *depth);
-move movesearch_depth(boardstate *brd, int depth);
+move movesearch_threshold(boardstate *brd, double threshold);
 #endif

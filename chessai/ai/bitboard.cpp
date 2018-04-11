@@ -814,7 +814,7 @@ static struct __pyx_vtabstruct_7chessai_2ai_8bitboard_BitBoard *__pyx_vtabptr_7c
 struct __pyx_vtabstruct_7chessai_2ai_8bitboard_BitBoardState {
   PyObject *(*get_piece_at_square_index)(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *, int, int __pyx_skip_dispatch);
   PyObject *(*movesearch)(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *, double, int __pyx_skip_dispatch);
-  PyObject *(*movesearch_depth)(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *, int, int __pyx_skip_dispatch);
+  PyObject *(*movesearch_threshold)(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *, double, int __pyx_skip_dispatch);
   unsigned PY_LONG_LONG (*perft)(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *, int, int __pyx_skip_dispatch);
   PyObject *(*all_moves)(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *, int __pyx_skip_dispatch);
   PyObject *(*all_captures)(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *, int __pyx_skip_dispatch);
@@ -1360,7 +1360,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
 static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8bitboard_8BitBoard_step_north(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
 static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_piece_at_square_index(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, int __pyx_v_i, int __pyx_skip_dispatch); /* proto*/
 static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_movesearch(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, double __pyx_v_time_limit, int __pyx_skip_dispatch); /* proto*/
-static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_movesearch_depth(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, int __pyx_v_depth, int __pyx_skip_dispatch); /* proto*/
+static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_movesearch_threshold(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, double __pyx_v_threshold, int __pyx_skip_dispatch); /* proto*/
 static unsigned PY_LONG_LONG __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_perft(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, int __pyx_v_depth, int __pyx_skip_dispatch); /* proto*/
 static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_moves(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
 static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_captures(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
@@ -1546,7 +1546,6 @@ static const char __pyx_k_slide_northwest[] = "slide_northwest";
 static const char __pyx_k_slide_southeast[] = "slide_southeast";
 static const char __pyx_k_slide_southwest[] = "slide_southwest";
 static const char __pyx_k_fullmove_counter[] = "fullmove_counter";
-static const char __pyx_k_movesearch_depth[] = "movesearch_depth";
 static const char __pyx_k_black_castle_king[] = "black_castle_king";
 static const char __pyx_k_from_square_index[] = "from_square_index";
 static const char __pyx_k_quiet_queen_moves[] = "quiet_queen_moves";
@@ -1555,6 +1554,7 @@ static const char __pyx_k_black_castle_queen[] = "black_castle_queen";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
 static const char __pyx_k_white_castle_queen[] = "white_castle_queen";
 static const char __pyx_k_chessai_ai_bitboard[] = "chessai.ai.bitboard";
+static const char __pyx_k_movesearch_threshold[] = "movesearch_threshold";
 static const char __pyx_k_get_black_castle_king[] = "get_black_castle_king";
 static const char __pyx_k_get_white_castle_king[] = "get_white_castle_king";
 static const char __pyx_k_pyx_unpickle_BitBoard[] = "__pyx_unpickle_BitBoard";
@@ -1649,7 +1649,7 @@ static PyObject *__pyx_n_s_make_move;
 static PyObject *__pyx_n_s_map;
 static PyObject *__pyx_n_s_methodcaller;
 static PyObject *__pyx_n_s_movesearch;
-static PyObject *__pyx_n_s_movesearch_depth;
+static PyObject *__pyx_n_s_movesearch_threshold;
 static PyObject *__pyx_n_s_n;
 static PyObject *__pyx_n_s_new;
 static PyObject *__pyx_n_s_no;
@@ -1749,7 +1749,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_get_piece_at_sq
 static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_11whites_turn___get__(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_2__richcmp__(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, PyObject *__pyx_v_other, int __pyx_v_op); /* proto */
 static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_4movesearch(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, double __pyx_v_time_limit); /* proto */
-static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_6movesearch_depth(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, int __pyx_v_depth); /* proto */
+static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_6movesearch_threshold(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, double __pyx_v_threshold); /* proto */
 static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_8perft(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, int __pyx_v_depth); /* proto */
 static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_10all_moves(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_12all_captures(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self); /* proto */
@@ -1809,7 +1809,7 @@ static PyObject *__pyx_codeobj__21;
 static PyObject *__pyx_codeobj__23;
 
 /* "chessai/ai/bitboard.pyx":132
- *     cdef move movesearch_depth(boardstate *brd, int depth)
+ *     cdef move movesearch_threshold(boardstate *brd, double threshold)
  * 
  * cpdef bitboard_to_str(bitboard bb):             # <<<<<<<<<<<<<<
  *     cdef int i
@@ -1908,7 +1908,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_bitboard_to_str(bitboard __pyx_v
   goto __pyx_L0;
 
   /* "chessai/ai/bitboard.pyx":132
- *     cdef move movesearch_depth(boardstate *brd, int depth)
+ *     cdef move movesearch_threshold(boardstate *brd, double threshold)
  * 
  * cpdef bitboard_to_str(bitboard bb):             # <<<<<<<<<<<<<<
  *     cdef int i
@@ -8533,7 +8533,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_movesearch(struc
  *         result.mv = mv
  *         return result, depth             # <<<<<<<<<<<<<<
  * 
- *     cpdef tuple movesearch_depth(BitBoardState self, int depth):
+ *     cpdef tuple movesearch_threshold(BitBoardState self, double threshold):
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_depth); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 456, __pyx_L1_error)
@@ -8624,13 +8624,13 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_4movesearch(str
 /* "chessai/ai/bitboard.pyx":458
  *         return result, depth
  * 
- *     cpdef tuple movesearch_depth(BitBoardState self, int depth):             # <<<<<<<<<<<<<<
+ *     cpdef tuple movesearch_threshold(BitBoardState self, double threshold):             # <<<<<<<<<<<<<<
  *         t0 = time.time()
- *         cdef move mv = movesearch_depth(&(self.bs), depth)  # @DuplicatedSignature
+ *         cdef move mv = movesearch_threshold(&(self.bs), threshold)  # @DuplicatedSignature
  */
 
-static PyObject *__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_7movesearch_depth(PyObject *__pyx_v_self, PyObject *__pyx_arg_depth); /*proto*/
-static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_movesearch_depth(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, int __pyx_v_depth, int __pyx_skip_dispatch) {
+static PyObject *__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_7movesearch_threshold(PyObject *__pyx_v_self, PyObject *__pyx_arg_threshold); /*proto*/
+static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_movesearch_threshold(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, double __pyx_v_threshold, int __pyx_skip_dispatch) {
   PyObject *__pyx_v_t0 = NULL;
   move __pyx_v_mv;
   PyObject *__pyx_v_t1 = NULL;
@@ -8643,16 +8643,16 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_movesearch_depth
   PyObject *__pyx_t_4 = NULL;
   PyObject *__pyx_t_5 = NULL;
   PyObject *__pyx_t_6 = NULL;
-  __Pyx_RefNannySetupContext("movesearch_depth", 0);
+  __Pyx_RefNannySetupContext("movesearch_threshold", 0);
   /* Check if called by wrapper */
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_movesearch_depth); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 458, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_movesearch_threshold); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 458, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_7movesearch_depth)) {
+    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_7movesearch_threshold)) {
       __Pyx_XDECREF(__pyx_r);
-      __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_depth); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 458, __pyx_L1_error)
+      __pyx_t_3 = PyFloat_FromDouble(__pyx_v_threshold); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 458, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_INCREF(__pyx_t_1);
       __pyx_t_4 = __pyx_t_1; __pyx_t_5 = NULL;
@@ -8712,9 +8712,9 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_movesearch_depth
 
   /* "chessai/ai/bitboard.pyx":459
  * 
- *     cpdef tuple movesearch_depth(BitBoardState self, int depth):
+ *     cpdef tuple movesearch_threshold(BitBoardState self, double threshold):
  *         t0 = time.time()             # <<<<<<<<<<<<<<
- *         cdef move mv = movesearch_depth(&(self.bs), depth)  # @DuplicatedSignature
+ *         cdef move mv = movesearch_threshold(&(self.bs), threshold)  # @DuplicatedSignature
  *         t1 = time.time()
  */
   __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_time); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 459, __pyx_L1_error)
@@ -8744,17 +8744,17 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_movesearch_depth
   __pyx_t_1 = 0;
 
   /* "chessai/ai/bitboard.pyx":460
- *     cpdef tuple movesearch_depth(BitBoardState self, int depth):
+ *     cpdef tuple movesearch_threshold(BitBoardState self, double threshold):
  *         t0 = time.time()
- *         cdef move mv = movesearch_depth(&(self.bs), depth)  # @DuplicatedSignature             # <<<<<<<<<<<<<<
+ *         cdef move mv = movesearch_threshold(&(self.bs), threshold)  # @DuplicatedSignature             # <<<<<<<<<<<<<<
  *         t1 = time.time()
  *         cdef Move result = Move()  # @DuplicatedSignature
  */
-  __pyx_v_mv = movesearch_depth((&__pyx_v_self->bs), __pyx_v_depth);
+  __pyx_v_mv = movesearch_threshold((&__pyx_v_self->bs), __pyx_v_threshold);
 
   /* "chessai/ai/bitboard.pyx":461
  *         t0 = time.time()
- *         cdef move mv = movesearch_depth(&(self.bs), depth)  # @DuplicatedSignature
+ *         cdef move mv = movesearch_threshold(&(self.bs), threshold)  # @DuplicatedSignature
  *         t1 = time.time()             # <<<<<<<<<<<<<<
  *         cdef Move result = Move()  # @DuplicatedSignature
  *         result.mv = mv
@@ -8786,7 +8786,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_movesearch_depth
   __pyx_t_1 = 0;
 
   /* "chessai/ai/bitboard.pyx":462
- *         cdef move mv = movesearch_depth(&(self.bs), depth)  # @DuplicatedSignature
+ *         cdef move mv = movesearch_threshold(&(self.bs), threshold)  # @DuplicatedSignature
  *         t1 = time.time()
  *         cdef Move result = Move()  # @DuplicatedSignature             # <<<<<<<<<<<<<<
  *         result.mv = mv
@@ -8831,9 +8831,9 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_movesearch_depth
   /* "chessai/ai/bitboard.pyx":458
  *         return result, depth
  * 
- *     cpdef tuple movesearch_depth(BitBoardState self, int depth):             # <<<<<<<<<<<<<<
+ *     cpdef tuple movesearch_threshold(BitBoardState self, double threshold):             # <<<<<<<<<<<<<<
  *         t0 = time.time()
- *         cdef move mv = movesearch_depth(&(self.bs), depth)  # @DuplicatedSignature
+ *         cdef move mv = movesearch_threshold(&(self.bs), threshold)  # @DuplicatedSignature
  */
 
   /* function exit code */
@@ -8844,7 +8844,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_movesearch_depth
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_AddTraceback("chessai.ai.bitboard.BitBoardState.movesearch_depth", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("chessai.ai.bitboard.BitBoardState.movesearch_threshold", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_t0);
@@ -8856,35 +8856,35 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_movesearch_depth
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_7movesearch_depth(PyObject *__pyx_v_self, PyObject *__pyx_arg_depth); /*proto*/
-static PyObject *__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_7movesearch_depth(PyObject *__pyx_v_self, PyObject *__pyx_arg_depth) {
-  int __pyx_v_depth;
+static PyObject *__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_7movesearch_threshold(PyObject *__pyx_v_self, PyObject *__pyx_arg_threshold); /*proto*/
+static PyObject *__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_7movesearch_threshold(PyObject *__pyx_v_self, PyObject *__pyx_arg_threshold) {
+  double __pyx_v_threshold;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("movesearch_depth (wrapper)", 0);
-  assert(__pyx_arg_depth); {
-    __pyx_v_depth = __Pyx_PyInt_As_int(__pyx_arg_depth); if (unlikely((__pyx_v_depth == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 458, __pyx_L3_error)
+  __Pyx_RefNannySetupContext("movesearch_threshold (wrapper)", 0);
+  assert(__pyx_arg_threshold); {
+    __pyx_v_threshold = __pyx_PyFloat_AsDouble(__pyx_arg_threshold); if (unlikely((__pyx_v_threshold == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 458, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
-  __Pyx_AddTraceback("chessai.ai.bitboard.BitBoardState.movesearch_depth", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("chessai.ai.bitboard.BitBoardState.movesearch_threshold", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_6movesearch_depth(((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *)__pyx_v_self), ((int)__pyx_v_depth));
+  __pyx_r = __pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_6movesearch_threshold(((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *)__pyx_v_self), ((double)__pyx_v_threshold));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_6movesearch_depth(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, int __pyx_v_depth) {
+static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_6movesearch_threshold(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, double __pyx_v_threshold) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  __Pyx_RefNannySetupContext("movesearch_depth", 0);
+  __Pyx_RefNannySetupContext("movesearch_threshold", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_movesearch_depth(__pyx_v_self, __pyx_v_depth, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 458, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_movesearch_threshold(__pyx_v_self, __pyx_v_threshold, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 458, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -8893,7 +8893,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_6movesearch_dep
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("chessai.ai.bitboard.BitBoardState.movesearch_depth", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("chessai.ai.bitboard.BitBoardState.movesearch_threshold", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -16349,7 +16349,7 @@ static PyObject *__pyx_getprop_7chessai_2ai_8bitboard_13BitBoardState_bs(PyObjec
 static PyMethodDef __pyx_methods_7chessai_2ai_8bitboard_BitBoardState[] = {
   {"get_piece_at_square_index", (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_1get_piece_at_square_index, METH_O, 0},
   {"movesearch", (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_5movesearch, METH_O, 0},
-  {"movesearch_depth", (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_7movesearch_depth, METH_O, 0},
+  {"movesearch_threshold", (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_7movesearch_threshold, METH_O, 0},
   {"perft", (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_9perft, METH_O, 0},
   {"all_moves", (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_11all_moves, METH_NOARGS, 0},
   {"all_captures", (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_13all_captures, METH_NOARGS, 0},
@@ -16551,7 +16551,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_map, __pyx_k_map, sizeof(__pyx_k_map), 0, 0, 1, 1},
   {&__pyx_n_s_methodcaller, __pyx_k_methodcaller, sizeof(__pyx_k_methodcaller), 0, 0, 1, 1},
   {&__pyx_n_s_movesearch, __pyx_k_movesearch, sizeof(__pyx_k_movesearch), 0, 0, 1, 1},
-  {&__pyx_n_s_movesearch_depth, __pyx_k_movesearch_depth, sizeof(__pyx_k_movesearch_depth), 0, 0, 1, 1},
+  {&__pyx_n_s_movesearch_threshold, __pyx_k_movesearch_threshold, sizeof(__pyx_k_movesearch_threshold), 0, 0, 1, 1},
   {&__pyx_n_s_n, __pyx_k_n, sizeof(__pyx_k_n), 0, 0, 1, 1},
   {&__pyx_n_s_new, __pyx_k_new, sizeof(__pyx_k_new), 0, 0, 1, 1},
   {&__pyx_n_s_no, __pyx_k_no, sizeof(__pyx_k_no), 0, 0, 1, 1},
@@ -16916,7 +16916,7 @@ PyMODINIT_FUNC PyInit_bitboard(void)
   __pyx_vtabptr_7chessai_2ai_8bitboard_BitBoardState = &__pyx_vtable_7chessai_2ai_8bitboard_BitBoardState;
   __pyx_vtable_7chessai_2ai_8bitboard_BitBoardState.get_piece_at_square_index = (PyObject *(*)(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *, int, int __pyx_skip_dispatch))__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_piece_at_square_index;
   __pyx_vtable_7chessai_2ai_8bitboard_BitBoardState.movesearch = (PyObject *(*)(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *, double, int __pyx_skip_dispatch))__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_movesearch;
-  __pyx_vtable_7chessai_2ai_8bitboard_BitBoardState.movesearch_depth = (PyObject *(*)(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *, int, int __pyx_skip_dispatch))__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_movesearch_depth;
+  __pyx_vtable_7chessai_2ai_8bitboard_BitBoardState.movesearch_threshold = (PyObject *(*)(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *, double, int __pyx_skip_dispatch))__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_movesearch_threshold;
   __pyx_vtable_7chessai_2ai_8bitboard_BitBoardState.perft = (unsigned PY_LONG_LONG (*)(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *, int, int __pyx_skip_dispatch))__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_perft;
   __pyx_vtable_7chessai_2ai_8bitboard_BitBoardState.all_moves = (PyObject *(*)(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *, int __pyx_skip_dispatch))__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_moves;
   __pyx_vtable_7chessai_2ai_8bitboard_BitBoardState.all_captures = (PyObject *(*)(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *, int __pyx_skip_dispatch))__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_captures;

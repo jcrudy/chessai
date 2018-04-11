@@ -127,7 +127,7 @@ cdef extern from "bitboardlib.h":
         move mv
         double score
     cdef move movesearch(boardstate *brd, double time_limit, int *depth)
-    cdef move movesearch_depth(boardstate *brd, int depth)
+    cdef move movesearch_threshold(boardstate *brd, double threshold)
 
 cpdef bitboard_to_str(bitboard bb):
     cdef int i
@@ -455,9 +455,9 @@ cdef class BitBoardState:
         result.mv = mv
         return result, depth
     
-    cpdef tuple movesearch_depth(BitBoardState self, int depth):
+    cpdef tuple movesearch_threshold(BitBoardState self, double threshold):
         t0 = time.time()
-        cdef move mv = movesearch_depth(&(self.bs), depth)  # @DuplicatedSignature
+        cdef move mv = movesearch_threshold(&(self.bs), threshold)  # @DuplicatedSignature
         t1 = time.time()
         cdef Move result = Move()  # @DuplicatedSignature
         result.mv = mv
