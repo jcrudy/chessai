@@ -8,6 +8,7 @@
 #include <string>
 
 typedef uint64_t bitboard;
+typedef uint64_t zobrist_int;
 
 extern const bitboard empty;
 extern const bitboard full;
@@ -2701,4 +2702,15 @@ typedef struct {
 
 move movesearch(boardstate *brd, double time_limit, int *depth);
 move movesearch_threshold(boardstate *brd, double threshold);
+
+typedef struct {
+	zobrist_int key;
+	double prob;
+	double value;
+	bool exact;
+	bool alpha;
+	bool beta;
+	move best_move;
+} transposition_entry;
+
 #endif
