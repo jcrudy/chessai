@@ -841,6 +841,11 @@ typedef struct {
 	piece promotion;
 } move;
 
+inline void printmove(move mv){
+	// For debugging
+	printf("move(%d, %d, %d)\n", mv.from_square, mv.to_square, mv.promotion);
+}
+
 inline bool operator==(const move& lhs, const move& rhs){
 	if(lhs.from_square == rhs.from_square && lhs.to_square == rhs.to_square &&
 		lhs.promotion == rhs.promotion){
@@ -1513,13 +1518,13 @@ inline void king_captures(boardstate *brd, std::queue<move> &moves){
 	king_targets &= ~own;
 	king_targets &= opponent;
 	bitboard target;
-	bitboard target_square;
+	brdidx target_square;
 	bitboard attackers;
 	move mv;
 	while(king_targets){
 		target = ls1b(king_targets);
 		king_targets ^= target;
-		target_square = ls1b(target);
+		target_square = greatest_square_index(target);
 		unplace_piece(brd, king_square);
 		attackers = attackers_from_square_index(brd, target_square) & opponent;
 		unsafe_place_piece(brd, king_square, own_king);

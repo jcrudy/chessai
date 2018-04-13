@@ -14,18 +14,28 @@ from chessai.ai.bitboard import BitBoardState, Player
 def test_movesearch():
     starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     board = BitBoardState.from_fen(starting_fen)
-    white = Player(1000000, .00000001)
-    black = Player(1000000, .000001)
+    white = Player(3000000, .000001)
+    black = Player(3000000, .000001)
     print('\n')
     print(board.to_grid())
     for _ in range(1000):
+        t0 = time.time()
         move = white.movesearch(board)
+        t1 = time.time()
+        move = white.movesearch(board)
+        t2 = time.time()
+        print('First search took %fs and second took %fs.' % (t1-t0, t2-t1))
         board.make_move(move)
         print('#'*10)
         print(board.to_grid())
         if board.checkmate():
             print 'White wins!'
+        t3 = time.time()
         move = black.movesearch(board)
+        t4 = time.time()
+        move = black.movesearch(board)
+        t5 = time.time()
+        print('First search took %fs and second took %fs.' % (t4-t3, t5-t4))
         board.make_move(move)
         print('#'*10)
         print(board.to_grid())

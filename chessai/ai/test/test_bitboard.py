@@ -589,6 +589,8 @@ def compare_to_python(fen, depth):
     def _compare_to_python(board, pyboard, depth):
         fen = board.to_fen()
         moves = board.all_moves()
+        captures = board.all_captures()
+        assert_equal(set(captures), set(filter(move_is_capture(board), moves)))
         pymoves_ = list(pyboard.legal_moves)
         if pyboard.turn:
             pymoves = list(map(chess_move_to_white_move, pymoves_))

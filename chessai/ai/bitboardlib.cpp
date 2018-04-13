@@ -203,23 +203,37 @@ double simple_evaluation(boardstate *brd){
 }
 
 double negafrax(boardstate *brd, double current, double threshold, double alpha, 
-				double beta, move *best_move, bool *stop, TranspositionTable *tt){
-	if (current < threshold){
-		return simple_evaluation(brd);
-	}
-	
-	// Generate all legal moves
+				double beta, move *best_move, bool *stop, TranspositionTable *tt, int depth){
 	std::queue<move> moves = std::queue<move>();
-	//std::queue<move> unknown_moves = std::queue<move>();
-	all_moves(brd, moves);
-	int num_moves = moves.size();
-	
-	// If there are no legal moves, this is either checkmate or stalemate
-	if (num_moves == 0) {
-		if (own_check(brd)){
-			return -200000.0; // checkmate!
-		} else {
-			return 0.0; // stalemate
+	int num_moves;
+	if(current >= threshold){
+		// Generate all legal moves
+		all_moves(brd, moves);
+		num_moves = moves.size();
+		
+		// If there are no legal moves, this is either checkmate or stalemate
+		if (num_moves == 0) {
+			if (own_check(brd)){
+				return -200000.0; // checkmate!
+			} else {
+				return 0.0; // stalemate
+			}
+		}
+	} else {
+		// Quiescence mode
+		all_captures(brd, moves);
+		num_moves = moves.size();
+		if(num_moves == 0){
+			if (own_check(brd)){
+				all_moves(brd, moves);
+				if (moves.size() == 0) {
+					return -200000.0; // checkmate!
+				} else {
+					return simple_evaluation(brd);
+				}
+			} else {
+				return simple_evaluation(brd);
+			}
 		}
 	}
 	
@@ -231,34 +245,64 @@ double negafrax(boardstate *brd, double current, double threshold, double alpha,
 	moverecord rec;
 	double quotient = current / num_moves;
 	transposition_entry entry;
-	double alt_value;
 	smallboardstate smallbrd;
+	
+	// First look at moves that have a transposition table entry
+	if(tt != NULL){
+		for(int i=0;i<num_moves;i++){
+			mv = moves.front();
+			moves.pop();
+			rec = make_move(brd, &mv);
+			entry = tt->getitem(brd);
+			smallbrd = smallify(brd);
+			if(entry.key == brd->hash && 
+			   entry.prob >= quotient && entry.alpha <= -beta 
+			   && entry.beta >= -alpha && smallbrd == entry.brd){
+				value = entry.value;
+				best_counter = entry.best_move;
+				unmake_move(brd, &rec);
+				if(value > alpha){
+					alpha = value;
+				}
+				if(init){
+					best_value = value;
+					*best_move = mv;
+					init = false;
+				}
+				if(value > best_value){
+					best_value = value;
+					*best_move = mv;
+				}
+				if(alpha > beta || (*stop)){
+					break;
+				}
+			
+			} else {
+				moves.push(mv);
+				unmake_move(brd, &rec);
+				continue;
+			}
+			
+		}
+	}
+	
+	// Now look at moves we haven't searched sufficiently yet
+//	num_moves = moves.size();
+//	quotient = current / num_moves;
 	while(!moves.empty()){
 		mv = moves.front();
 		moves.pop();
 		rec = make_move(brd, &mv);
+		value = -negafrax(brd, quotient, threshold, -beta, -alpha, &best_counter, stop, tt, depth+1);
 		if(tt != NULL){
-			entry = tt->getitem(brd);
-			smallbrd = smallify(brd);
-			if(entry.key == brd->hash && smallbrd == entry.brd && 
-			   entry.prob >= quotient && entry.alpha <= -beta 
-			   && entry.beta >= -alpha){
-				value = entry.value;
-				best_counter = entry.best_move;
-				alt_value = -negafrax(brd, quotient, threshold, -beta, -alpha, &best_counter, stop, tt);
-			} else {
-				value = -negafrax(brd, quotient, threshold, -beta, -alpha, &best_counter, stop, tt);
-				entry.key = brd->hash;
-				entry.prob = quotient;
-				entry.value = value;
-				entry.alpha = -beta;
-				entry.beta = -alpha;
-				entry.best_move = best_counter;
-				entry.brd = smallbrd;
-				tt->setitem(brd, entry);
-			}
-		} else {
-			value = -negafrax(brd, quotient, threshold, -beta, -alpha, &best_counter, stop, tt);
+			entry.key = brd->hash;
+			entry.prob = quotient;
+			entry.value = value;
+			entry.alpha = -beta;
+			entry.beta = -alpha;
+			entry.best_move = best_counter;
+			entry.brd = smallify(brd);
+			tt->setitem(brd, entry);
 		}
 		unmake_move(brd, &rec);
 		if(value > alpha){
@@ -277,6 +321,7 @@ double negafrax(boardstate *brd, double current, double threshold, double alpha,
 			break;
 		}
 	}
+	
 	return best_value;
 }
 
@@ -372,8 +417,7 @@ move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable 
 	bool blank = true;
 	bool stop = false;
 	negafrax(brd, 1.0, threshold, -1000000.0, 
-				1000000.0, &best_move, &stop, tt);
-//	negfrax(brd, depth, -1000000.0, 1000000.0, &best_move, &stop, blank);
+				1000000.0, &best_move, &stop, tt, 1);
 	return(best_move);
 }
 
