@@ -52,6 +52,7 @@ cdef extern from "bitboardlib.h":
         unsigned int halfmove_clock
         unsigned int fullmove_counter
         piece piece_map[64]
+        zobrist_int hash
 
     ctypedef struct move:
         brdidx from_square
@@ -70,9 +71,11 @@ cdef extern from "bitboardlib.h":
         brdidx to_square
         piece promoted_from
 
-    cdef moverecord make_move(boardstate *brd, move *mv);
-    cdef void unmake_move(boardstate *brd, moverecord *mv);
+    cdef moverecord make_move(boardstate *brd, move *mv)
+    cdef void unmake_move(boardstate *brd, moverecord *mv)
     cdef const boardstate emptyboardstate
+    cdef void set_hash(boardstate *bs, zobrist_int value)
+    cdef zobrist_int get_hash(boardstate *bs)
     cdef bool get_white_castle_king(boardstate *bs)
     cdef void set_white_castle_king(boardstate *bs)
     cdef void unset_white_castle_king(boardstate *bs)
@@ -438,6 +441,11 @@ cdef class BitBoardState:
         result.value = zobrist.hash(&(self.bs))
         return result
     
+    cpdef ZobristHash get_zobrist_hash(BitBoardState self):
+        cdef ZobristHash result = ZobristHash()  # @DuplicatedSignature
+        result.value = self.bs.hash
+        return result
+    
     cpdef str get_piece_at_square_index(BitBoardState self, int i):
         cdef brdidx square = <brdidx> i
         return piece_to_str(self.bs.piece_map[square])
@@ -737,5 +745,6 @@ cdef boardstate fen_to_bitboard(str fen):
             bs.piece_map[algebraic_to_int(en_passant)] = EP
     set_halfmove_clock(&bs, int(halfmove_clock))
     set_fullmove_counter(&bs, int(move_number))
+    set_hash(&bs, zobrist.hash(&bs))
 
     return bs

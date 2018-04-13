@@ -39,12 +39,14 @@ def verify_zobrist_update_on_position(fen):
     for i, move in enumerate(moves):
         rec = board.make_move(move)
         new_hash = board.zobrist_hash()
+        assert_equal(board.get_zobrist_hash(), new_hash)
         updated_hash = initial.update(board, rec)
         assert_equal(new_hash, updated_hash)
         downdated_hash = updated_hash.update(board, rec)
         assert_equal(downdated_hash, initial)
         board.unmake_move(rec)
         assert_equal(initial, board.zobrist_hash())
+        assert_equal(board.get_zobrist_hash(), initial)
     return True
         
 

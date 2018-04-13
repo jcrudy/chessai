@@ -528,6 +528,7 @@ typedef struct {
 	unsigned int halfmove_clock;
 	unsigned int fullmove_counter;
 	piece piece_map[64];
+	zobrist_int hash;
 } boardstate;
 
 
@@ -558,7 +559,6 @@ inline bool operator==(const boardstate& lhs, const boardstate& rhs)
     }
     return(true);
 }
-
 
 inline piece piece_from_square_index(boardstate *bs, brdidx square_index){
 	// May return no (=0), meaning not occupied.  Check for this before using the piece.
@@ -795,6 +795,14 @@ typedef struct {
 	piece promoted_from;
 } moverecord;
 
+inline void set_hash(boardstate *bs, zobrist_int value){
+	bs->hash = value;
+}
+
+inline zobrist_int get_hash(boardstate *bs){
+	return bs->hash;
+}
+
 inline brdidx get_enpassant(boardstate *bs){
 	return(bs->enpassant);
 }
@@ -947,8 +955,26 @@ inline void reset_halfmove_clock(boardstate *bs){
 	(bs->halfmove_clock) = 0;
 }
 
+class Zobrist {
+	public:
+		Zobrist();
+		zobrist_int hash(boardstate *brd) const;
+		zobrist_int update(zobrist_int previous, boardstate *brd, moverecord *mv) const;
+	private:
+		zobrist_int zobrist_table[8][8][14];
+		zobrist_int zobrist_white_castle_king;
+		zobrist_int zobrist_white_castle_queen;
+		zobrist_int zobrist_black_castle_king;
+		zobrist_int zobrist_black_castle_queen;
+		zobrist_int zobrist_blacks_turn;
+};
+
+extern const Zobrist zobrist;
+
 inline void unmake_move(boardstate *brd, moverecord *mv){
-	
+	// update zobrist hash value
+	set_hash(brd, zobrist.update(get_hash(brd), brd, mv));
+
 	// switch back whose turn it is
 	flip_turn(brd);
 	
@@ -1334,6 +1360,10 @@ inline moverecord make_move(boardstate *brd, move *mv){
 						 lost_opponent_castle_king, lost_opponent_castle_queen,
 						 old_enpassant, previous_halfmove_clock, 
 						 mv->from_square, mv->to_square, from_piece};
+
+	// update zobrist hash value
+	set_hash(brd, zobrist.update(get_hash(brd), brd, &record));
+
 	return(record);
 }
 
@@ -2736,20 +2766,6 @@ inline int piece_to_zobrist_index(piece pc){
 	}
 }
 
-class Zobrist {
-	public:
-		Zobrist();
-		zobrist_int hash(boardstate *brd) const;
-		zobrist_int update(zobrist_int previous, boardstate *brd, moverecord *mv) const;
-	private:
-		zobrist_int zobrist_table[8][8][14];
-		zobrist_int zobrist_white_castle_king;
-		zobrist_int zobrist_white_castle_queen;
-		zobrist_int zobrist_black_castle_king;
-		zobrist_int zobrist_black_castle_queen;
-		zobrist_int zobrist_blacks_turn;
-};
-
 typedef struct {
 	zobrist_int key;
 	double prob;
@@ -2759,7 +2775,4 @@ typedef struct {
 	bool beta;
 	move best_move;
 } transposition_entry;
-
-extern const Zobrist zobrist;
-
 #endif
