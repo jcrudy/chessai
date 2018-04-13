@@ -466,7 +466,7 @@ zobrist_int Zobrist::hash(boardstate *brd) const{
 }
 
 Zobrist::Zobrist(void){
-	zobrist_table[0][0][0] = 0x629F6FBED82C07CDULL;
+    zobrist_table[0][0][0] = 0x629F6FBED82C07CDULL;
     zobrist_table[0][0][1] = 0xE3E70682C2094CACULL;
     zobrist_table[0][0][2] = 0xA5D2F346BAA9455ULL;
     zobrist_table[0][0][3] = 0xF728B4FA42485E3AULL;
@@ -1362,12 +1362,13 @@ Zobrist::Zobrist(void){
     zobrist_table[7][7][11] = 0xC90853FDFC9EA692ULL;
     zobrist_table[7][7][12] = 0x689C0559BF4FA4A3ULL;
     zobrist_table[7][7][13] = 0x27752FE61F68C6EULL;
-	zobrist_white_castle_king = 0xE413961F68C6DD5EULL;
-	zobrist_white_castle_queen = 0x88A0EDCE4384860CULL;
-	zobrist_black_castle_king = 0xCDFA4CC88805AE31ULL;
-	zobrist_black_castle_queen = 0xFB0A6A90BC52B34EULL;
-	zobrist_blacks_turn = 0xB476998DAFC8128AULL;
+    zobrist_white_castle_king = 0xE413961F68C6DD5EULL;
+    zobrist_white_castle_queen = 0x88A0EDCE4384860CULL;
+    zobrist_black_castle_king = 0xCDFA4CC88805AE31ULL;
+    zobrist_black_castle_queen = 0xFB0A6A90BC52B34EULL;
+    zobrist_blacks_turn = 0xB476998DAFC8128AULL;
 }
+
 
 const Zobrist zobrist = Zobrist();
 									

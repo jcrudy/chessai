@@ -37,9 +37,6 @@ def verify_zobrist_update_on_position(fen):
     initial = board.zobrist_hash()
     moves = board.all_moves()
     for i, move in enumerate(moves):
-        print(i)
-        print(board.to_grid())
-        print(move)
         rec = board.make_move(move)
         new_hash = board.zobrist_hash()
         updated_hash = initial.update(board, rec)
