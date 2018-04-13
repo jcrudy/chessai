@@ -203,7 +203,8 @@ double simple_evaluation(boardstate *brd){
 }
 
 double negafrax(boardstate *brd, double current, double threshold, double alpha, 
-				double beta, move *best_move, bool *stop, TranspositionTable *tt, int depth){
+				double beta, move *best_move, bool *stop, TranspositionTable *tt, int depth,
+				unsigned long long int *node_count){
 	std::queue<move> moves = std::queue<move>();
 	int num_moves;
 	if(current >= threshold){
@@ -253,6 +254,7 @@ double negafrax(boardstate *brd, double current, double threshold, double alpha,
 			mv = moves.front();
 			moves.pop();
 			rec = make_move(brd, &mv);
+			(*node_count)++;
 			entry = tt->getitem(brd);
 			smallbrd = smallify(brd);
 			if(entry.key == brd->hash && 
@@ -287,13 +289,14 @@ double negafrax(boardstate *brd, double current, double threshold, double alpha,
 	}
 	
 	// Now look at moves we haven't searched sufficiently yet
-//	num_moves = moves.size();
-//	quotient = current / num_moves;
+	num_moves = moves.size();
+	quotient = current / num_moves;
 	while(!moves.empty()){
 		mv = moves.front();
 		moves.pop();
 		rec = make_move(brd, &mv);
-		value = -negafrax(brd, quotient, threshold, -beta, -alpha, &best_counter, stop, tt, depth+1);
+		(*node_count)++;
+		value = -negafrax(brd, quotient, threshold, -beta, -alpha, &best_counter, stop, tt, depth+1, node_count);
 		if(tt != NULL){
 			entry.key = brd->hash;
 			entry.prob = quotient;
@@ -416,8 +419,10 @@ move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable 
 	move best_move;
 	bool blank = true;
 	bool stop = false;
+	unsigned long long int node_count = 0;
 	negafrax(brd, 1.0, threshold, -1000000.0, 
-				1000000.0, &best_move, &stop, tt, 1);
+				1000000.0, &best_move, &stop, tt, 1, &node_count);
+	printf("Visited %llu nodes.\n", node_count);
 	return(best_move);
 }
 
