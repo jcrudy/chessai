@@ -531,6 +531,65 @@ typedef struct {
 	zobrist_int hash;
 } boardstate;
 
+// Just the parts needed to have same legal moves (ignoring clock)
+typedef struct {
+	bitboard k;
+	bitboard q;
+	bitboard b;
+	bitboard n;
+	bitboard r;
+	bitboard p;
+	bitboard white;
+	bitboard black;
+	brdidx enpassant;
+	bool whites_turn;
+	bool white_castle_king;
+	bool white_castle_queen;
+	bool black_castle_king;
+	bool black_castle_queen;
+} smallboardstate;
+
+inline smallboardstate smallify(boardstate *brd){
+	smallboardstate result;
+	result.k = brd->k;
+	result.q = brd->q;
+	result.b = brd->b;
+	result.n = brd->n;
+	result.r = brd->r;
+	result.p = brd->p;
+	result.white = brd->white;
+	result.black = brd->black;
+	result.enpassant = brd->enpassant;
+	result.whites_turn = brd->whites_turn;
+	result.white_castle_king = brd->white_castle_king;
+	result.white_castle_queen = brd->white_castle_queen;
+	result.black_castle_king = brd->black_castle_king;
+	result.black_castle_queen = brd->black_castle_queen;
+	return result;
+}
+
+
+inline bool operator==(const smallboardstate& lhs, const smallboardstate& rhs)
+{
+	if (lhs.k == rhs.k &&
+      	lhs.q == rhs.q &&
+       	lhs.b == rhs.b &&
+       	lhs.r == rhs.r &&
+       	lhs.k == rhs.k &&
+       	lhs.p == rhs.p &&
+       	lhs.white == rhs.white &&
+       	lhs.black == rhs.black &&
+       	lhs.enpassant == rhs.enpassant &&
+       	lhs.whites_turn == rhs.whites_turn &&
+       	lhs.white_castle_king == rhs.white_castle_king &&
+       	lhs.white_castle_queen == rhs.white_castle_queen &&
+       	lhs.black_castle_king == rhs.black_castle_king &&
+       	lhs.black_castle_queen == rhs.black_castle_queen){
+		return true;
+	} else {
+		return false;
+	}
+}
 
 inline bool operator==(const boardstate& lhs, const boardstate& rhs)
 {
@@ -781,6 +840,15 @@ typedef struct {
 	brdidx to_square;
 	piece promotion;
 } move;
+
+inline bool operator==(const move& lhs, const move& rhs){
+	if(lhs.from_square == rhs.from_square && lhs.to_square == rhs.to_square &&
+		lhs.promotion == rhs.promotion){
+		return true;
+	} else {
+		return false;
+	}
+}
 
 typedef struct {
 	piece captured;
@@ -2730,9 +2798,6 @@ typedef struct {
 	int depth;
 } searcharg;
 
-move movesearch(boardstate *brd, double time_limit, int *depth);
-move movesearch_threshold(boardstate *brd, double threshold);
-
 inline int piece_to_zobrist_index(piece pc){
 	switch(pc){
 		case K:
@@ -2770,9 +2835,38 @@ typedef struct {
 	zobrist_int key;
 	double prob;
 	double value;
-	bool exact;
-	bool alpha;
-	bool beta;
+	double alpha;
+	double beta;
 	move best_move;
+	smallboardstate brd;
 } transposition_entry;
+
+inline bool operator==(const transposition_entry& lhs, const transposition_entry& rhs){
+	if (lhs.key == rhs.key && lhs.prob == rhs.prob && lhs.value == rhs.value &&
+	    lhs.alpha == rhs.alpha && lhs.beta == rhs.beta
+	    && lhs.best_move == rhs.best_move){
+		return true;
+	} else {
+		return false;
+	}
+}
+
+class TranspositionTable {
+	public:
+		TranspositionTable(unsigned long int size);
+		~TranspositionTable();
+		void setitem(boardstate *brd, transposition_entry &entry);
+		unsigned long int getindex(boardstate *brd);
+		bool exists(boardstate *brd);
+		transposition_entry getitem(boardstate *brd);
+	private:
+		unsigned long int size;
+		transposition_entry *data;
+};
+
+extern const transposition_entry empty_transposition_entry;
+
+move movesearch(boardstate *brd, double time_limit, int *depth);
+move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable *tt);
+
 #endif

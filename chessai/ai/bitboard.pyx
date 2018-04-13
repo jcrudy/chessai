@@ -53,6 +53,22 @@ cdef extern from "bitboardlib.h":
         unsigned int fullmove_counter
         piece piece_map[64]
         zobrist_int hash
+    
+    ctypedef struct smallboardstate:
+        bitboard k
+        bitboard q
+        bitboard b
+        bitboard n
+        bitboard r
+        bitboard p
+        bitboard white
+        bitboard black
+        brdidx enpassant;
+        bool whites_turn;
+        bool white_castle_king
+        bool white_castle_queen
+        bool black_castle_king
+        bool black_castle_queen
 
     ctypedef struct move:
         brdidx from_square
@@ -127,16 +143,31 @@ cdef extern from "bitboardlib.h":
     cdef void all_moves(boardstate *brd, queue[move] &moves)
     cdef void all_captures(boardstate *brd, queue[move] &moves)
     cdef unsigned long long perft(boardstate *brd, int depth)
+    cdef bool own_check(boardstate *brd)
     ctypedef struct movechoice:
         move mv
         double score
-    cdef move movesearch(boardstate *brd, double time_limit, int *depth)
-    cdef move movesearch_threshold(boardstate *brd, double threshold)
     cdef cppclass Zobrist:
         Zobrist()
         zobrist_int hash(boardstate *brd)
         zobrist_int update(zobrist_int previous, boardstate *brd, moverecord *mv)
     cdef Zobrist zobrist
+    ctypedef struct transposition_entry:
+        zobrist_int key
+        double prob
+        double value
+        double alpha
+        double beta
+        move best_move
+        smallboardstate brd
+    cdef cppclass TranspositionTable:
+        TranspositionTable(unsigned long int size)
+        void setitem(boardstate *brd, transposition_entry &entry)
+        unsigned long int getindex(boardstate *brd)
+        bool exists(boardstate *brd)
+        transposition_entry getitem(boardstate *brd)
+    cdef move movesearch(boardstate *brd, double time_limit, int *depth)
+    cdef move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable *tt)
 
 cpdef bitboard_to_str(bitboard bb):
     cdef int i
@@ -433,8 +464,33 @@ cdef class ZobristHash:
         result.value = zobrist.update(self.value, &(brd.bs), &(mv.rec))
         return result
 
+cdef class Player:
+    cdef TranspositionTable *tt
+    cdef readonly double threshold
+    def __init__(Player self, unsigned long int size, double threshold):
+        if size > 0:
+            self.tt = new TranspositionTable(size)
+        else:
+            self.tt = NULL
+        self.threshold = threshold
+    
+    cpdef Move movesearch(Player self, BitBoardState board):
+        cdef move mv = movesearch_threshold(&(board.bs), self.threshold, self.tt)
+        cdef Move result = Move()  # @DuplicatedSignature
+        result.mv = mv
+        return result
+
 cdef class BitBoardState:
     cdef readonly boardstate bs
+    
+    cpdef bool check(BitBoardState self):
+        if own_check(&(self.bs)):
+            return True
+        else:
+            return False
+    
+    cpdef checkmate(BitBoardState self):
+        return self.check() and not self.all_moves()
     
     cpdef ZobristHash zobrist_hash(BitBoardState self):
         cdef ZobristHash result = ZobristHash()
@@ -483,20 +539,20 @@ cdef class BitBoardState:
                 return False
         return True
     
-    cpdef tuple movesearch(BitBoardState self, double time_limit):
-        cdef int depth = 0;
-        cdef move mv = movesearch(&(self.bs), time_limit, &depth)
-        cdef Move result = Move()
-        result.mv = mv
-        return result, depth
-    
-    cpdef tuple movesearch_threshold(BitBoardState self, double threshold):
-        t0 = time.time()
-        cdef move mv = movesearch_threshold(&(self.bs), threshold)  # @DuplicatedSignature
-        t1 = time.time()
-        cdef Move result = Move()  # @DuplicatedSignature
-        result.mv = mv
-        return result, t1 - t0
+#     cpdef tuple movesearch(BitBoardState self, double time_limit):
+#         cdef int depth = 0;
+#         cdef move mv = movesearch(&(self.bs), time_limit, &depth)
+#         cdef Move result = Move()
+#         result.mv = mv
+#         return result, depth
+#     
+#     cpdef tuple movesearch_threshold(BitBoardState self, double threshold):
+#         t0 = time.time()
+#         cdef move mv = movesearch_threshold(&(self.bs), threshold)  # @DuplicatedSignature
+#         t1 = time.time()
+#         cdef Move result = Move()  # @DuplicatedSignature
+#         result.mv = mv
+#         return result, t1 - t0
     
     cpdef unsigned long long perft(BitBoardState self, int depth):
         return perft(&(self.bs), depth)

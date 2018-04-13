@@ -1,5 +1,5 @@
 import random
-random.seed(0)
+random.seed(1)
 print 'Zobrist::Zobrist(void){'
 
 used = set()
