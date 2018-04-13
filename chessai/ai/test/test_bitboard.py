@@ -31,6 +31,60 @@ def all_moves_from_chess_package(fen):
     else:
         return list(map(chess_move_to_black_move, moves))
 
+
+def verify_zobrist_update_on_position(fen):
+    board = BitBoardState.from_fen(fen)
+    initial = board.zobrist_hash()
+    moves = board.all_moves()
+    for i, move in enumerate(moves):
+        print(i)
+        print(board.to_grid())
+        print(move)
+        rec = board.make_move(move)
+        new_hash = board.zobrist_hash()
+        updated_hash = initial.update(board, rec)
+        assert_equal(new_hash, updated_hash)
+        downdated_hash = updated_hash.update(board, rec)
+        assert_equal(downdated_hash, initial)
+        board.unmake_move(rec)
+        assert_equal(initial, board.zobrist_hash())
+    return True
+        
+
+def test_zobrist_update_correctness():
+    fens = [
+            'rnbqkbnr/pppppppr/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+            'rnbqkbnr/pppppppp/8/8/8/3P4/PPP1PPPP/RNBQKBNR w KQkq - 0 1',
+            'rnbqk2r/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1',
+            'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1',
+            '8/5N2/4p2p/5p1k/1p4rP/1P2Q1P1/P4P1K/5q2 w - - 15 44',
+            'rnbq1bnr/pppkpppp/2P5/3p4/8/8/PP1PPPPP/RNBQKBNR b KQ - 0 3', 
+            'rnbq1bnr/pppkpppp/2P5/3p4/8/8/PP1PPPPP/RNBQKBNR b KQ - 0 3',
+            'r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2NQ4/PPPBBPpP/R4RK1 b kq - 1 2',
+            '8/8/3p4/1Pp4r/1K3p2/6k1/4P1P1/1R6 w - c6 0 3',
+            'r3k2r/1ppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R1Q2R1K b k - 3 3',
+            '8/5N2/4p2p/5p1k/1p4rP/1P2Q1P1/P4P1K/5q2 w - - 15 44',
+            'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+            'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
+            'rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2',
+            'rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2',
+            'R6R/3Q4/1Q4Q1/4Q3/2Q4Q/Q4Q2/pp1Q4/kBNN1KB1 w - - 0 1',
+            '3Q4/1Q4Q1/4Q3/2Q4R/Q4Q2/3Q4/1Q4Rp/1K1BBNNk w - - 0 1',
+            ]
+    for i, fen in enumerate(fens):
+        try:
+            verify_zobrist_update_on_position(fen)
+        except:
+            print(i, fen)
+            raise
+#     board = BitBoardState.from_fen(starting_fen)
+#     hash1 = board.zobrist_hash()
+#     mv = Move(12, 12+16)
+#     record = board.make_move(mv)
+#     hash2 = board.zobrist_hash()
+#     hash3 = hash1.update(board, record)
+#     assert_equal(hash2, hash3)
+
 def test_boardstate_to_grid():
     starting_fen = 'rnbqkbnr/pppppppr/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     board = BitBoardState.from_fen(starting_fen)

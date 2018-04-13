@@ -12,6 +12,7 @@ cdef extern from "stdbool.h":
 
 cdef extern from "bitboardlib.h":
     ctypedef uint64_t bitboard
+    ctypedef uint64_t zobrist_int
     cdef bitboard place(bitboard b, int p)
     cdef bitboard unplace(bitboard b, int p)
     ctypedef enum piece:
@@ -128,6 +129,11 @@ cdef extern from "bitboardlib.h":
         double score
     cdef move movesearch(boardstate *brd, double time_limit, int *depth)
     cdef move movesearch_threshold(boardstate *brd, double threshold)
+    cdef cppclass Zobrist:
+        Zobrist()
+        zobrist_int hash(boardstate *brd)
+        zobrist_int update(zobrist_int previous, boardstate *brd, moverecord *mv)
+    cdef Zobrist zobrist
 
 cpdef bitboard_to_str(bitboard bb):
     cdef int i
@@ -407,9 +413,30 @@ cdef class MoveRecord:
     property promoted_from:
         def __get__(Move self):  # @DuplicatedSignature
             return piece_to_str(self.rec.promoted_from)
-        
+
+cdef class ZobristHash:
+    cdef readonly zobrist_int value
+    def __richcmp__(ZobristHash self, other, int op):
+        if not isinstance(other, ZobristHash) or op != Py_EQ:
+            return NotImplemented
+        cdef ZobristHash other_ = other
+        if self.value == other_.value:
+            return True
+        else:
+            return False
+
+    cpdef ZobristHash update(ZobristHash self, BitBoardState brd, MoveRecord mv):
+        cdef ZobristHash result = ZobristHash()
+        result.value = zobrist.update(self.value, &(brd.bs), &(mv.rec))
+        return result
+
 cdef class BitBoardState:
     cdef readonly boardstate bs
+    
+    cpdef ZobristHash zobrist_hash(BitBoardState self):
+        cdef ZobristHash result = ZobristHash()
+        result.value = zobrist.hash(&(self.bs))
+        return result
     
     cpdef str get_piece_at_square_index(BitBoardState self, int i):
         cdef brdidx square = <brdidx> i

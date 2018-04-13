@@ -148,21 +148,325 @@ const boardstate emptyboardstate = {empty,empty,empty,empty,
 									empty,empty,empty,empty,
 									no_enpassant, 0, 0, 0, 0, 0, 0, 0};
 
-
-zobrist_int ***create_zobrist_table(){
-	printf("hello\n");
-    zobrist_int *** zobrist_table = (zobrist_int ***) malloc(8*sizeof(zobrist_int**));
-    for(int i=0;i<8;i++){
-    	printf("i=%d\n", i);
-        zobrist_table[i] = (zobrist_int **) malloc(8*sizeof(zobrist_int*));
-        for(int j=0;j<14;j++){
-        	printf("j=%d\n", j);
-            zobrist_table[i][j] = (zobrist_int *) malloc(14*sizeof(zobrist_int));
-        }
+unsigned long long perft(boardstate *brd, int depth){
+    std::queue<move> moves = std::queue<move>();
+    all_moves(brd, moves);
+    int n_moves = moves.size();
+    moverecord rec;
+    move mv;
+    unsigned long long result = 0;
+    if(depth == 0){
+    	return(1);
     }
-    printf("hi");
+    if(depth == 1){
+    	return(n_moves);
+    }
+    for(int i = 0; i<n_moves; i++){
+    	mv = moves.front();
+    	moves.pop();
+    	rec = make_move(brd, &mv);
+    	result += perft(brd, depth - 1);
+    	unmake_move(brd, &rec);
+    }
+    return(result);
+}
 
-    zobrist_table[0][0][0] = 0x629F6FBED82C07CDULL;
+double simple_evaluation(boardstate *brd){
+	double white_score, black_score;
+	white_score = 0;
+	black_score = 0;
+	white_score += 100 * population_count(brd->white & brd->p);
+	white_score += 320 * population_count(brd->white & brd->n);
+	white_score += 330 * population_count(brd->white & brd->b);
+	white_score += 500 * population_count(brd->white & brd->r);
+	white_score += 900 * population_count(brd->white & brd->q);
+	white_score += 200000 * population_count(brd->white & brd->k);
+	
+	white_score += .4 * 100 * population_count(brd->white & center4);
+	white_score += .1 * 100 * population_count(brd->white & center16);
+	
+	black_score += 100 * population_count(brd->black & brd->p);
+	black_score += 320 * population_count(brd->black & brd->n);
+	black_score += 330 * population_count(brd->black & brd->b);
+	black_score += 500 * population_count(brd->black & brd->r);
+	black_score += 900 * population_count(brd->black & brd->q);
+	black_score += 200000 * population_count(brd->black & brd->k);
+	
+	black_score += .4 * 100 * population_count(brd->black & center4);
+	black_score += .1 * 100 * population_count(brd->black & center16);
+	
+	if(get_whites_turn(brd)){
+		return(white_score - black_score);
+	}else{
+		return(black_score - white_score);
+	}
+}
+
+double negafrax(boardstate *brd, double current, double threshold, double alpha, 
+				double beta, move *best_move, bool *stop){
+	if (current < threshold){
+		return simple_evaluation(brd);
+	}
+	
+	// Generate all legal moves
+	std::queue<move> moves = std::queue<move>();
+	all_moves(brd, moves);
+	int num_moves = moves.size();
+	
+	double value;
+	double best_value;
+	move best_counter;
+	move mv;
+	bool init = true;
+	moverecord rec;
+	double quotient = current / num_moves;
+	while(!moves.empty()){
+		mv = moves.front();
+		moves.pop();
+		rec = make_move(brd, &mv);
+		value = -negafrax(brd, quotient, threshold, -beta, -alpha, &best_counter, stop);
+		unmake_move(brd, &rec);
+		if(value > alpha){
+			alpha = value;
+		}
+		if(init){
+			best_value = value;
+			*best_move = mv;
+			init = false;
+		}
+		if(value > best_value){
+			best_value = value;
+			*best_move = mv;
+		}
+		if(alpha > beta || (*stop)){
+			break;
+		}
+	}
+	return best_value;
+}
+
+double quiescence(boardstate *brd, double alpha, double beta, bool *stop){
+	double stand_pat = simple_evaluation(brd);
+	std::queue<move> moves = std::queue<move>();
+	bool is_check = own_check(brd);
+	if(is_check){
+		all_moves(brd, moves);
+	}else{
+		all_captures(brd, moves);
+	}
+	if(stand_pat >= beta){
+		return(beta);
+	}
+	if(stand_pat > alpha){
+		alpha = stand_pat;
+	}
+	move mv;
+	moverecord rec;
+	double score;
+	while((!moves.empty()) & (!(*stop))){
+		mv = moves.front();
+		moves.pop();
+		rec = make_move(brd, &mv);
+		score = quiescence(brd, -beta, -alpha, stop);
+		unmake_move(brd, &rec);
+		if(score >= beta){
+			return(beta);
+		}
+		if(score > alpha){
+			alpha = score;
+		}
+	}
+	return(alpha);
+}
+
+double negamax(boardstate *brd, int depth, double alpha, double beta, move *best_move, bool *stop, bool blank){
+	if(depth == 0){
+		return(quiescence(brd, alpha, beta, stop));
+	}
+	std::queue<move> moves = std::queue<move>();
+	if(!blank){
+		moves.push(*best_move);
+	}
+	all_moves(brd, moves);
+	double value;
+	double best_value;
+	move best_counter;
+	move mv;
+	bool init = true;
+	moverecord rec;
+	while(!moves.empty()){
+		mv = moves.front();
+		moves.pop();
+		rec = make_move(brd, &mv);
+		value = -negamax(brd, depth-1, -beta, -alpha, &best_counter, stop, true);
+		unmake_move(brd, &rec);
+		if(value > alpha){
+			alpha = value;
+		}
+		if(init){
+			best_value = value;
+			*best_move = mv;
+			init = false;
+		}
+		if(value > best_value){
+			best_value = value;
+			*best_move = mv;
+		}
+		if(alpha > beta || (*stop)){
+			break;
+		}
+		
+	}
+	return(best_value);
+}
+
+void iterative_negamax(void *varg){
+	searcharg *arg = (searcharg *) varg;
+	int depth = 1;
+	double result;
+	while(!(*(arg->stop))){
+		result = negamax(arg->brd, depth, -1000000.0, 1000000.0, arg->best_move, arg->stop, arg->blank);
+		arg->blank = false;
+		arg->depth = depth;
+		depth++;
+	}
+}
+
+move movesearch_threshold(boardstate *brd, double threshold){
+	move best_move;
+	bool blank = true;
+	bool stop = false;
+	negafrax(brd, 1.0, threshold, -1000000.0, 
+				1000000.0, &best_move, &stop);
+//	negfrax(brd, depth, -1000000.0, 1000000.0, &best_move, &stop, blank);
+	return(best_move);
+}
+
+move movesearch(boardstate *brd, double time_limit, int *depth){
+	bool stop = false;
+	move best_move;
+	searcharg arg = {brd, &best_move, &stop, true, 0};
+	thread * searcher = new thread(&iterative_negamax, (void *) &arg);
+	usleep(time_limit * 1000000.0);
+	stop = true;
+	searcher->join();
+	*depth = arg.depth;
+	return(best_move);
+}
+
+zobrist_int Zobrist::update(zobrist_int previous, boardstate *brd, moverecord *mv) const{
+	// Call after move has been made or before it is unmade
+	zobrist_int result = previous;
+	int from_square = (int) mv->from_square;
+	int to_square = (int) mv->to_square;
+	piece from_piece = mv->promoted_from;
+	piece captured_piece = mv->captured;
+	piece promoted_piece = brd->piece_map[mv->to_square];
+	result ^= zobrist_table[from_square / 8][from_square % 8][piece_to_zobrist_index(from_piece)];
+	if(captured_piece != no  && captured_piece != ep && captured_piece != EP){
+		result ^= zobrist_table[to_square / 8][to_square % 8][piece_to_zobrist_index(captured_piece)];
+	}
+	if(captured_piece == ep){
+		result ^= zobrist_table[(to_square - 8) / 8][(to_square - 8) % 8][piece_to_zobrist_index(p)];
+	}else if(captured_piece == EP){
+		result ^= zobrist_table[(to_square + 8) / 8][(to_square + 8) % 8][piece_to_zobrist_index(P)];
+	}
+	result ^= zobrist_table[to_square / 8][to_square % 8][piece_to_zobrist_index(promoted_piece)];
+	
+	if(mv->enpassant != no_enpassant){
+		if(get_blacks_turn(brd)){
+			result ^= zobrist_table[((int) (mv->enpassant)) / 8][((int) (mv->enpassant)) % 8][piece_to_zobrist_index(ep)];
+		}else{
+			result ^= zobrist_table[((int) (mv->enpassant)) / 8][((int) (mv->enpassant)) % 8][piece_to_zobrist_index(EP)];
+		}
+	}
+	if(get_enpassant(brd) != no_enpassant){
+		if(get_blacks_turn(brd)){
+			result ^= zobrist_table[((int) (get_enpassant(brd))) / 8][((int) (get_enpassant(brd))) % 8][piece_to_zobrist_index(EP)];
+		}else{
+			result ^= zobrist_table[((int) (get_enpassant(brd))) / 8][((int) (get_enpassant(brd))) % 8][piece_to_zobrist_index(ep)];
+		}
+	}
+	
+	result ^= zobrist_blacks_turn;
+	if(get_blacks_turn(brd)){
+		if(mv->lost_own_castle_king){
+			result ^= zobrist_white_castle_king;
+		}
+		if(mv->lost_own_castle_queen){
+			result ^= zobrist_white_castle_queen;
+		}
+		if(mv->lost_opponent_castle_king){
+			result ^= zobrist_black_castle_king;
+		}
+		if(mv->lost_opponent_castle_queen){
+			result ^= zobrist_black_castle_queen;
+		}
+	}else{
+		if(mv->lost_own_castle_king){
+			result ^= zobrist_black_castle_king;
+		}
+		if(mv->lost_own_castle_queen){
+			result ^= zobrist_black_castle_queen;
+		}
+		if(mv->lost_opponent_castle_king){
+			result ^= zobrist_white_castle_king;
+		}
+		if(mv->lost_opponent_castle_queen){
+			result ^= zobrist_white_castle_queen;
+		}
+	}
+	
+	if(from_piece==K && (mv->to_square - mv->from_square == 2)){
+		//white castle king side
+		result ^= zobrist_table[5 / 8][5 % 8][piece_to_zobrist_index(R)];
+		result ^= zobrist_table[7 / 8][7 % 8][piece_to_zobrist_index(R)];
+	}else if(from_piece==K && (mv->from_square - mv->to_square == 2)){
+		//white castle queen side
+		result ^= zobrist_table[3 / 8][3 % 8][piece_to_zobrist_index(R)];
+		result ^= zobrist_table[0 / 8][0 % 8][piece_to_zobrist_index(R)];
+	}else if(from_piece==k && (mv->to_square - mv->from_square == 2)){
+		//black castle king side
+		result ^= zobrist_table[61 / 8][61 % 8][piece_to_zobrist_index(r)];
+		result ^= zobrist_table[63 / 8][63 % 8][piece_to_zobrist_index(r)];
+	}else if(from_piece==k && (mv->from_square - mv->to_square == 2)){
+		//black castle queen side
+		result ^= zobrist_table[59 / 8][59 % 8][piece_to_zobrist_index(r)];
+		result ^= zobrist_table[56 / 8][56 % 8][piece_to_zobrist_index(r)];
+	}
+	
+	return result;
+}
+
+zobrist_int Zobrist::hash(boardstate *brd) const{
+	piece pc;
+	zobrist_int result = 0;
+	for(int i=0;i<64;i++){
+		pc = brd->piece_map[i];
+		if(pc != no){
+			result ^= zobrist_table[i/8][i%8][piece_to_zobrist_index(pc)];
+		}
+	}
+	if(get_blacks_turn(brd)){
+		result ^= zobrist_blacks_turn;
+	}
+	if(get_white_castle_king(brd)){
+		result ^= zobrist_white_castle_king;
+	}
+	if(get_white_castle_queen(brd)){
+		result ^= zobrist_white_castle_queen;
+	}
+	if(get_black_castle_king(brd)){
+		result ^= zobrist_black_castle_king;
+	}
+	if(get_black_castle_queen(brd)){
+		result ^= zobrist_black_castle_queen;
+	}
+	return result;
+}
+
+Zobrist::Zobrist(void){
+	zobrist_table[0][0][0] = 0x629F6FBED82C07CDULL;
     zobrist_table[0][0][1] = 0xE3E70682C2094CACULL;
     zobrist_table[0][0][2] = 0xA5D2F346BAA9455ULL;
     zobrist_table[0][0][3] = 0xF728B4FA42485E3AULL;
@@ -1058,221 +1362,12 @@ zobrist_int ***create_zobrist_table(){
     zobrist_table[7][7][11] = 0xC90853FDFC9EA692ULL;
     zobrist_table[7][7][12] = 0x689C0559BF4FA4A3ULL;
     zobrist_table[7][7][13] = 0x27752FE61F68C6EULL;
-	printf("there\n");
-    return zobrist_table;
-}
-zobrist_int ***zobrist_table = create_zobrist_table();
-
-const zobrist_int zobrist_white_castle_king = 0xE413961F68C6DD5EULL;
-const zobrist_int zobrist_white_castle_queen = 0x88A0EDCE4384860CULL;
-const zobrist_int zobrist_black_castle_king = 0xCDFA4CC88805AE31ULL;
-const zobrist_int zobrist_black_castle_queen = 0xFB0A6A90BC52B34EULL;
-const zobrist_int zobrist_blacks_turn = 0xB476998DAFC8128AULL;
-
-
-unsigned long long perft(boardstate *brd, int depth){
-    std::queue<move> moves = std::queue<move>();
-    all_moves(brd, moves);
-    int n_moves = moves.size();
-    moverecord rec;
-    move mv;
-    unsigned long long result = 0;
-    if(depth == 0){
-    	return(1);
-    }
-    if(depth == 1){
-    	return(n_moves);
-    }
-    for(int i = 0; i<n_moves; i++){
-    	mv = moves.front();
-    	moves.pop();
-    	rec = make_move(brd, &mv);
-    	result += perft(brd, depth - 1);
-    	unmake_move(brd, &rec);
-    }
-    return(result);
+	zobrist_white_castle_king = 0xE413961F68C6DD5EULL;
+	zobrist_white_castle_queen = 0x88A0EDCE4384860CULL;
+	zobrist_black_castle_king = 0xCDFA4CC88805AE31ULL;
+	zobrist_black_castle_queen = 0xFB0A6A90BC52B34EULL;
+	zobrist_blacks_turn = 0xB476998DAFC8128AULL;
 }
 
-double simple_evaluation(boardstate *brd){
-	double white_score, black_score;
-	white_score = 0;
-	black_score = 0;
-	white_score += 100 * population_count(brd->white & brd->p);
-	white_score += 320 * population_count(brd->white & brd->n);
-	white_score += 330 * population_count(brd->white & brd->b);
-	white_score += 500 * population_count(brd->white & brd->r);
-	white_score += 900 * population_count(brd->white & brd->q);
-	white_score += 200000 * population_count(brd->white & brd->k);
-	
-	white_score += .4 * 100 * population_count(brd->white & center4);
-	white_score += .1 * 100 * population_count(brd->white & center16);
-	
-	black_score += 100 * population_count(brd->black & brd->p);
-	black_score += 320 * population_count(brd->black & brd->n);
-	black_score += 330 * population_count(brd->black & brd->b);
-	black_score += 500 * population_count(brd->black & brd->r);
-	black_score += 900 * population_count(brd->black & brd->q);
-	black_score += 200000 * population_count(brd->black & brd->k);
-	
-	black_score += .4 * 100 * population_count(brd->black & center4);
-	black_score += .1 * 100 * population_count(brd->black & center16);
-	
-	if(get_whites_turn(brd)){
-		return(white_score - black_score);
-	}else{
-		return(black_score - white_score);
-	}
-}
-
-double negafrax(boardstate *brd, double current, double threshold, double alpha, 
-				double beta, move *best_move, bool *stop){
-	if (current < threshold){
-		return simple_evaluation(brd);
-	}
-	
-	// Generate all legal moves
-	std::queue<move> moves = std::queue<move>();
-	all_moves(brd, moves);
-	int num_moves = moves.size();
-	
-	double value;
-	double best_value;
-	move best_counter;
-	move mv;
-	bool init = true;
-	moverecord rec;
-	double quotient = current / num_moves;
-	while(!moves.empty()){
-		mv = moves.front();
-		moves.pop();
-		rec = make_move(brd, &mv);
-		value = -negafrax(brd, quotient, threshold, -beta, -alpha, &best_counter, stop);
-		unmake_move(brd, &rec);
-		if(value > alpha){
-			alpha = value;
-		}
-		if(init){
-			best_value = value;
-			*best_move = mv;
-			init = false;
-		}
-		if(value > best_value){
-			best_value = value;
-			*best_move = mv;
-		}
-		if(alpha > beta || (*stop)){
-			break;
-		}
-	}
-	return best_value;
-}
-
-double quiescence(boardstate *brd, double alpha, double beta, bool *stop){
-	double stand_pat = simple_evaluation(brd);
-	std::queue<move> moves = std::queue<move>();
-	bool is_check = own_check(brd);
-	if(is_check){
-		all_moves(brd, moves);
-	}else{
-		all_captures(brd, moves);
-	}
-	if(stand_pat >= beta){
-		return(beta);
-	}
-	if(stand_pat > alpha){
-		alpha = stand_pat;
-	}
-	move mv;
-	moverecord rec;
-	double score;
-	while((!moves.empty()) & (!(*stop))){
-		mv = moves.front();
-		moves.pop();
-		rec = make_move(brd, &mv);
-		score = quiescence(brd, -beta, -alpha, stop);
-		unmake_move(brd, &rec);
-		if(score >= beta){
-			return(beta);
-		}
-		if(score > alpha){
-			alpha = score;
-		}
-	}
-	return(alpha);
-}
-
-double negamax(boardstate *brd, int depth, double alpha, double beta, move *best_move, bool *stop, bool blank){
-	if(depth == 0){
-		return(quiescence(brd, alpha, beta, stop));
-	}
-	std::queue<move> moves = std::queue<move>();
-	if(!blank){
-		moves.push(*best_move);
-	}
-	all_moves(brd, moves);
-	double value;
-	double best_value;
-	move best_counter;
-	move mv;
-	bool init = true;
-	moverecord rec;
-	while(!moves.empty()){
-		mv = moves.front();
-		moves.pop();
-		rec = make_move(brd, &mv);
-		value = -negamax(brd, depth-1, -beta, -alpha, &best_counter, stop, true);
-		unmake_move(brd, &rec);
-		if(value > alpha){
-			alpha = value;
-		}
-		if(init){
-			best_value = value;
-			*best_move = mv;
-			init = false;
-		}
-		if(value > best_value){
-			best_value = value;
-			*best_move = mv;
-		}
-		if(alpha > beta || (*stop)){
-			break;
-		}
-		
-	}
-	return(best_value);
-}
-
-void iterative_negamax(void *varg){
-	searcharg *arg = (searcharg *) varg;
-	int depth = 1;
-	double result;
-	while(!(*(arg->stop))){
-		result = negamax(arg->brd, depth, -1000000.0, 1000000.0, arg->best_move, arg->stop, arg->blank);
-		arg->blank = false;
-		arg->depth = depth;
-		depth++;
-	}
-}
-
-move movesearch_threshold(boardstate *brd, double threshold){
-	move best_move;
-	bool blank = true;
-	bool stop = false;
-	negafrax(brd, 1.0, threshold, -1000000.0, 
-				1000000.0, &best_move, &stop);
-//	negfrax(brd, depth, -1000000.0, 1000000.0, &best_move, &stop, blank);
-	return(best_move);
-}
-
-move movesearch(boardstate *brd, double time_limit, int *depth){
-	bool stop = false;
-	move best_move;
-	searcharg arg = {brd, &best_move, &stop, true, 0};
-	thread * searcher = new thread(&iterative_negamax, (void *) &arg);
-	usleep(time_limit * 1000000.0);
-	stop = true;
-	searcher->join();
-	*depth = arg.depth;
-	return(best_move);
-}
+const Zobrist zobrist = Zobrist();
 									

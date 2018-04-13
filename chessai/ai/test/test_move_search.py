@@ -16,9 +16,13 @@ def test_movesearch():
     board = BitBoardState.from_fen(starting_fen)
     print('\n')
     print(board.to_grid())
-    for _ in range(1000):
+    for i in range(1000):
         t0 = time.time()
-        move, depth = board.movesearch_threshold(.00000001)
+        if i % 2 == 0:#white
+            thresh = .00000001
+        else: #black
+            thresh = .000001
+        move, depth = board.movesearch_threshold(thresh)
         t1 = time.time()
 #         assert_almost_equal(t1 - t0, 2., places=1)
 #         assert_greater_equal(depth, 5)

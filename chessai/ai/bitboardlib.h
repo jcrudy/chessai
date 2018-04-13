@@ -904,7 +904,7 @@ inline void unset_whites_turn(boardstate *bs){
 };
 
 inline bool get_blacks_turn(boardstate *bs){
-	return(~get_whites_turn(bs));
+	return(!get_whites_turn(bs));
 };
 
 inline void set_blacks_turn(boardstate *bs){
@@ -2703,6 +2703,53 @@ typedef struct {
 move movesearch(boardstate *brd, double time_limit, int *depth);
 move movesearch_threshold(boardstate *brd, double threshold);
 
+inline int piece_to_zobrist_index(piece pc){
+	switch(pc){
+		case K:
+			return(0);
+		case k:
+			return(1);
+		case Q:
+			return(2);
+		case q:
+			return(3);
+		case B:
+			return(4);
+		case b:
+			return(5);
+		case N:
+			return(6);
+		case n:
+			return(7);
+		case R:
+			return(8);
+		case r:
+			return(9);
+		case P:
+			return(10);
+		case p:
+			return(11);
+		case EP:
+			return(12);
+		case ep:
+			return(13);
+	}
+}
+
+class Zobrist {
+	public:
+		Zobrist();
+		zobrist_int hash(boardstate *brd) const;
+		zobrist_int update(zobrist_int previous, boardstate *brd, moverecord *mv) const;
+	private:
+		zobrist_int zobrist_table[8][8][14];
+		zobrist_int zobrist_white_castle_king;
+		zobrist_int zobrist_white_castle_queen;
+		zobrist_int zobrist_black_castle_king;
+		zobrist_int zobrist_black_castle_queen;
+		zobrist_int zobrist_blacks_turn;
+};
+
 typedef struct {
 	zobrist_int key;
 	double prob;
@@ -2712,5 +2759,7 @@ typedef struct {
 	bool beta;
 	move best_move;
 } transposition_entry;
+
+extern const Zobrist zobrist;
 
 #endif
