@@ -2808,14 +2808,6 @@ inline void all_quiet_moves(boardstate *brd, std::queue<move> &moves){
 
 unsigned long long perft(boardstate *brd, int depth);
 
-typedef struct {
-	boardstate *brd;
-	move *best_move;
-	bool *stop;
-	bool blank;
-	int depth;
-} searcharg;
-
 inline int piece_to_zobrist_index(piece pc){
 	switch(pc){
 		case K:
@@ -2903,7 +2895,16 @@ class TranspositionTable {
 
 extern const transposition_entry empty_transposition_entry;
 
+typedef struct {
+	boardstate *brd;
+	move *best_move;
+	bool *stop;
+	double thresh;
+	TranspositionTable *tt;
+} searcharg;
+
 move movesearch(boardstate *brd, double time_limit, int *depth);
 move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable *tt);
-
+move movesearch_time(boardstate *brd, double time_limit, double *thresh,
+					TranspositionTable *tt);
 #endif

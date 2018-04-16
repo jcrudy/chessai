@@ -169,7 +169,8 @@ cdef extern from "bitboardlib.h":
         transposition_entry getitem(boardstate *brd)
     cdef move movesearch(boardstate *brd, double time_limit, int *depth)
     cdef move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable *tt)
-
+    cdef move movesearch_time(boardstate *brd, double time_limit, double *thresh,
+                    TranspositionTable *tt)
 cpdef bitboard_to_str(bitboard bb):
     cdef int i
     result = ''
@@ -476,16 +477,17 @@ cdef class ZobristHash:
 
 cdef class Player:
     cdef TranspositionTable *tt
-    cdef readonly double threshold
-    def __init__(Player self, unsigned long int size, double threshold):
+    cdef readonly double time_per_move
+    def __init__(Player self, unsigned long int size, double time_per_move):
         if size > 0:
             self.tt = new TranspositionTable(size)
         else:
             self.tt = NULL
-        self.threshold = threshold
+        self.time_per_move = time_per_move
     
     cpdef Move movesearch(Player self, BitBoardState board):
-        cdef move mv = movesearch_threshold(&(board.bs), self.threshold, self.tt)
+        cdef double thresh
+        cdef move mv = movesearch_time(&(board.bs), self.time_per_move, &thresh, self.tt)
         cdef Move result = Move()  # @DuplicatedSignature
         result.mv = mv
         return result

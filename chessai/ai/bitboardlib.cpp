@@ -243,7 +243,6 @@ negamax_result negamax(boardstate *brd, double prob, double threshold, double al
 		// Generate all legal moves
 		all_moves(brd, moves);
 		num_moves = moves.size();
-		
 		// If there are no legal moves, this is either checkmate or stalemate
 		if (num_moves == 0) {
 			if (own_check(brd)){
@@ -261,7 +260,7 @@ negamax_result negamax(boardstate *brd, double prob, double threshold, double al
 	}else{
 		// Quiescence mode
 		//printf("Quiescence mode\n");
-		all_captures(brd, moves);
+		//all_captures(brd, moves);
 		num_moves = moves.size();
 		if(num_moves == 0){
 			if (own_check(brd)){
@@ -283,6 +282,7 @@ negamax_result negamax(boardstate *brd, double prob, double threshold, double al
 				}
 			} else {
 				//printf("evaluate at depth=%d\n", depth);
+				//printf("depth at eval: %d\n", depth);
 				result.value = simple_evaluation(brd);
 				//if(depth==3){
 					//printf("result.value = %f\n", result.value);
@@ -292,6 +292,9 @@ negamax_result negamax(boardstate *brd, double prob, double threshold, double al
 				skip_recursion = true;
 			}
 		}
+		// For quiescence search, stand pat if we can't find a move that's actually
+		// better
+		alpha = simple_evaluation(brd);
 	}
 	//if(depth==1){
 		//printf("num_moves = %d\n", num_moves);
@@ -303,29 +306,142 @@ negamax_result negamax(boardstate *brd, double prob, double threshold, double al
 	moverecord rec;
 	//printf("num_moves = %d\n", num_moves);
 	double quotient = prob / num_moves;
-	move best_counter;
+	move best_counter = nomove;
 	double value;
 	bool init = true;
 	
-	move test_move;
-	test_move.from_square = 3;
-	test_move.to_square = 30;
-	test_move.promotion = no;
+	/*
+	move queen_move;
+	queen_move.from_square = 3;
+	queen_move.to_square = 30;
+	queen_move.promotion = no;
 	
-	move test_move2;
-	test_move2.from_square = 58;
-	test_move2.to_square = 30;
-	test_move2.promotion = no;
+	move bishop_takes_queen;
+	bishop_takes_queen.from_square = 58;
+	bishop_takes_queen.to_square = 30;
+	bishop_takes_queen.promotion = no;
 	
+	move pawn_advance;
+	pawn_advance.from_square = 13;
+	pawn_advance.to_square = 21;
+	pawn_advance.promotion = no;
+	
+	move knight_takes_pawn;
+	knight_takes_pawn.from_square = 45;
+	knight_takes_pawn.to_square = 28;
+	knight_takes_pawn.promotion = no;
+	
+	move pawn_takes_knight;
+	pawn_takes_knight.from_square = 21;
+	pawn_takes_knight.to_square = 28;
+	pawn_takes_knight.promotion = no;
+	
+	move pawn_takes_pawn;
+	pawn_takes_pawn.from_square = 35;
+	pawn_takes_pawn.to_square = 28;
+	pawn_takes_pawn.promotion = no;
+	
+	move knight_takes_pawn2;
+	knight_takes_pawn2.from_square = 18;
+	knight_takes_pawn2.to_square = 28;
+	knight_takes_pawn2.promotion = no;
+	
+	move queen_takes_pawn;
+	queen_takes_pawn.from_square = 59;
+	queen_takes_pawn.to_square = 11;
+	queen_takes_pawn.promotion = no;
+	
+	move bishop_takes_queen2;
+	bishop_takes_queen2.from_square = 2;
+	bishop_takes_queen2.to_square = 11;
+	bishop_takes_queen2.promotion = no;
+	*/
 	while(!skip_recursion && !moves.empty()){
 		// Make the move
 		mv = moves.front();
 		moves.pop();
-		//if(mv == test_move && depth == 0){
-			//printf("testmove\n");
-		//}else if(depth==0){
-		//	continue;
-		//}
+		/*
+		if(mv == queen_move && depth == 0){
+			printf("Q to G4\n");
+			if(brd->piece_map[mv.from_square] == Q){
+				printf("Q!\n");
+			}
+		}else if(depth==0){
+			continue;
+		}
+		
+		if(mv == bishop_takes_queen && depth == 1){
+			printf("b takes Q\n");
+			if(brd->piece_map[mv.to_square] == Q && brd->piece_map[mv.from_square] == b){
+				printf("b!\n");
+			}
+		}else if(depth==1){
+			continue;
+		}
+		
+		if(mv == pawn_advance && depth == 2){
+			printf("P to F3\n");
+			if(brd->piece_map[mv.to_square] == no && brd->piece_map[mv.from_square] == P){
+				printf("P!\n");
+			}
+		}else if(depth==2){
+			continue;
+		}
+		
+		if(mv == knight_takes_pawn && depth == 3){
+			printf("knight takes pawn\n");
+			if(brd->piece_map[mv.to_square] == P && brd->piece_map[mv.from_square] == n){
+				printf("n!\n");
+			}
+		}else if(depth==3){
+			continue;
+		}
+		
+		if(mv == pawn_takes_knight && depth == 4){
+			printf("pawn takes knight\n");
+			if(brd->piece_map[mv.to_square] == n && brd->piece_map[mv.from_square] == P){
+				printf("P!\n");
+			}
+		}else if(depth==4){
+			continue;
+		}
+		if(mv == pawn_takes_pawn && depth == 5){
+			printf("pawn takes pawn\n");
+			if(brd->piece_map[mv.to_square] == P && brd->piece_map[mv.from_square] == p){
+				printf("p!\n");
+			}
+		}else if(depth==5){
+			continue;
+		}
+		
+		if(mv == knight_takes_pawn2 && depth == 6){
+			printf("knight takes pawn 2\n");
+			if(brd->piece_map[mv.to_square] == p && brd->piece_map[mv.from_square] == N){
+				printf("N!\n");
+			}
+		}else if(depth==6){
+			continue;
+		}
+		
+		if(mv == queen_takes_pawn && depth == 7){
+			printf("queen takes pawn 2\n");
+			if(brd->piece_map[mv.to_square] == P && brd->piece_map[mv.from_square] == q){
+				printf("q!\n");
+			}
+		}else if(depth==7){
+			continue;
+		}
+		
+		if(mv == bishop_takes_queen2 && depth == 8){
+			printf("bishop takes queen 2\n");
+			if(brd->piece_map[mv.to_square] == q && brd->piece_map[mv.from_square] == B){
+				printf("B!\n");
+			}
+		}else if(depth==8){
+			continue;
+		}
+		*/
+		
 		rec = make_move(brd, &mv);
 		(*node_count)++;
 		
@@ -345,7 +461,7 @@ negamax_result negamax(boardstate *brd, double prob, double threshold, double al
 		unmake_move(brd, &rec);
 		
 		// Reconcile what we've learned
-		if(value > beta){
+		if(value > beta || (*stop)){
 			result.value = value;
 			result.lower_bound = true;
 			result.upper_bound = false;
@@ -363,6 +479,7 @@ negamax_result negamax(boardstate *brd, double prob, double threshold, double al
 					//printf("upper_bound\n");
 				//}
 				result.upper_bound = true;
+				//printf("depth %d: upper_bound\n", depth);
 			}else{
 				result.upper_bound = false;
 			}
@@ -375,16 +492,51 @@ negamax_result negamax(boardstate *brd, double prob, double threshold, double al
 		}
 		if(result.value > alpha){
 			alpha = value;
-		}		
+		}	
 	}
 	
 	// Store in transposition table
-	entry.prob = prob;
-	entry.key = brd->hash;
-	entry.value = result;
-	entry.best_move = (*best_move);
-	entry.brd = smallify(brd);
-	tt->setitem(brd, entry);
+	if(tt != NULL){
+		entry.prob = prob;
+		entry.key = brd->hash;
+		entry.value = result;
+		entry.best_move = (*best_move);
+		entry.brd = smallify(brd);
+		tt->setitem(brd, entry);
+	}
+	
+	/*
+	if(depth==1){
+		printf("depth 1: %s: move(%d, %d): %f\n", (get_whites_turn(brd)?"white":"black"), best_move->from_square, best_move->to_square, result.value);
+	}
+	if(depth==2){
+		printf("depth 2: %s: move(%d, %d): %f\n", (get_whites_turn(brd)?"white":"black"), best_move->from_square, best_move->to_square, result.value);
+	}
+	if(depth==3){
+		printf("depth 3: %s: move(%d, %d): %f\n", (get_whites_turn(brd)?"white":"black"), best_move->from_square, best_move->to_square, result.value);
+	}
+	if(depth==4){
+		printf("depth 4: %s: move(%d, %d): %f\n", (get_whites_turn(brd)?"white":"black"), best_move->from_square, best_move->to_square, result.value);
+	}
+	if(depth==5){
+		printf("depth 5: %s: move(%d, %d): %f\n", (get_whites_turn(brd)?"white":"black"), best_move->from_square, best_move->to_square, result.value);
+	}
+	if(depth==6){
+		printf("depth 6: %s: move(%d, %d): %f\n", (get_whites_turn(brd)?"white":"black"), best_move->from_square, best_move->to_square, result.value);
+	}
+	if(depth==7){
+		printf("depth 7: %s: move(%d, %d): %f\n", (get_whites_turn(brd)?"white":"black"), best_move->from_square, best_move->to_square, result.value);
+	}
+	if(depth==8){
+		printf("depth 8: %s: move(%d, %d): %f\n", (get_whites_turn(brd)?"white":"black"), best_move->from_square, best_move->to_square, result.value);
+	}
+	if(depth==9){
+		printf("depth 9: %s: move(%d, %d): %f\n", (get_whites_turn(brd)?"white":"black"), best_move->from_square, best_move->to_square, result.value);
+		if(brd->piece_map[best_move->from_square]==no){
+			printf("NOOOOO!!!!\n");
+		}
+	}
+	*/
 	
 	// All done
 	return result;
@@ -404,6 +556,19 @@ void iterative_negamax(void *varg){
 }
 */
 
+void iterative_negamax(void *varg){
+	searcharg *arg = (searcharg *) varg;
+	negamax_result result;
+	double thresh = .01;
+	unsigned long long int node_count = 0;
+	while(!(*(arg->stop))){
+		result = negamax(arg->brd, 1.0, thresh, -1000000.0, 1000000.0,
+						arg->best_move, arg->stop, arg->tt, 0, &node_count);
+		arg->thresh = thresh;
+		thresh /= 2;
+	}
+}
+
 move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable *tt){
 	EASY_PROFILER_ENABLE;
 	EASY_BLOCK("movesearch_threshold");
@@ -417,6 +582,22 @@ move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable 
 	EASY_END_BLOCK;
 	printf("Visited %llu nodes.\n", node_count);
 	profiler::dumpBlocksToFile("test_profile.prof");
+	return(best_move);
+}
+
+move movesearch_time(boardstate *brd, double time_limit, double *thresh,
+					TranspositionTable *tt){
+	move best_move = nomove;
+	bool blank = true;
+	bool stop = false;
+	unsigned long long int node_count = 0;
+	searcharg arg = {brd, &best_move, &stop, 1., tt};
+	thread * searcher = new thread(&iterative_negamax, (void *) &arg);
+	usleep(time_limit * 1000000.0);
+	stop = true;
+	searcher->join();
+	*thresh = arg.thresh;
+	printf("Reached thresh=%f", *thresh);
 	return(best_move);
 }
 /*
