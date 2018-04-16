@@ -191,6 +191,10 @@ double simple_evaluation(boardstate *brd){
 	
 	white_score += 1 * population_count(brd->white & center4);
 	white_score += 1 * population_count(brd->white & center16);
+	white_score += 5 * population_count(brd->white & brd->p & rank_7);
+	white_score += 4 * population_count(brd->white & brd->p & rank_6);
+	white_score += 3 * population_count(brd->white & brd->p & rank_5);
+	white_score += 2 * population_count(brd->white & brd->p & rank_4);
 	
 	black_score += 100 * population_count(brd->black & brd->p);
 	black_score += 320 * population_count(brd->black & brd->n);
@@ -201,6 +205,11 @@ double simple_evaluation(boardstate *brd){
 	
 	black_score += 1 * 100 * population_count(brd->black & center4);
 	black_score += 1 * 100 * population_count(brd->black & center16);
+	black_score += 5 * population_count(brd->black & brd->p & rank_1);
+	black_score += 4 * population_count(brd->black & brd->p & rank_2);
+	black_score += 3 * population_count(brd->black & brd->p & rank_3);
+	black_score += 2 * population_count(brd->black & brd->p & rank_4);
+	
 	
 	if(get_whites_turn(brd)){
 		return(white_score - black_score);
@@ -211,22 +220,21 @@ double simple_evaluation(boardstate *brd){
 
 negamax_result negamax(boardstate *brd, double prob, double threshold, double alpha, 
 					double beta, move *best_move, bool *stop, TranspositionTable *tt,
-					int depth, unsigned long long int *node_count){
+					int depth, unsigned long long int *node_count, bool quiesce){
 	//printf("depth = %d\n", depth);
 	// First check transposition table
+	double strength = prob / threshold;
+	strength = strength>1?strength:1;
 	transposition_entry entry;
 	if(tt != NULL){
 		entry = tt->getitem(brd);
 		if(!(entry == empty_transposition_entry)){
-			if(entry.prob >= prob){
+			if(entry.strength >= strength){
 				if(entry.value.lower_bound && entry.value.value > alpha){
 					alpha = entry.value.value;
 				}else if(entry.value.upper_bound && entry.value.value < beta){
 					beta = entry.value.value;
 				}else{
-					//if(depth == 0){
-						//printf("best_move1\n");
-					//}
 					(*best_move) = entry.best_move;
 					return entry.value;
 				}
@@ -239,6 +247,26 @@ negamax_result negamax(boardstate *brd, double prob, double threshold, double al
 	int num_moves;
 	negamax_result result;
 	bool skip_recursion = false;
+	
+	// Generate all legal moves
+	all_moves(brd, moves);
+	num_moves = moves.size();
+
+	// If there are no legal moves, this is either checkmate or stalemate
+	if (num_moves == 0) {
+		if (own_check(brd)){
+			result.value = -200000.0 + depth; // checkmate!
+			result.lower_bound = false;
+			result.upper_bound = false;
+			skip_recursion = true;
+		} else {
+			result.value = 0.0; // stalemate
+			result.lower_bound = false;
+			result.upper_bound = false;
+			skip_recursion = true;
+		}
+	}
+	/*
 	if(prob >= threshold){
 		// Generate all legal moves
 		all_moves(brd, moves);
@@ -259,34 +287,24 @@ negamax_result negamax(boardstate *brd, double prob, double threshold, double al
 		}
 	}else{
 		// Quiescence mode
-		//printf("Quiescence mode\n");
 		//all_captures(brd, moves);
 		num_moves = moves.size();
 		if(num_moves == 0){
 			if (own_check(brd)){
 				all_moves(brd, moves);
 				if (moves.size() == 0) {
-					result.value = -200000.0; // checkmate!
+					result.value = -200000.0 + depth; // checkmate!
 					result.lower_bound = false;
 					result.upper_bound = false;
 					skip_recursion = true;
 				} else {
-					//printf("evaluate at depth=%d\n", depth);
 					result.value = simple_evaluation(brd);
-					//if(depth==3){
-					//	printf("result.value = %f\n", result.value);
-					//}
 					result.lower_bound = false;
 					result.upper_bound = false;
 					skip_recursion = true;
 				}
 			} else {
-				//printf("evaluate at depth=%d\n", depth);
-				//printf("depth at eval: %d\n", depth);
 				result.value = simple_evaluation(brd);
-				//if(depth==3){
-					//printf("result.value = %f\n", result.value);
-				//}
 				result.lower_bound = false;
 				result.upper_bound = false;
 				skip_recursion = true;
@@ -296,167 +314,45 @@ negamax_result negamax(boardstate *brd, double prob, double threshold, double al
 		// better
 		alpha = simple_evaluation(brd);
 	}
-	//if(depth==1){
-		//printf("num_moves = %d\n", num_moves);
-	//}
+	*/
 	
 	// Now we're ready to recurse
 	negamax_result subresult;
 	move mv;
 	moverecord rec;
-	//printf("num_moves = %d\n", num_moves);
 	double quotient = prob / num_moves;
 	move best_counter = nomove;
 	double value;
 	bool init = true;
 	
-	/*
-	move queen_move;
-	queen_move.from_square = 3;
-	queen_move.to_square = 30;
-	queen_move.promotion = no;
-	
-	move bishop_takes_queen;
-	bishop_takes_queen.from_square = 58;
-	bishop_takes_queen.to_square = 30;
-	bishop_takes_queen.promotion = no;
-	
-	move pawn_advance;
-	pawn_advance.from_square = 13;
-	pawn_advance.to_square = 21;
-	pawn_advance.promotion = no;
-	
-	move knight_takes_pawn;
-	knight_takes_pawn.from_square = 45;
-	knight_takes_pawn.to_square = 28;
-	knight_takes_pawn.promotion = no;
-	
-	move pawn_takes_knight;
-	pawn_takes_knight.from_square = 21;
-	pawn_takes_knight.to_square = 28;
-	pawn_takes_knight.promotion = no;
-	
-	move pawn_takes_pawn;
-	pawn_takes_pawn.from_square = 35;
-	pawn_takes_pawn.to_square = 28;
-	pawn_takes_pawn.promotion = no;
-	
-	move knight_takes_pawn2;
-	knight_takes_pawn2.from_square = 18;
-	knight_takes_pawn2.to_square = 28;
-	knight_takes_pawn2.promotion = no;
-	
-	move queen_takes_pawn;
-	queen_takes_pawn.from_square = 59;
-	queen_takes_pawn.to_square = 11;
-	queen_takes_pawn.promotion = no;
-	
-	move bishop_takes_queen2;
-	bishop_takes_queen2.from_square = 2;
-	bishop_takes_queen2.to_square = 11;
-	bishop_takes_queen2.promotion = no;
-	*/
+	double this_eval = simple_evaluation(brd);
 	while(!skip_recursion && !moves.empty()){
 		// Make the move
 		mv = moves.front();
 		moves.pop();
-		/*
-		if(mv == queen_move && depth == 0){
-			printf("Q to G4\n");
-			if(brd->piece_map[mv.from_square] == Q){
-				printf("Q!\n");
-			}
-		}else if(depth==0){
-			continue;
-		}
-		
-		if(mv == bishop_takes_queen && depth == 1){
-			printf("b takes Q\n");
-			if(brd->piece_map[mv.to_square] == Q && brd->piece_map[mv.from_square] == b){
-				printf("b!\n");
-			}
-		}else if(depth==1){
-			continue;
-		}
-		
-		if(mv == pawn_advance && depth == 2){
-			printf("P to F3\n");
-			if(brd->piece_map[mv.to_square] == no && brd->piece_map[mv.from_square] == P){
-				printf("P!\n");
-			}
-		}else if(depth==2){
-			continue;
-		}
-		
-		if(mv == knight_takes_pawn && depth == 3){
-			printf("knight takes pawn\n");
-			if(brd->piece_map[mv.to_square] == P && brd->piece_map[mv.from_square] == n){
-				printf("n!\n");
-			}
-		}else if(depth==3){
-			continue;
-		}
-		
-		if(mv == pawn_takes_knight && depth == 4){
-			printf("pawn takes knight\n");
-			if(brd->piece_map[mv.to_square] == n && brd->piece_map[mv.from_square] == P){
-				printf("P!\n");
-			}
-		}else if(depth==4){
-			continue;
-		}
-		if(mv == pawn_takes_pawn && depth == 5){
-			printf("pawn takes pawn\n");
-			if(brd->piece_map[mv.to_square] == P && brd->piece_map[mv.from_square] == p){
-				printf("p!\n");
-			}
-		}else if(depth==5){
-			continue;
-		}
-		
-		if(mv == knight_takes_pawn2 && depth == 6){
-			printf("knight takes pawn 2\n");
-			if(brd->piece_map[mv.to_square] == p && brd->piece_map[mv.from_square] == N){
-				printf("N!\n");
-			}
-		}else if(depth==6){
-			continue;
-		}
-		
-		if(mv == queen_takes_pawn && depth == 7){
-			printf("queen takes pawn 2\n");
-			if(brd->piece_map[mv.to_square] == P && brd->piece_map[mv.from_square] == q){
-				printf("q!\n");
-			}
-		}else if(depth==7){
-			continue;
-		}
-		
-		if(mv == bishop_takes_queen2 && depth == 8){
-			printf("bishop takes queen 2\n");
-			if(brd->piece_map[mv.to_square] == q && brd->piece_map[mv.from_square] == B){
-				printf("B!\n");
-			}
-		}else if(depth==8){
-			continue;
-		}
-		*/
 		
 		rec = make_move(brd, &mv);
 		(*node_count)++;
 		
-		//if(mv == test_move2 && depth == 1){
-			//printf("testmove2\n");
-		//}
 		// Recurse
-		subresult = negamax(brd, quotient, threshold, -beta, -alpha, &best_counter, stop, tt, depth+1, node_count);
-		value = -subresult.value;
-		//if(depth == 0){
-			//printf("value = %f\n", value);
-		//}
-		//if(mv == test_move2 && depth == 1){
-			//printf("value = %f\n", value);
-		//}
+		if(quotient >= threshold){
+			subresult = negamax(brd, quotient, threshold, -beta, -alpha, &best_counter, stop, tt, depth+1, node_count, quiesce);
+			value = -subresult.value;
+		}else{
+			// This is a quiescence / stability search
+			value = -simple_evaluation(brd);
+			//printf("this_eval = %f, value = %f\n", this_eval, value);
+			if(abs(this_eval - value) > 10. && quiesce){
+				//printf("Quiesce: depth = %d, this_eval = %f, value = %f\n", depth, this_eval, value);
+				subresult = negamax(brd, quotient, threshold, -beta, -value, &best_counter, stop, tt, depth+1, node_count, quiesce);
+				//printf("subresult.value = %f\n", subresult.value);
+				value = -subresult.value;
+			}else{
+				subresult.lower_bound = false;
+				subresult.upper_bound = false;
+			}
+		}
+
 		// Unmake the move
 		unmake_move(brd, &rec);
 		
@@ -465,78 +361,33 @@ negamax_result negamax(boardstate *brd, double prob, double threshold, double al
 			result.value = value;
 			result.lower_bound = true;
 			result.upper_bound = false;
-			//if(depth == 0){
-				//printf("value = %f\n", value);
-				//printf("best_move2\n");
-			//}
 			(*best_move) = mv;
 			break;
 		}else if(value >= result.value || init){
 			result.value = value;
 			result.lower_bound = false;
 			if(subresult.lower_bound){
-				//if(depth == 0){
-					//printf("upper_bound\n");
-				//}
 				result.upper_bound = true;
-				//printf("depth %d: upper_bound\n", depth);
 			}else{
 				result.upper_bound = false;
 			}
-			//if(depth == 0){
-				//printf("value = %f\n", value);
-				//printf("best_move3\n");
-			//}
 			(*best_move) = mv;
 			init = false;
 		}
-		if(result.value > alpha){
+		if(result.value >= alpha){
 			alpha = value;
-		}	
+		}
 	}
-	
+
 	// Store in transposition table
 	if(tt != NULL){
-		entry.prob = prob;
+		entry.strength = strength;
 		entry.key = brd->hash;
 		entry.value = result;
 		entry.best_move = (*best_move);
 		entry.brd = smallify(brd);
 		tt->setitem(brd, entry);
 	}
-	
-	/*
-	if(depth==1){
-		printf("depth 1: %s: move(%d, %d): %f\n", (get_whites_turn(brd)?"white":"black"), best_move->from_square, best_move->to_square, result.value);
-	}
-	if(depth==2){
-		printf("depth 2: %s: move(%d, %d): %f\n", (get_whites_turn(brd)?"white":"black"), best_move->from_square, best_move->to_square, result.value);
-	}
-	if(depth==3){
-		printf("depth 3: %s: move(%d, %d): %f\n", (get_whites_turn(brd)?"white":"black"), best_move->from_square, best_move->to_square, result.value);
-	}
-	if(depth==4){
-		printf("depth 4: %s: move(%d, %d): %f\n", (get_whites_turn(brd)?"white":"black"), best_move->from_square, best_move->to_square, result.value);
-	}
-	if(depth==5){
-		printf("depth 5: %s: move(%d, %d): %f\n", (get_whites_turn(brd)?"white":"black"), best_move->from_square, best_move->to_square, result.value);
-	}
-	if(depth==6){
-		printf("depth 6: %s: move(%d, %d): %f\n", (get_whites_turn(brd)?"white":"black"), best_move->from_square, best_move->to_square, result.value);
-	}
-	if(depth==7){
-		printf("depth 7: %s: move(%d, %d): %f\n", (get_whites_turn(brd)?"white":"black"), best_move->from_square, best_move->to_square, result.value);
-	}
-	if(depth==8){
-		printf("depth 8: %s: move(%d, %d): %f\n", (get_whites_turn(brd)?"white":"black"), best_move->from_square, best_move->to_square, result.value);
-	}
-	if(depth==9){
-		printf("depth 9: %s: move(%d, %d): %f\n", (get_whites_turn(brd)?"white":"black"), best_move->from_square, best_move->to_square, result.value);
-		if(brd->piece_map[best_move->from_square]==no){
-			printf("NOOOOO!!!!\n");
-		}
-	}
-	*/
 	
 	// All done
 	return result;
@@ -548,7 +399,9 @@ void iterative_negamax(void *varg){
 	int depth = 1;
 	double result;
 	while(!(*(arg->stop))){
-		result = negamax(arg->brd, depth, -1000000.0, 1000000.0, arg->best_move, arg->stop, arg->blank);
+		result = negamax(arg->brd, depth, -1000000.0, 1000000.0, 
+						arg->best_move, arg->stop, arg->blank, 
+						arg->quiesce);
 		arg->blank = false;
 		arg->depth = depth;
 		depth++;
@@ -559,17 +412,26 @@ void iterative_negamax(void *varg){
 void iterative_negamax(void *varg){
 	searcharg *arg = (searcharg *) varg;
 	negamax_result result;
-	double thresh = .01;
+	double thresh = .0001;
 	unsigned long long int node_count = 0;
+	move best_move;
+	double best_value;
+	double value;
 	while(!(*(arg->stop))){
 		result = negamax(arg->brd, 1.0, thresh, -1000000.0, 1000000.0,
-						arg->best_move, arg->stop, arg->tt, 0, &node_count);
+						&best_move, arg->stop, arg->tt, 0, &node_count,
+						arg->quiesce);
+		value = result.value;
+		if(!(*(arg->stop))){
+			best_value = value;
+			*(arg->best_move) = best_move;
+		}
 		arg->thresh = thresh;
 		thresh /= 2;
 	}
 }
 
-move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable *tt){
+move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable *tt, bool quiesce){
 	EASY_PROFILER_ENABLE;
 	EASY_BLOCK("movesearch_threshold");
 	move best_move = nomove;
@@ -578,7 +440,7 @@ move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable 
 	unsigned long long int node_count = 0;
 	int depth = 0;
 	negamax(brd, 1.0, threshold, -1000000.0, 
-				1000000.0, &best_move, &stop, tt, depth, &node_count);
+				1000000.0, &best_move, &stop, tt, depth, &node_count, quiesce);
 	EASY_END_BLOCK;
 	printf("Visited %llu nodes.\n", node_count);
 	profiler::dumpBlocksToFile("test_profile.prof");
@@ -586,18 +448,17 @@ move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable 
 }
 
 move movesearch_time(boardstate *brd, double time_limit, double *thresh,
-					TranspositionTable *tt){
+					TranspositionTable *tt, bool quiesce){
 	move best_move = nomove;
 	bool blank = true;
 	bool stop = false;
-	unsigned long long int node_count = 0;
-	searcharg arg = {brd, &best_move, &stop, 1., tt};
+	searcharg arg = {brd, &best_move, &stop, 1., tt, quiesce};
 	thread * searcher = new thread(&iterative_negamax, (void *) &arg);
 	usleep(time_limit * 1000000.0);
 	stop = true;
 	searcher->join();
 	*thresh = arg.thresh;
-	printf("Reached thresh=%f", *thresh);
+	printf("Reached thresh=%e", *thresh);
 	return(best_move);
 }
 /*

@@ -168,9 +168,9 @@ cdef extern from "bitboardlib.h":
         bool exists(boardstate *brd)
         transposition_entry getitem(boardstate *brd)
     cdef move movesearch(boardstate *brd, double time_limit, int *depth)
-    cdef move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable *tt)
+    cdef move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable *tt, bool quiesce)
     cdef move movesearch_time(boardstate *brd, double time_limit, double *thresh,
-                    TranspositionTable *tt)
+                    TranspositionTable *tt, bool quiesce)
 cpdef bitboard_to_str(bitboard bb):
     cdef int i
     result = ''
@@ -475,22 +475,44 @@ cdef class ZobristHash:
         result.value = zobrist.update(self.value, &(brd.bs), &(mv.rec))
         return result
 
-cdef class Player:
+cdef class TimePlayer:
     cdef TranspositionTable *tt
     cdef readonly double time_per_move
-    def __init__(Player self, unsigned long int size, double time_per_move):
+    cdef readonly bool quiesce
+    def __init__(TimePlayer self, unsigned long int size, double time_per_move, bool quiesce):
         if size > 0:
             self.tt = new TranspositionTable(size)
         else:
             self.tt = NULL
         self.time_per_move = time_per_move
+        self.quiesce = quiesce
     
-    cpdef Move movesearch(Player self, BitBoardState board):
+    cpdef Move movesearch(TimePlayer self, BitBoardState board):
         cdef double thresh
-        cdef move mv = movesearch_time(&(board.bs), self.time_per_move, &thresh, self.tt)
+        cdef move mv = movesearch_time(&(board.bs), self.time_per_move, &thresh, self.tt, self.quiesce)
+        cdef Move result = Move()  # @DuplicatedSignature
+        result.mv = mv
+        print('Reached threshold %f' % thresh)
+        return result
+
+cdef class ThresholdPlayer:
+    cdef TranspositionTable *tt
+    cdef readonly double threshold
+    cdef readonly bool quiesce
+    def __init__(ThresholdPlayer self, unsigned long int size, double threshold, bool quiesce):
+        if size > 0:
+            self.tt = new TranspositionTable(size)
+        else:
+            self.tt = NULL
+        self.threshold = threshold
+        self.quiesce = quiesce
+    
+    cpdef Move movesearch(ThresholdPlayer self, BitBoardState board):
+        cdef move mv = movesearch_threshold(&(board.bs), self.threshold, self.tt, self.quiesce)
         cdef Move result = Move()  # @DuplicatedSignature
         result.mv = mv
         return result
+
 
 cdef class BitBoardState:
     cdef readonly boardstate bs

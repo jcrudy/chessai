@@ -2862,14 +2862,14 @@ inline bool operator==(const negamax_result& lhs, const negamax_result& rhs){
 
 typedef struct {
 	zobrist_int key;
-	double prob;
+	double strength;
 	negamax_result value;
 	move best_move;
 	smallboardstate brd;
 } transposition_entry;
 
 inline bool operator==(const transposition_entry& lhs, const transposition_entry& rhs){
-	if (lhs.key == rhs.key && lhs.prob == rhs.prob && lhs.value == rhs.value &&
+	if (lhs.key == rhs.key && lhs.strength == rhs.strength && lhs.value == rhs.value &&
 	    lhs.best_move == rhs.best_move){
 		return true;
 	} else {
@@ -2901,10 +2901,11 @@ typedef struct {
 	bool *stop;
 	double thresh;
 	TranspositionTable *tt;
+	bool quiesce;
 } searcharg;
 
 move movesearch(boardstate *brd, double time_limit, int *depth);
-move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable *tt);
+move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable *tt, bool quiesce);
 move movesearch_time(boardstate *brd, double time_limit, double *thresh,
-					TranspositionTable *tt);
+					TranspositionTable *tt, bool quiesce);
 #endif
