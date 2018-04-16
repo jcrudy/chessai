@@ -1,0 +1,1 @@
+/usr/bin/g++    -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/profiler_reader.dir/main.cpp.o  -o ../bin/profiler_reader  ../bin/libeasy_profiler.dylib -lpthread 

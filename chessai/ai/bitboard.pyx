@@ -74,7 +74,8 @@ cdef extern from "bitboardlib.h":
         brdidx from_square
         brdidx to_square
         piece promotion
-
+    
+    cdef const move nomove
     ctypedef struct moverecord:
         piece captured
         bool lost_own_castle_king
@@ -363,7 +364,16 @@ cdef class Move:
         mv.to_square = to_square
         mv.promotion = str_to_piece(promotion)
         self.mv = mv
-        
+    
+    cpdef nomove(Move self):
+        if self.mv == nomove:
+            return True
+        else:
+            return False
+    
+    def __bool__(Move self):
+        return not self.nomove()
+    
     def __richcmp__(Move self, other, op):
         if (op != Py_EQ) or not isinstance(other, Move):
             return NotImplemented

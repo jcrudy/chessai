@@ -6,9 +6,11 @@
 #include <stdio.h>
 #include <queue>
 #include <string>
+#include "easy/profiler.h"
+#include <boost/multiprecision/cpp_int.hpp>
 
 typedef uint64_t bitboard;
-typedef uint64_t zobrist_int;
+typedef unsigned __int128 zobrist_int;
 
 extern const bitboard empty;
 extern const bitboard full;
@@ -568,7 +570,6 @@ inline smallboardstate smallify(boardstate *brd){
 	return result;
 }
 
-
 inline bool operator==(const smallboardstate& lhs, const smallboardstate& rhs)
 {
 	if (lhs.k == rhs.k &&
@@ -841,6 +842,8 @@ typedef struct {
 	piece promotion;
 } move;
 
+extern const move nomove;
+
 inline void printmove(move mv){
 	// For debugging
 	printf("move(%d, %d, %d)\n", mv.from_square, mv.to_square, mv.promotion);
@@ -1045,6 +1048,7 @@ class Zobrist {
 extern const Zobrist zobrist;
 
 inline void unmake_move(boardstate *brd, moverecord *mv){
+	EASY_FUNCTION(profiler::colors::Green);
 	// update zobrist hash value
 	set_hash(brd, zobrist.update(get_hash(brd), brd, mv));
 
@@ -1278,6 +1282,7 @@ inline bitboard checking_rays_intersection(boardstate *brd, const bool pin_check
 }
 
 inline moverecord make_move(boardstate *brd, move *mv){
+	EASY_FUNCTION(profiler::colors::Green);
 	piece from_piece, to_piece;
 	bool lost_own_castle_king = false;
 	bool lost_own_castle_queen = false;
@@ -1505,6 +1510,7 @@ inline bool opponent_check(boardstate *brd){
 }
 
 inline void king_captures(boardstate *brd, std::queue<move> &moves){
+	EASY_FUNCTION(profiler::colors::Purple);
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	brdidx king_square = greatest_square_index(brd->k & own); // there is only one king
@@ -1744,6 +1750,7 @@ inline void quiet_king_moves(boardstate *brd, std::queue<move> &moves){
 }
 
 inline void knight_captures(boardstate *brd, std::queue<move> &moves){
+	EASY_FUNCTION(profiler::colors::Purple);
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	
@@ -1894,6 +1901,7 @@ inline void quiet_knight_moves(boardstate *brd, std::queue<move> &moves){
 }
 
 inline void pawn_captures(boardstate *brd, std::queue<move> &moves){
+	EASY_FUNCTION(profiler::colors::Purple);
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard potential_targets = opponent | get_enpassant_bitboard(brd);
@@ -2265,6 +2273,7 @@ inline void quiet_pawn_moves(boardstate *brd, std::queue<move> &moves){
 }
 
 inline void bishop_captures(boardstate *brd, std::queue<move> &moves){
+	EASY_FUNCTION(profiler::colors::Purple);
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
@@ -2421,6 +2430,7 @@ inline void quiet_bishop_moves(boardstate *brd, std::queue<move> &moves){
 }
 
 inline void rook_captures(boardstate *brd, std::queue<move> &moves){
+	EASY_FUNCTION(profiler::colors::Purple);
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
@@ -2579,6 +2589,7 @@ inline void quiet_rook_moves(boardstate *brd, std::queue<move> &moves){
 }
 
 inline void queen_captures(boardstate *brd, std::queue<move> &moves){
+	EASY_FUNCTION(profiler::colors::Purple);
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
@@ -2767,6 +2778,7 @@ inline void quiet_queen_moves(boardstate *brd, std::queue<move> &moves){
 }
 
 inline void all_captures(boardstate *brd, std::queue<move> &moves){
+	EASY_FUNCTION(profiler::colors::Blue);
 	king_captures(brd, moves);
 	queen_captures(brd, moves);
 	bishop_captures(brd, moves);
@@ -2776,6 +2788,7 @@ inline void all_captures(boardstate *brd, std::queue<move> &moves){
 }
 
 inline void all_moves(boardstate *brd, std::queue<move> &moves){
+	EASY_FUNCTION(profiler::colors::Red);
 	all_king_moves(brd, moves);
 	all_queen_moves(brd, moves);
 	all_bishop_moves(brd, moves);
@@ -2837,19 +2850,35 @@ inline int piece_to_zobrist_index(piece pc){
 }
 
 typedef struct {
+	// If it's not a lower_bound then it's exact.
+	// If lower_bound, the negamax call that returned this
+	// result returned a lower bound from its perspective.
+	// From the caller's perspective this is an 
+	// upper bound and the value is negative value.
+	double value;
+	bool lower_bound;
+	bool upper_bound;
+} negamax_result;
+
+inline bool operator==(const negamax_result& lhs, const negamax_result& rhs){
+	if(lhs.value == rhs.value && lhs.lower_bound == rhs.lower_bound){
+		return true;
+	} else {
+		return false;
+	}
+}
+
+typedef struct {
 	zobrist_int key;
 	double prob;
-	double value;
-	double alpha;
-	double beta;
+	negamax_result value;
 	move best_move;
 	smallboardstate brd;
 } transposition_entry;
 
 inline bool operator==(const transposition_entry& lhs, const transposition_entry& rhs){
 	if (lhs.key == rhs.key && lhs.prob == rhs.prob && lhs.value == rhs.value &&
-	    lhs.alpha == rhs.alpha && lhs.beta == rhs.beta
-	    && lhs.best_move == rhs.best_move){
+	    lhs.best_move == rhs.best_move){
 		return true;
 	} else {
 		return false;
@@ -2866,7 +2895,10 @@ class TranspositionTable {
 		transposition_entry getitem(boardstate *brd);
 	private:
 		unsigned long int size;
-		transposition_entry *data;
+		// Should be size x 2 array
+		// Of each pair, the first is the newest
+		// and the second is the best
+		transposition_entry (*data)[2];
 };
 
 extern const transposition_entry empty_transposition_entry;

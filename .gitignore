@@ -93,3 +93,7 @@ ENV/
 .pydevproject
 .settings/
 
+
+**/.DS_Store
+
+*.prof

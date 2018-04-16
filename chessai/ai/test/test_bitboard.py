@@ -255,7 +255,8 @@ def test_all_captures():
     fens = [
             'rnbqkbnr/pppppppr/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
             '1k6/1b6/8/8/7R/8/8/4K2R b K - 0 1',
-            '5k2/8/8/8/8/8/8/4K2R w K - 0 1'
+            '5k2/8/8/8/8/8/8/4K2R w K - 0 1',
+            'rnbqkb1r/ppp1pppp/5n2/3p4/4P3/2N2P2/PPPP2PP/R1BQKBNR b KQkq - 0 3'
             ]
     for fen in fens:
         board = BitBoardState.from_fen(fen)
