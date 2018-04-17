@@ -2908,4 +2908,24 @@ move movesearch(boardstate *brd, double time_limit, int *depth);
 move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable *tt, bool quiesce);
 move movesearch_time(boardstate *brd, double time_limit, double *thresh,
 					TranspositionTable *tt, bool quiesce);
+
+/*
+class SortableMove {
+	public:
+		OrderedMove(move mv, negamax_result result, double parent_eval);
+		inline bool operator<(const SortableMove &lhs, const SortableMove &rhs) const;
+		
+	private:
+		move mv;
+		negamax_result result;
+		double parent_eval;
+		double abs_diff;
+		
+}
+
+inline bool SortableMove::operator<(const OrderedMove &lhs, const OrderedMove &rhs) const{
+	return std::tie(lhs.result.value.value, lhs.abs_diff) < std::tie(rhs.result.value.value, rhs.abs_diff);
+}
+*/
+
 #endif

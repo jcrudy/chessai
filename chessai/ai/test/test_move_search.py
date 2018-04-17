@@ -18,7 +18,7 @@ def test_movesearch():
     board = BitBoardState.from_fen(starting_fen)
 #     white = ThresholdPlayer(5000000, 1e-6)
 #     black = ThresholdPlayer(5000000, 1e-9)
-    white = TimePlayer(5000000, 1, True)
+    white = TimePlayer(5000000, 4, True)
     black = TimePlayer(5000000, 6, True)
     print('\n')
     print(board.to_grid())

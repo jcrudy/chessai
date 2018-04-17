@@ -194,7 +194,6 @@ double simple_evaluation(boardstate *brd){
 	white_score += 5 * population_count(brd->white & brd->p & rank_7);
 	white_score += 4 * population_count(brd->white & brd->p & rank_6);
 	white_score += 3 * population_count(brd->white & brd->p & rank_5);
-	white_score += 2 * population_count(brd->white & brd->p & rank_4);
 	
 	black_score += 100 * population_count(brd->black & brd->p);
 	black_score += 320 * population_count(brd->black & brd->n);
@@ -208,7 +207,6 @@ double simple_evaluation(boardstate *brd){
 	black_score += 5 * population_count(brd->black & brd->p & rank_1);
 	black_score += 4 * population_count(brd->black & brd->p & rank_2);
 	black_score += 3 * population_count(brd->black & brd->p & rank_3);
-	black_score += 2 * population_count(brd->black & brd->p & rank_4);
 	
 	
 	if(get_whites_turn(brd)){
@@ -346,7 +344,9 @@ negamax_result negamax(boardstate *brd, double prob, double threshold, double al
 				//printf("Quiesce: depth = %d, this_eval = %f, value = %f\n", depth, this_eval, value);
 				subresult = negamax(brd, quotient, threshold, -beta, -value, &best_counter, stop, tt, depth+1, node_count, quiesce);
 				//printf("subresult.value = %f\n", subresult.value);
-				value = -subresult.value;
+				if(-subresult.value > value){
+					value = -subresult.value;
+				}
 			}else{
 				subresult.lower_bound = false;
 				subresult.upper_bound = false;
