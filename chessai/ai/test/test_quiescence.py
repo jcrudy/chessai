@@ -5,8 +5,8 @@ from chessai.ai.bitboard import BitBoardState, ThresholdPlayer, TimePlayer
 def test_quiescence_efficiency():
     starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     board = BitBoardState.from_fen(starting_fen)
-    quiescent = ThresholdPlayer(0, .000001, True)
-    mundane = ThresholdPlayer(0, .000001, False)
+    quiescent = ThresholdPlayer(0, .0000001, True)
+    mundane = ThresholdPlayer(0, .0000001, False)
     t0 = time.time()
     n = 1
     for _ in range(n):

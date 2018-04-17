@@ -151,7 +151,7 @@ const boardstate emptyboardstate = {empty,empty,empty,empty,
 const move nomove = {0};
 
 unsigned long long perft(boardstate *brd, int depth){
-    std::queue<move> moves = std::queue<move>();
+    std::vector<move> moves = std::vector<move>();
     all_moves(brd, moves);
     int n_moves = moves.size();
     moverecord rec;
@@ -165,7 +165,7 @@ unsigned long long perft(boardstate *brd, int depth){
     }
     for(int i = 0; i<n_moves; i++){
     	mv = moves.front();
-    	moves.pop();
+    	moves.pop_back();
     	rec = make_move(brd, &mv);
     	result += perft(brd, depth - 1);
     	unmake_move(brd, &rec);
@@ -218,8 +218,12 @@ double simple_evaluation(boardstate *brd){
 
 negamax_result negamax(boardstate *brd, double prob, double threshold, double alpha, 
 					double beta, move *best_move, bool *stop, TranspositionTable *tt,
+					MoveHistoryTable *hh,
 					int depth, unsigned long long int *node_count, bool quiesce){
 	//printf("depth = %d\n", depth);
+	// This will store the moves
+	std::vector<move> moves = std::vector<move>();
+	
 	// First check transposition table
 	double strength = prob / threshold;
 	strength = strength>1?strength:1;
@@ -235,13 +239,14 @@ negamax_result negamax(boardstate *brd, double prob, double threshold, double al
 				}else{
 					(*best_move) = entry.best_move;
 					return entry.value;
+					// Search the best move first
+					//moves.push(entry.best_move);
 				}
 			}
 		}
 	}
 	
 	// Consider the threshold and generate moves
-	std::queue<move> moves = std::queue<move>();
 	int num_moves;
 	negamax_result result;
 	bool skip_recursion = false;
@@ -249,6 +254,7 @@ negamax_result negamax(boardstate *brd, double prob, double threshold, double al
 	// Generate all legal moves
 	all_moves(brd, moves);
 	num_moves = moves.size();
+	std::sort(moves.begin(), moves.end(), [hh](move lhs, move rhs){return hh->compare_moves(lhs, rhs);});
 
 	// If there are no legal moves, this is either checkmate or stalemate
 	if (num_moves == 0) {
@@ -316,7 +322,6 @@ negamax_result negamax(boardstate *brd, double prob, double threshold, double al
 	
 	// Now we're ready to recurse
 	negamax_result subresult;
-	move mv;
 	moverecord rec;
 	double quotient = prob / num_moves;
 	move best_counter = nomove;
@@ -324,17 +329,21 @@ negamax_result negamax(boardstate *brd, double prob, double threshold, double al
 	bool init = true;
 	
 	double this_eval = simple_evaluation(brd);
-	while(!skip_recursion && !moves.empty()){
+	for(move mv : moves){
+		if(skip_recursion){
+			break;
+		}
+	//while(!skip_recursion && !moves.empty()){
 		// Make the move
-		mv = moves.front();
-		moves.pop();
+		//mv = moves.front();
+		//moves.pop();
 		
 		rec = make_move(brd, &mv);
 		(*node_count)++;
 		
 		// Recurse
 		if(quotient >= threshold){
-			subresult = negamax(brd, quotient, threshold, -beta, -alpha, &best_counter, stop, tt, depth+1, node_count, quiesce);
+			subresult = negamax(brd, quotient, threshold, -beta, -alpha, &best_counter, stop, tt, hh, depth+1, node_count, quiesce);
 			value = -subresult.value;
 		}else{
 			// This is a quiescence / stability search
@@ -342,7 +351,7 @@ negamax_result negamax(boardstate *brd, double prob, double threshold, double al
 			//printf("this_eval = %f, value = %f\n", this_eval, value);
 			if(abs(this_eval - value) > 10. && quiesce){
 				//printf("Quiesce: depth = %d, this_eval = %f, value = %f\n", depth, this_eval, value);
-				subresult = negamax(brd, quotient, threshold, -beta, -value, &best_counter, stop, tt, depth+1, node_count, quiesce);
+				subresult = negamax(brd, quotient, threshold, -beta, -value, &best_counter, stop, tt, hh, depth+1, node_count, quiesce);
 				//printf("subresult.value = %f\n", subresult.value);
 				if(-subresult.value > value){
 					value = -subresult.value;
@@ -417,9 +426,10 @@ void iterative_negamax(void *varg){
 	move best_move;
 	double best_value;
 	double value;
+	MoveHistoryTable *hh = new MoveHistoryTable();
 	while(!(*(arg->stop))){
 		result = negamax(arg->brd, 1.0, thresh, -1000000.0, 1000000.0,
-						&best_move, arg->stop, arg->tt, 0, &node_count,
+						&best_move, arg->stop, arg->tt, hh, 0, &node_count,
 						arg->quiesce);
 		value = result.value;
 		if(!(*(arg->stop))){
@@ -439,8 +449,9 @@ move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable 
 	bool stop = false;
 	unsigned long long int node_count = 0;
 	int depth = 0;
+	MoveHistoryTable *hh = new MoveHistoryTable();
 	negamax(brd, 1.0, threshold, -1000000.0, 
-				1000000.0, &best_move, &stop, tt, depth, &node_count, quiesce);
+				1000000.0, &best_move, &stop, tt, hh, depth, &node_count, quiesce);
 	EASY_END_BLOCK;
 	printf("Visited %llu nodes.\n", node_count);
 	profiler::dumpBlocksToFile("test_profile.prof");
@@ -1559,6 +1570,45 @@ transposition_entry TranspositionTable::getitem(boardstate *brd){
 		}
 	}
 	return empty_transposition_entry;
+}
+
+MoveHistoryTable::MoveHistoryTable(){
+	for(int i=0;i<64;i++){
+		for(int j=0;j<64;j++){
+			this->data[i][j] = std::make_tuple(0.0, -1.0);
+		}
+	}
+}
+
+bool MoveHistoryTable::compare_moves(move &lhs, move &rhs){
+	// We want sorting to put the best moves first, so this 
+	// is kinda reversed.
+	std::tuple<double, double> left_item = this->getitem(lhs);
+	std::tuple<double, double> right_item = this->getitem(rhs);
+	double left_value = std::get<0>(left_item);
+	double right_value = std::get<0>(right_item);
+	double left_strength = std::get<1>(left_item);
+	double right_strength = std::get<1>(right_item);
+	if(left_strength > 0 && right_strength <= 0){
+		return true;
+	}
+	if(left_value > right_value){
+		return true;
+	}
+	return false;
+}
+
+std::tuple<double, double> MoveHistoryTable::getitem(move mv){
+	return this->data[mv.from_square][mv.to_square];
+}
+
+void MoveHistoryTable::setitem(move mv, double value, double strength){
+	std::tuple<double, double> item = this->getitem(mv);
+	//double value = std::get<0>(item);
+	double old_strength = std::get<1>(item);
+	if(strength >= old_strength){
+		this->data[mv.from_square][mv.to_square] = std::make_tuple(value, strength);
+	}
 }
 
 									

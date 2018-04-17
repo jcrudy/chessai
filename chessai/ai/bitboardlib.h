@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <queue>
+#include <vector>
 #include <string>
 #include "easy/profiler.h"
 #include <boost/multiprecision/cpp_int.hpp>
@@ -1509,7 +1509,7 @@ inline bool opponent_check(boardstate *brd){
 	}
 }
 
-inline void king_captures(boardstate *brd, std::queue<move> &moves){
+inline void king_captures(boardstate *brd, std::vector<move> &moves){
 	EASY_FUNCTION(profiler::colors::Purple);
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
@@ -1539,7 +1539,7 @@ inline void king_captures(boardstate *brd, std::queue<move> &moves){
 			mv.from_square = king_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push(mv);
+			moves.push_back(mv);
 		}
 		
 	}
@@ -1547,7 +1547,7 @@ inline void king_captures(boardstate *brd, std::queue<move> &moves){
 }
 
 
-inline void all_king_moves(boardstate *brd, std::queue<move> &moves){
+inline void all_king_moves(boardstate *brd, std::vector<move> &moves){
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	brdidx king_square = greatest_square_index(brd->k & own); // there is only one king
@@ -1567,7 +1567,7 @@ inline void all_king_moves(boardstate *brd, std::queue<move> &moves){
 					mv.from_square = king_square;
 					mv.to_square = king_square + 2;
 					mv.promotion = no;
-					moves.push(mv);
+					moves.push_back(mv);
 				}
 			}
 		}
@@ -1581,7 +1581,7 @@ inline void all_king_moves(boardstate *brd, std::queue<move> &moves){
 					mv.from_square = king_square;
 					mv.to_square = king_square - 2;
 					mv.promotion = no;
-					moves.push(mv);
+					moves.push_back(mv);
 				}
 			}
 		}
@@ -1596,7 +1596,7 @@ inline void all_king_moves(boardstate *brd, std::queue<move> &moves){
 					mv.from_square = king_square;
 					mv.to_square = king_square + 2;
 					mv.promotion = no;
-					moves.push(mv);
+					moves.push_back(mv);
 				}
 			}
 		}
@@ -1610,7 +1610,7 @@ inline void all_king_moves(boardstate *brd, std::queue<move> &moves){
 					mv.from_square = king_square;
 					mv.to_square = king_square - 2;
 					mv.promotion = no;
-					moves.push(mv);
+					moves.push_back(mv);
 				}
 			}
 		}
@@ -1642,14 +1642,14 @@ inline void all_king_moves(boardstate *brd, std::queue<move> &moves){
 			mv.from_square = king_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push(mv);
+			moves.push_back(mv);
 		}
 		
 	}
 		
 }
 
-inline void quiet_king_moves(boardstate *brd, std::queue<move> &moves){
+inline void quiet_king_moves(boardstate *brd, std::vector<move> &moves){
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	brdidx king_square = greatest_square_index(brd->k & own); // there is only one king
@@ -1669,7 +1669,7 @@ inline void quiet_king_moves(boardstate *brd, std::queue<move> &moves){
 					mv.from_square = king_square;
 					mv.to_square = king_square + 2;
 					mv.promotion = no;
-					moves.push(mv);
+					moves.push_back(mv);
 				}
 			}
 		}
@@ -1683,7 +1683,7 @@ inline void quiet_king_moves(boardstate *brd, std::queue<move> &moves){
 					mv.from_square = king_square;
 					mv.to_square = king_square - 2;
 					mv.promotion = no;
-					moves.push(mv);
+					moves.push_back(mv);
 				}
 			}
 		}
@@ -1698,7 +1698,7 @@ inline void quiet_king_moves(boardstate *brd, std::queue<move> &moves){
 					mv.from_square = king_square;
 					mv.to_square = king_square + 2;
 					mv.promotion = no;
-					moves.push(mv);
+					moves.push_back(mv);
 				}
 			}
 		}
@@ -1713,7 +1713,7 @@ inline void quiet_king_moves(boardstate *brd, std::queue<move> &moves){
 					mv.from_square = king_square;
 					mv.to_square = king_square - 2;
 					mv.promotion = no;
-					moves.push(mv);
+					moves.push_back(mv);
 				}
 			}
 		}
@@ -1742,14 +1742,14 @@ inline void quiet_king_moves(boardstate *brd, std::queue<move> &moves){
 			mv.from_square = king_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push(mv);
+			moves.push_back(mv);
 		}
 		
 	}
 		
 }
 
-inline void knight_captures(boardstate *brd, std::queue<move> &moves){
+inline void knight_captures(boardstate *brd, std::vector<move> &moves){
 	EASY_FUNCTION(profiler::colors::Purple);
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
@@ -1795,12 +1795,12 @@ inline void knight_captures(boardstate *brd, std::queue<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push(mv);
+			moves.push_back(mv);
 		}
 	}
 }
 
-inline void all_knight_moves(boardstate *brd, std::queue<move> &moves){
+inline void all_knight_moves(boardstate *brd, std::vector<move> &moves){
 	bitboard own = get_current_movers_bitboard(brd);
 	
 	bitboard targets, current_source, current_target, propagator;
@@ -1844,12 +1844,12 @@ inline void all_knight_moves(boardstate *brd, std::queue<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push(mv);
+			moves.push_back(mv);
 		}
 	}
 }
 
-inline void quiet_knight_moves(boardstate *brd, std::queue<move> &moves){
+inline void quiet_knight_moves(boardstate *brd, std::vector<move> &moves){
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
@@ -1895,12 +1895,12 @@ inline void quiet_knight_moves(boardstate *brd, std::queue<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push(mv);
+			moves.push_back(mv);
 		}
 	}
 }
 
-inline void pawn_captures(boardstate *brd, std::queue<move> &moves){
+inline void pawn_captures(boardstate *brd, std::vector<move> &moves){
 	EASY_FUNCTION(profiler::colors::Purple);
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
@@ -1955,49 +1955,49 @@ inline void pawn_captures(boardstate *brd, std::queue<move> &moves){
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = R;
-					moves.push(mv);
+					moves.push_back(mv);
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = N;
-					moves.push(mv);
+					moves.push_back(mv);
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = B;
-					moves.push(mv);
+					moves.push_back(mv);
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = Q;
-					moves.push(mv);
+					moves.push_back(mv);
 				}else{
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = r;
-					moves.push(mv);
+					moves.push_back(mv);
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = n;
-					moves.push(mv);
+					moves.push_back(mv);
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = b;
-					moves.push(mv);
+					moves.push_back(mv);
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = q;
-					moves.push(mv);
+					moves.push_back(mv);
 				}
 			}else if(target_piece == ep || target_piece == EP){
 				// check whether the en passant capture puts the king in check
@@ -2007,7 +2007,7 @@ inline void pawn_captures(boardstate *brd, std::queue<move> &moves){
 				mv.promotion = no;
 				rec = make_move(brd, &mv);
 				if(!opponent_check(brd)){
-					moves.push(mv);
+					moves.push_back(mv);
 				}
 				unmake_move(brd, &rec);
 			}else{
@@ -2015,14 +2015,14 @@ inline void pawn_captures(boardstate *brd, std::queue<move> &moves){
 				mv.from_square = source_square;
 				mv.to_square = target_square;
 				mv.promotion = no;
-				moves.push(mv);
+				moves.push_back(mv);
 			}
 			
 		}
 	}
 }
 
-inline void all_pawn_moves(boardstate *brd, std::queue<move> &moves){
+inline void all_pawn_moves(boardstate *brd, std::vector<move> &moves){
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
@@ -2082,49 +2082,49 @@ inline void all_pawn_moves(boardstate *brd, std::queue<move> &moves){
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = R;
-					moves.push(mv);
+					moves.push_back(mv);
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = N;
-					moves.push(mv);
+					moves.push_back(mv);
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = B;
-					moves.push(mv);
+					moves.push_back(mv);
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = Q;
-					moves.push(mv);
+					moves.push_back(mv);
 				}else{
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = r;
-					moves.push(mv);
+					moves.push_back(mv);
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = n;
-					moves.push(mv);
+					moves.push_back(mv);
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = b;
-					moves.push(mv);
+					moves.push_back(mv);
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = q;
-					moves.push(mv);
+					moves.push_back(mv);
 				}
 			}else if(target_piece == ep || target_piece == EP){
 				// check whether the en passant capture puts the king in check
@@ -2134,7 +2134,7 @@ inline void all_pawn_moves(boardstate *brd, std::queue<move> &moves){
 				mv.promotion = no;
 				rec = make_move(brd, &mv);
 				if(!opponent_check(brd)){
-					moves.push(mv);
+					moves.push_back(mv);
 				}
 				unmake_move(brd, &rec);
 			}else{
@@ -2142,14 +2142,14 @@ inline void all_pawn_moves(boardstate *brd, std::queue<move> &moves){
 				mv.from_square = source_square;
 				mv.to_square = target_square;
 				mv.promotion = no;
-				moves.push(mv);
+				moves.push_back(mv);
 			}
 			
 		}
 	}
 }
 
-inline void quiet_pawn_moves(boardstate *brd, std::queue<move> &moves){
+inline void quiet_pawn_moves(boardstate *brd, std::vector<move> &moves){
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
@@ -2204,75 +2204,75 @@ inline void quiet_pawn_moves(boardstate *brd, std::queue<move> &moves){
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = P;
-					moves.push(mv);
+					moves.push_back(mv);
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = R;
-					moves.push(mv);
+					moves.push_back(mv);
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = N;
-					moves.push(mv);
+					moves.push_back(mv);
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = B;
-					moves.push(mv);
+					moves.push_back(mv);
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = Q;
-					moves.push(mv);
+					moves.push_back(mv);
 				}else{
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = p;
-					moves.push(mv);
+					moves.push_back(mv);
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = r;
-					moves.push(mv);
+					moves.push_back(mv);
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = n;
-					moves.push(mv);
+					moves.push_back(mv);
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = b;
-					moves.push(mv);
+					moves.push_back(mv);
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = q;
-					moves.push(mv);
+					moves.push_back(mv);
 				}
 			}else{
 				mv = move();
 				mv.from_square = source_square;
 				mv.to_square = target_square;
 				mv.promotion = no;
-				moves.push(mv);
+				moves.push_back(mv);
 			}
 			
 		}
 	}
 }
 
-inline void bishop_captures(boardstate *brd, std::queue<move> &moves){
+inline void bishop_captures(boardstate *brd, std::vector<move> &moves){
 	EASY_FUNCTION(profiler::colors::Purple);
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
@@ -2323,12 +2323,12 @@ inline void bishop_captures(boardstate *brd, std::queue<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push(mv);
+			moves.push_back(mv);
 		}
 	}
 }
 
-inline void all_bishop_moves(boardstate *brd, std::queue<move> &moves){
+inline void all_bishop_moves(boardstate *brd, std::vector<move> &moves){
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
@@ -2376,13 +2376,13 @@ inline void all_bishop_moves(boardstate *brd, std::queue<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push(mv);
+			moves.push_back(mv);
 		}
 	}
 }
 
 
-inline void quiet_bishop_moves(boardstate *brd, std::queue<move> &moves){
+inline void quiet_bishop_moves(boardstate *brd, std::vector<move> &moves){
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
@@ -2424,12 +2424,12 @@ inline void quiet_bishop_moves(boardstate *brd, std::queue<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push(mv);
+			moves.push_back(mv);
 		}
 	}
 }
 
-inline void rook_captures(boardstate *brd, std::queue<move> &moves){
+inline void rook_captures(boardstate *brd, std::vector<move> &moves){
 	EASY_FUNCTION(profiler::colors::Purple);
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
@@ -2480,12 +2480,12 @@ inline void rook_captures(boardstate *brd, std::queue<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push(mv);
+			moves.push_back(mv);
 		}
 	}
 }
 
-inline void all_rook_moves(boardstate *brd, std::queue<move> &moves){
+inline void all_rook_moves(boardstate *brd, std::vector<move> &moves){
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
@@ -2535,13 +2535,13 @@ inline void all_rook_moves(boardstate *brd, std::queue<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push(mv);
+			moves.push_back(mv);
 		}
 	}
 }
 
 
-inline void quiet_rook_moves(boardstate *brd, std::queue<move> &moves){
+inline void quiet_rook_moves(boardstate *brd, std::vector<move> &moves){
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
@@ -2583,12 +2583,12 @@ inline void quiet_rook_moves(boardstate *brd, std::queue<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push(mv);
+			moves.push_back(mv);
 		}
 	}
 }
 
-inline void queen_captures(boardstate *brd, std::queue<move> &moves){
+inline void queen_captures(boardstate *brd, std::vector<move> &moves){
 	EASY_FUNCTION(profiler::colors::Purple);
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
@@ -2651,12 +2651,12 @@ inline void queen_captures(boardstate *brd, std::queue<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push(mv);
+			moves.push_back(mv);
 		}
 	}
 }
 
-inline void all_queen_moves(boardstate *brd, std::queue<move> &moves){
+inline void all_queen_moves(boardstate *brd, std::vector<move> &moves){
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
@@ -2718,13 +2718,13 @@ inline void all_queen_moves(boardstate *brd, std::queue<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push(mv);
+			moves.push_back(mv);
 		}
 	}
 }
 
 
-inline void quiet_queen_moves(boardstate *brd, std::queue<move> &moves){
+inline void quiet_queen_moves(boardstate *brd, std::vector<move> &moves){
 	bitboard unoccupied = ~(brd->white | brd->black);
 	bitboard propagator;
 	bitboard queens;
@@ -2772,12 +2772,12 @@ inline void quiet_queen_moves(boardstate *brd, std::queue<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push(mv);
+			moves.push_back(mv);
 		}
 	}
 }
 
-inline void all_captures(boardstate *brd, std::queue<move> &moves){
+inline void all_captures(boardstate *brd, std::vector<move> &moves){
 	EASY_FUNCTION(profiler::colors::Blue);
 	king_captures(brd, moves);
 	queen_captures(brd, moves);
@@ -2787,7 +2787,7 @@ inline void all_captures(boardstate *brd, std::queue<move> &moves){
 	knight_captures(brd, moves);
 }
 
-inline void all_moves(boardstate *brd, std::queue<move> &moves){
+inline void all_moves(boardstate *brd, std::vector<move> &moves){
 	EASY_FUNCTION(profiler::colors::Red);
 	all_king_moves(brd, moves);
 	all_queen_moves(brd, moves);
@@ -2797,7 +2797,7 @@ inline void all_moves(boardstate *brd, std::queue<move> &moves){
 	all_knight_moves(brd, moves);
 }
 
-inline void all_quiet_moves(boardstate *brd, std::queue<move> &moves){
+inline void all_quiet_moves(boardstate *brd, std::vector<move> &moves){
 	quiet_king_moves(brd, moves);
 	quiet_queen_moves(brd, moves);
 	quiet_bishop_moves(brd, moves);
@@ -2904,10 +2904,22 @@ typedef struct {
 	bool quiesce;
 } searcharg;
 
+class MoveHistoryTable {
+	public:
+		MoveHistoryTable();
+		bool compare_moves(move &lhs, move &rhs);
+		void setitem(move mv, double value, double strength);
+		std::tuple<double, double> getitem(move mv);
+	private:
+		std::tuple<double, double> data[64][64];
+};
+
 move movesearch(boardstate *brd, double time_limit, int *depth);
 move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable *tt, bool quiesce);
 move movesearch_time(boardstate *brd, double time_limit, double *thresh,
 					TranspositionTable *tt, bool quiesce);
+
+
 
 /*
 class SortableMove {

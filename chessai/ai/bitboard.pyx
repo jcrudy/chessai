@@ -4,7 +4,7 @@ from cpython.object cimport Py_EQ
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 from toolz import partition
 from operator import methodcaller
-from libcpp.queue cimport queue
+from libcpp.vector cimport vector
 import time
 
 cdef extern from "stdbool.h":
@@ -138,11 +138,11 @@ cdef extern from "bitboardlib.h":
     cdef bitboard bitboard_from_square_index(int i)
     cdef piece unplace_piece(boardstate *bs, brdidx square_index)
     cdef void place_piece(boardstate *bs, brdidx square_index, piece pc)
-    cdef void quiet_queen_moves(boardstate *brd, queue[move] &moves)
-    cdef void all_queen_moves(boardstate *brd, queue[move] &moves)
-    cdef void queen_captures(boardstate *brd, queue[move] &moves)
-    cdef void all_moves(boardstate *brd, queue[move] &moves)
-    cdef void all_captures(boardstate *brd, queue[move] &moves)
+    cdef void quiet_queen_moves(boardstate *brd, vector[move] &moves)
+    cdef void all_queen_moves(boardstate *brd, vector[move] &moves)
+    cdef void queen_captures(boardstate *brd, vector[move] &moves)
+    cdef void all_moves(boardstate *brd, vector[move] &moves)
+    cdef void all_captures(boardstate *brd, vector[move] &moves)
     cdef unsigned long long perft(boardstate *brd, int depth)
     cdef bool own_check(boardstate *brd)
     ctypedef struct movechoice:
@@ -167,6 +167,11 @@ cdef extern from "bitboardlib.h":
         unsigned long int getindex(boardstate *brd)
         bool exists(boardstate *brd)
         transposition_entry getitem(boardstate *brd)
+#     cdef cppclass MoveHistoryTable:
+#         MoveHistoryTable();
+#         bool compare_moves(move &lhs, move &rhs);
+#         void setitem(move mv, double value, double strength);
+#         std::tuple<double, double> getitem(move mv);
     cdef move movesearch(boardstate *brd, double time_limit, int *depth)
     cdef move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable *tt, bool quiesce)
     cdef move movesearch_time(boardstate *brd, double time_limit, double *thresh,
@@ -592,57 +597,57 @@ cdef class BitBoardState:
         return perft(&(self.bs), depth)
     
     cpdef all_moves(BitBoardState self):
-        cdef queue[move] mvs = queue[move]()
+        cdef vector[move] mvs = vector[move]()
         all_moves(&(self.bs), mvs)
         cdef list result = []
         cdef move mv
         while not mvs.empty():
             mv = mvs.front()
-            mvs.pop()
+            mvs.pop_back()
             result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))
         return result
     
     cpdef all_captures(BitBoardState self):
-        cdef queue[move] mvs = queue[move]()  # @DuplicatedSignature
+        cdef vector[move] mvs = vector[move]()  # @DuplicatedSignature
         all_captures(&(self.bs), mvs)
         cdef list result = []  # @DuplicatedSignature
         cdef move mv  # @DuplicatedSignature
         while not mvs.empty():
             mv = mvs.front()
-            mvs.pop()
+            mvs.pop_back()
             result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))
         return result
     
     cpdef quiet_queen_moves(BitBoardState self):
-        cdef queue[move] q = queue[move]()
+        cdef vector[move] q = vector[move]()
         quiet_queen_moves(&(self.bs), q)
         cdef list result = []
         cdef move mv
         while not q.empty():
             mv = q.front()
-            q.pop()
+            q.pop_back()
             result.append(Move(mv.from_square, mv.to_square))
         return result
     
     cpdef all_queen_moves(BitBoardState self):
-        cdef queue[move] q = queue[move]()  # @DuplicatedSignature
+        cdef vector[move] q = vector[move]()  # @DuplicatedSignature
         all_queen_moves(&(self.bs), q)
         cdef list result = []  # @DuplicatedSignature
         cdef move mv  # @DuplicatedSignature
         while not q.empty():
             mv = q.front()
-            q.pop()
+            q.pop_back()
             result.append(Move(mv.from_square, mv.to_square))
         return result
     
     cpdef queen_captures(BitBoardState self):
-        cdef queue[move] q = queue[move]()  # @DuplicatedSignature
+        cdef vector[move] q = vector[move]()  # @DuplicatedSignature
         queen_captures(&(self.bs), q)
         cdef list result = []  # @DuplicatedSignature
         cdef move mv  # @DuplicatedSignature
         while not q.empty():
             mv = q.front()
-            q.pop()
+            q.pop_back()
             result.append(Move(mv.from_square, mv.to_square))
         return result
     
