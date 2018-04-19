@@ -9,6 +9,9 @@ class MyAI(ChessAI):
         self.use_quiescence = use_quiescence
     
     def update(self, move):
+        print(move)
+        print(Move.from_long_form(self.board.whites_turn, move))
+        print(Move.from_long_form(self.board.whites_turn, move).to_long_form())
         self.board.make_move(Move.from_long_form(self.board.whites_turn, move))
     
     def start(self, fen):
