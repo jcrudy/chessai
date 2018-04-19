@@ -144,11 +144,38 @@ const bitboard antidiags[16] = {antidiag_0, antidiag_1, antidiag_2, antidiag_3, 
 								antidiag_12, antidiag_13, antidiag_14, antidiag_15};
 
 const brdidx no_enpassant = 0b11111111;
-const boardstate emptyboardstate = {empty,empty,empty,empty,
-									empty,empty,empty,empty,
-									no_enpassant, 0, 0, 0, 0, 0, 0, 0};
 
 const move nomove = {0};
+
+boardstate::boardstate(){
+	this->k = empty;
+	this->q = empty;
+	this->b = empty;
+	this->n = empty;
+	this->r = empty;
+	this->p = empty;
+	this->white = empty;
+	this->black = empty;
+	this->enpassant = no_enpassant;
+	this->whites_turn = false;
+	this->white_castle_king = false;
+	this->white_castle_queen = false;
+	this->black_castle_king = false;
+	this->black_castle_queen = false;
+	this->halfmove_clock = 0;
+	this->fullmove_counter = 0;
+	for(int i=0;i<64;i++){
+		this->piece_map[i] = no;
+	}
+	this->hash = 0;
+	this->position_count = new PositionCounter();
+	this->current_position_count = 1;
+}
+
+boardstate::~boardstate(){
+	// TODO: Why does this cause a crash?
+	//delete (this->position_count);
+}
 
 unsigned long long perft(boardstate *brd, int depth){
     std::vector<move> moves = std::vector<move>();
@@ -221,6 +248,15 @@ negamax_result negamax(boardstate *brd, double prob, double threshold, double al
 					MoveHistoryTable *hh,
 					int depth, unsigned long long int *node_count, bool quiesce){
 	//printf("depth = %d\n", depth);
+	
+	negamax_result result;
+	// Check for threefold repetition
+	if(brd->current_position_count >= 3){
+		result.value = 0;
+		result.lower_bound = false;
+		result.upper_bound = false;
+	}
+	
 	// This will store the moves
 	std::vector<move> moves = std::vector<move>();
 	
@@ -248,7 +284,6 @@ negamax_result negamax(boardstate *brd, double prob, double threshold, double al
 	
 	// Consider the threshold and generate moves
 	int num_moves;
-	negamax_result result;
 	bool skip_recursion = false;
 	
 	// Generate all legal moves

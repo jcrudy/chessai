@@ -830,7 +830,7 @@ cdef str bb_to_grid(bitboard bb):
     return r.to_grid()
 
 cdef boardstate fen_to_bitboard(str fen):
-    cdef boardstate bs = emptyboardstate;
+    cdef boardstate bs = boardstate();
     cdef str pieces, turn, castles, en_passant, halfmove_clock, move_number
     pieces, turn, castles, en_passant, halfmove_clock, move_number = fen.split(' ')
 

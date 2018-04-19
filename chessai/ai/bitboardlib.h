@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <vector>
 #include <string>
+#include <unordered_map>
 #include "easy/profiler.h"
 #include <boost/multiprecision/cpp_int.hpp>
 
@@ -512,7 +513,34 @@ inline bitboard bishop_moves_from_square_index(brdidx s){
 
 typedef enum {no=0,K,Q,B,N,R,P,EP,k,q,b,n,r,p,ep} piece;
 
+// Just the parts needed to have same legal moves (ignoring clock)
 typedef struct {
+	bitboard k;
+	bitboard q;
+	bitboard b;
+	bitboard n;
+	bitboard r;
+	bitboard p;
+	bitboard white;
+	bitboard black;
+	brdidx enpassant;
+	bool whites_turn;
+	bool white_castle_king;
+	bool white_castle_queen;
+	bool black_castle_king;
+	bool black_castle_queen;
+} smallboardstate;
+
+struct PositionCountHasher {
+	std::size_t operator()(const std::tuple<zobrist_int, smallboardstate> &k) const {
+		return (std::size_t) std::get<0>(k);
+	}
+};
+
+typedef std::unordered_map<std::tuple<zobrist_int, smallboardstate>, int, PositionCountHasher> PositionCounter;
+
+
+struct boardstate{
 	bitboard k;
 	bitboard q;
 	bitboard b;
@@ -531,25 +559,12 @@ typedef struct {
 	unsigned int fullmove_counter;
 	piece piece_map[64];
 	zobrist_int hash;
-} boardstate;
+	PositionCounter *position_count;
+	int current_position_count;
+	boardstate();
+	~boardstate();
+};
 
-// Just the parts needed to have same legal moves (ignoring clock)
-typedef struct {
-	bitboard k;
-	bitboard q;
-	bitboard b;
-	bitboard n;
-	bitboard r;
-	bitboard p;
-	bitboard white;
-	bitboard black;
-	brdidx enpassant;
-	bool whites_turn;
-	bool white_castle_king;
-	bool white_castle_queen;
-	bool black_castle_king;
-	bool black_castle_queen;
-} smallboardstate;
 
 inline smallboardstate smallify(boardstate *brd){
 	smallboardstate result;
@@ -834,8 +849,6 @@ inline bitboard bitboard_from_piece(boardstate *bs, piece pc){
 	return(piece_bitboard_from_piece(bs, pc) & color_bitboard_from_piece(bs, pc));
 }
 
-extern const boardstate emptyboardstate;
-
 typedef struct {
 	brdidx from_square;
 	brdidx to_square;
@@ -1035,6 +1048,7 @@ class Zobrist {
 	public:
 		Zobrist();
 		zobrist_int hash(boardstate *brd) const;
+		zobrist_int hash(smallboardstate brd) const;
 		zobrist_int update(zobrist_int previous, boardstate *brd, moverecord *mv) const;
 	private:
 		zobrist_int zobrist_table[8][8][14];
@@ -1049,7 +1063,14 @@ extern const Zobrist zobrist;
 
 inline void unmake_move(boardstate *brd, moverecord *mv){
 	EASY_FUNCTION(profiler::colors::Green);
-	// update zobrist hash value
+	
+	// downdate position count
+	std::tuple<zobrist_int, smallboardstate> key;
+	key = std::make_tuple(brd->hash, smallify(brd));
+	((*(brd->position_count))[key])--;
+	
+	
+	// downdate zobrist hash value
 	set_hash(brd, zobrist.update(get_hash(brd), brd, mv));
 
 	// switch back whose turn it is
@@ -1129,6 +1150,10 @@ inline void unmake_move(boardstate *brd, moverecord *mv){
 	
 	// reset en passant status
 	set_enpassant(brd, mv->enpassant);
+	
+	// set current position count (can only be done at end of unmake)
+	key = std::make_tuple(brd->hash, smallify(brd));
+	brd->current_position_count = (*(brd->position_count))[key];
 }
 
 
@@ -1441,7 +1466,16 @@ inline moverecord make_move(boardstate *brd, move *mv){
 
 	// update zobrist hash value
 	set_hash(brd, zobrist.update(get_hash(brd), brd, &record));
-
+	
+	// update position count
+	std::tuple<zobrist_int, smallboardstate> key;
+	key = std::make_tuple(brd->hash, smallify(brd));
+	if(brd->position_count->count(key)){
+		((*(brd->position_count))[key])++;
+	}else{
+		(*(brd->position_count))[key] = 1;
+	}
+	brd->current_position_count = (*(brd->position_count))[key];
 	return(record);
 }
 

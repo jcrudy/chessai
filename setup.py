@@ -26,7 +26,7 @@ if '--profile' in sys.argv:
     '''
     First do:
     export MACOSX_DEPLOYMENT_TARGET=10.9
-    cd easy_profier-1.3.0
+    cd easy_profiler-1.3.0
     cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc -DCMAKE_BUILD_TYPE="Release"
     Then do:
     make
