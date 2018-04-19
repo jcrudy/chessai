@@ -371,6 +371,33 @@ cdef class Move:
         mv.promotion = str_to_piece(promotion)
         self.mv = mv
     
+    def to_uci(Move self):
+        return (
+                int_to_algebraic(self.from_square) + 
+                int_to_algebraic(self.to_square) +
+                (self.promotion.lower() if self.promotion != 'no' else '')
+                )
+    
+    def to_long_form(Move self):
+        return (
+                int_to_algebraic(self.from_square) + '-' +
+                int_to_algebraic(self.to_square) +
+                (('=' + self.promotion.lower()) if self.promotion != 'no' else '')
+                )
+    
+    @classmethod
+    def from_long_form(cls, white, rep):
+        from_square, to_square = rep.split('-')
+        if '=' in to_square:
+            to_square, promotion = rep.split('=')
+        else:
+            promotion = 'no'
+        if white:
+            promotion = promotion.upper()
+        else:
+            promotion = promotion.lower()  
+        return cls(algebraic_to_int(from_square), algebraic_to_int(to_square), promotion)
+    
     cpdef nomove(Move self):
         if self.mv == nomove:
             return True
@@ -602,7 +629,7 @@ cdef class BitBoardState:
         cdef list result = []
         cdef move mv
         while not mvs.empty():
-            mv = mvs.front()
+            mv = mvs.back()
             mvs.pop_back()
             result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))
         return result
@@ -613,7 +640,7 @@ cdef class BitBoardState:
         cdef list result = []  # @DuplicatedSignature
         cdef move mv  # @DuplicatedSignature
         while not mvs.empty():
-            mv = mvs.front()
+            mv = mvs.back()
             mvs.pop_back()
             result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))
         return result
@@ -624,7 +651,7 @@ cdef class BitBoardState:
         cdef list result = []
         cdef move mv
         while not q.empty():
-            mv = q.front()
+            mv = q.back()
             q.pop_back()
             result.append(Move(mv.from_square, mv.to_square))
         return result
@@ -635,7 +662,7 @@ cdef class BitBoardState:
         cdef list result = []  # @DuplicatedSignature
         cdef move mv  # @DuplicatedSignature
         while not q.empty():
-            mv = q.front()
+            mv = q.back()
             q.pop_back()
             result.append(Move(mv.from_square, mv.to_square))
         return result
@@ -646,7 +673,7 @@ cdef class BitBoardState:
         cdef list result = []  # @DuplicatedSignature
         cdef move mv  # @DuplicatedSignature
         while not q.empty():
-            mv = q.front()
+            mv = q.back()
             q.pop_back()
             result.append(Move(mv.from_square, mv.to_square))
         return result

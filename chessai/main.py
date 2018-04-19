@@ -5,7 +5,8 @@ import logging
 
 
 def main(args):
-    client = Client(args.host, args.port, args.tournament, args.player, ai_dict[args.ai]())
+    client = Client(args.host, args.port, args.tournament, 
+                    args.player, ai_dict[args.ai][0](**ai_dict[args.ai][1]))
     client.connect()
     client.wait_for_messages()
     

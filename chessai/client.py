@@ -27,7 +27,6 @@ class Client(object):
 
             self.handle_message(action, message)
 
-
     def send_message(self, action, message):
         self.socket.send("%s %s\n" % (action, message))
 
@@ -63,7 +62,7 @@ class Client(object):
             logging.info("white_time %s" % (white_time,))
             logging.info("black_time %s" % (black_time,))
             logging.info("fen %s" % (fen,))
-            self.ai.start('white' if white_player == self.player_name else 'black')
+            self.ai.start(fen)
 
         elif action == "PLAYER_MOVED":
             # a player has moved. We might want to update our game state (this is sent after your moves too)

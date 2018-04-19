@@ -10,7 +10,7 @@ class RandomChessAI(ChessAI):
     def update(self, move):
         pass
     
-    def start(self, side):
+    def start(self, fen):
         pass
     
     def move(self):

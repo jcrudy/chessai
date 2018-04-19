@@ -86,6 +86,15 @@ def test_zobrist_update_correctness():
 #     hash3 = hash1.update(board, record)
 #     assert_equal(hash2, hash3)
 
+def test_long_form_move_formats():
+    starting_fen = 'rnbqkbnr/pppppppr/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    board = BitBoardState.from_fen(starting_fen)
+    mv = Move.from_long_form(True, 'e2-e4')
+    assert_equal(mv.to_long_form(), 'e2-e4')
+    board.make_move(mv)
+    assert_equal(board.to_fen(), 'rnbqkbnr/pppppppr/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1')
+    
+
 def test_boardstate_to_grid():
     starting_fen = 'rnbqkbnr/pppppppr/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     board = BitBoardState.from_fen(starting_fen)
