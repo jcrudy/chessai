@@ -191,7 +191,7 @@ unsigned long long perft(boardstate *brd, int depth){
     	return(n_moves);
     }
     for(int i = 0; i<n_moves; i++){
-    	mv = moves.front();
+    	mv = moves.back();
     	moves.pop_back();
     	rec = make_move(brd, &mv);
     	result += perft(brd, depth - 1);
@@ -467,11 +467,10 @@ void iterative_negamax(void *varg){
 						&best_move, arg->stop, arg->tt, hh, 0, &node_count,
 						arg->quiesce);
 		value = result.value;
-		if(!(*(arg->stop))){
-			best_value = value;
-			*(arg->best_move) = best_move;
+		*(arg->best_move) = best_move;
+		if(!(*arg->stop)){
+			arg->thresh = thresh;
 		}
-		arg->thresh = thresh;
 		thresh /= 2;
 	}
 }
