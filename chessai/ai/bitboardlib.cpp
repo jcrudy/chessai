@@ -164,7 +164,7 @@ unsigned long long perft(boardstate *brd, int depth){
     	return(n_moves);
     }
     for(int i = 0; i<n_moves; i++){
-    	mv = moves.front();
+    	mv = moves.back();
     	moves.pop_back();
     	rec = make_move(brd, &mv);
     	result += perft(brd, depth - 1);
