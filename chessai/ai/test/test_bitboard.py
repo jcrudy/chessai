@@ -15,7 +15,10 @@ def chess_move_to_black_move(chess_move):
 
 @curry
 def move_is_capture(board, move):
-    return board.get_piece_at_square_index(move.to_square) != 'no'
+    if board.get_piece_at_square_index(move.from_square).lower() != 'p':
+        return board.get_piece_at_square_index(move.to_square).lower() not in {'no', 'ep'}
+    else:
+        return board.get_piece_at_square_index(move.to_square).lower() != 'no'
     
 def chess_move_to_white_move(chess_move):
     promotion_dict = {5: 'Q', 4:'R', 3:'B', 2:'N'}
@@ -36,7 +39,7 @@ def verify_zobrist_update_on_position(fen):
     board = BitBoardState.from_fen(fen)
     initial = board.zobrist_hash()
     moves = board.all_moves()
-    for i, move in enumerate(moves):
+    for move in moves:
         rec = board.make_move(move)
         new_hash = board.zobrist_hash()
         assert_equal(board.get_zobrist_hash(), new_hash)
@@ -665,11 +668,11 @@ def test_move_tree_depth_4():
 
 def test_positions():
     positions = [
-                 'rnbq1bnr/pppkpppp/2P5/3p4/8/8/PP1PPPPP/RNBQKBNR b KQ - 0 3', 
-                 'rnbq1bnr/pppkpppp/2P5/3p4/8/8/PP1PPPPP/RNBQKBNR b KQ - 0 3',
-                 'r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2NQ4/PPPBBPpP/R4RK1 b kq - 1 2',
-                 '8/8/3p4/1Pp4r/1K3p2/6k1/4P1P1/1R6 w - c6 0 3',
-                 'r3k2r/1ppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R1Q2R1K b k - 3 3'
+                'rnbq1bnr/pppkpppp/2P5/3p4/8/8/PP1PPPPP/RNBQKBNR b KQ - 0 3', 
+                'rnbq1bnr/pppkpppp/2P5/3p4/8/8/PP1PPPPP/RNBQKBNR b KQ - 0 3',
+                'r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2NQ4/PPPBBPpP/R4RK1 b kq - 1 2',
+                '8/8/3p4/1Pp4r/1K3p2/6k1/4P1P1/1R6 w - c6 0 3',
+                'r3k2r/1ppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R1Q2R1K b k - 3 3'
                  ]
     for fen in positions:
         board = BitBoardState.from_fen(fen)

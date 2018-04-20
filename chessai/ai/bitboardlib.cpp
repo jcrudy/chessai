@@ -181,7 +181,7 @@ GameState::~GameState(){
 }
 
 unsigned long long perft(GameState *brd, int depth){
-    move moves[100];
+    move moves[200];
     int n_moves = all_moves(brd, moves);
     moverecord rec;
     move mv;

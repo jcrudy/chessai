@@ -167,14 +167,14 @@ inline const char *bbstr(bitboard bb){
 			str.push_back('0');
 		}
 	}
-	std::string str2 = std::string();
+	std::string *str2 = new std::string();
 	for(int j=1; j<=8; j++){
-		str2 += str.substr(64 - 8*j, 8);
+		(*str2) += str.substr(64 - 8*j, 8);
 		if(j<8){
-			str2.push_back(10);
+			str2->push_back(10);
 		}
 	}
-	return str2.c_str();
+	return str2->c_str();
 }
 
 inline brdidx square_index_to_file_index(brdidx i){
@@ -1411,7 +1411,7 @@ inline moverecord make_move(GameState *brd, move *mv){
 			unset_black_castle_queen(brd);
 		}
 	}else{
-		brd->fullmove_counter++;
+		(brd->fullmove_counter)++;
 		if(lost_own_castle_king){
 			unset_black_castle_king(brd);
 		}
@@ -1433,6 +1433,7 @@ inline moverecord make_move(GameState *brd, move *mv){
 	}else if(lost_own_castle_king || lost_own_castle_queen ||
 			lost_opponent_castle_king || lost_opponent_castle_queen){
 		brd->threefold_repetition_clock = 0;
+		brd->halfmove_clock++;
 	}else{
 		brd->halfmove_clock++;
 		brd->threefold_repetition_clock++;
@@ -2842,7 +2843,7 @@ inline int all_queen_moves(GameState *brd, move *moves){
 			mv.to_square = target_square;
 			mv.promotion = no;
 			moves[num_moves] = mv;
-			num_moves += 1;
+			num_moves ++;
 		}
 	}
 	return num_moves;
@@ -2908,35 +2909,35 @@ inline int quiet_queen_moves(GameState *brd, move *moves){
 inline int all_captures(GameState *brd, move *moves){
 	EASY_FUNCTION(profiler::colors::Blue);
 	int num_moves = 0;
-	num_moves += king_captures(brd, moves);
-	num_moves += queen_captures(brd, moves);
-	num_moves += bishop_captures(brd, moves);
-	num_moves += rook_captures(brd, moves);
-	num_moves += pawn_captures(brd, moves);
-	num_moves += knight_captures(brd, moves);
+	num_moves += king_captures(brd, moves + num_moves);
+	num_moves += queen_captures(brd, moves + num_moves);
+	num_moves += bishop_captures(brd, moves + num_moves);
+	num_moves += rook_captures(brd, moves + num_moves);
+	num_moves += pawn_captures(brd, moves + num_moves);
+	num_moves += knight_captures(brd, moves + num_moves);
 	return num_moves;
 }
 
 inline int all_moves(GameState *brd, move *moves){
 	EASY_FUNCTION(profiler::colors::Red);
 	int num_moves = 0;
-	num_moves += all_king_moves(brd, moves);
-	num_moves += all_queen_moves(brd, moves);
-	num_moves += all_bishop_moves(brd, moves);
-	num_moves += all_rook_moves(brd, moves);
-	num_moves += all_pawn_moves(brd, moves);
-	num_moves += all_knight_moves(brd, moves);
+	num_moves += all_king_moves(brd, moves + num_moves);
+	num_moves += all_queen_moves(brd, moves + num_moves);
+	num_moves += all_bishop_moves(brd, moves + num_moves);
+	num_moves += all_rook_moves(brd, moves + num_moves);
+	num_moves += all_pawn_moves(brd, moves + num_moves);
+	num_moves += all_knight_moves(brd, moves + num_moves);
 	return num_moves;
 }
 
 inline int all_quiet_moves(GameState *brd, move *moves){
 	int num_moves = 0;
-	num_moves += quiet_king_moves(brd, moves);
-	num_moves += quiet_queen_moves(brd, moves);
-	num_moves += quiet_bishop_moves(brd, moves);
-	num_moves += quiet_rook_moves(brd, moves);
-	num_moves += quiet_pawn_moves(brd, moves);
-	num_moves += quiet_knight_moves(brd, moves);
+	num_moves += quiet_king_moves(brd, moves + num_moves);
+	num_moves += quiet_queen_moves(brd, moves + num_moves);
+	num_moves += quiet_bishop_moves(brd, moves + num_moves);
+	num_moves += quiet_rook_moves(brd, moves + num_moves);
+	num_moves += quiet_pawn_moves(brd, moves + num_moves);
+	num_moves += quiet_knight_moves(brd, moves + num_moves);
 	return num_moves;
 }
 
@@ -3044,7 +3045,7 @@ class MoveSearchMemory {
 	public:
 		TranspositionTable *tt;
 		MoveHistoryTable *hh;
-		move move_buffer[100][100];
+		move move_buffer[100][300];
 		MoveSearchMemory(unsigned long int tt_size);
 		~MoveSearchMemory();
 };

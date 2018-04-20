@@ -598,8 +598,9 @@ cdef class BitBoardState:
         return perft(&(self.bs), depth)
     
     cpdef all_moves(BitBoardState self):
-        cdef move mvs[100];
+        cdef move mvs[300];
         cdef int num_moves = all_moves(&(self.bs), mvs)
+#         print "num_moves = %d" % num_moves
         cdef list result = []
         cdef move mv
         for i in range(num_moves):
@@ -608,7 +609,7 @@ cdef class BitBoardState:
         return result
     
     cpdef all_captures(BitBoardState self):
-        cdef move mvs[100];  # @DuplicatedSignature
+        cdef move mvs[300];  # @DuplicatedSignature
         cdef int num_moves = all_captures(&(self.bs), mvs)
         cdef list result = []  # @DuplicatedSignature
         cdef move mv  # @DuplicatedSignature
@@ -618,7 +619,7 @@ cdef class BitBoardState:
         return result
     
     cpdef quiet_queen_moves(BitBoardState self):
-        cdef move mvs[100];  # @DuplicatedSignature
+        cdef move mvs[300];  # @DuplicatedSignature
         cdef int num_moves = quiet_queen_moves(&(self.bs), mvs)
         cdef list result = []  # @DuplicatedSignature
         cdef move mv  # @DuplicatedSignature
@@ -628,7 +629,7 @@ cdef class BitBoardState:
         return result
     
     cpdef all_queen_moves(BitBoardState self):
-        cdef move mvs[100];  # @DuplicatedSignature
+        cdef move mvs[300];  # @DuplicatedSignature
         cdef int num_moves = all_queen_moves(&(self.bs), mvs)
         cdef list result = []  # @DuplicatedSignature
         cdef move mv  # @DuplicatedSignature
@@ -638,7 +639,7 @@ cdef class BitBoardState:
         return result
     
     cpdef queen_captures(BitBoardState self):
-        cdef move mvs[100];  # @DuplicatedSignature
+        cdef move mvs[300];  # @DuplicatedSignature
         cdef int num_moves = queen_captures(&(self.bs), mvs)
         cdef list result = []  # @DuplicatedSignature
         cdef move mv  # @DuplicatedSignature

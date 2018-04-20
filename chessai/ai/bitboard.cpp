@@ -11775,13 +11775,13 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_12perft(struct 
  *         return perft(&(self.bs), depth)
  * 
  *     cpdef all_moves(BitBoardState self):             # <<<<<<<<<<<<<<
- *         cdef move mvs[100];
+ *         cdef move mvs[300];
  *         cdef int num_moves = all_moves(&(self.bs), mvs)
  */
 
 static PyObject *__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_15all_moves(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
 static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_moves(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, int __pyx_skip_dispatch) {
-  move __pyx_v_mvs[0x64];
+  move __pyx_v_mvs[0x12C];
   int __pyx_v_num_moves;
   PyObject *__pyx_v_result = 0;
   move __pyx_v_mv;
@@ -11833,26 +11833,26 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_moves(struct
 
   /* "chessai/ai/bitboard.pyx":602
  *     cpdef all_moves(BitBoardState self):
- *         cdef move mvs[100];
+ *         cdef move mvs[300];
  *         cdef int num_moves = all_moves(&(self.bs), mvs)             # <<<<<<<<<<<<<<
+ * #         print "num_moves = %d" % num_moves
  *         cdef list result = []
- *         cdef move mv
  */
   __pyx_v_num_moves = all_moves((&__pyx_v_self->bs), __pyx_v_mvs);
 
-  /* "chessai/ai/bitboard.pyx":603
- *         cdef move mvs[100];
+  /* "chessai/ai/bitboard.pyx":604
  *         cdef int num_moves = all_moves(&(self.bs), mvs)
+ * #         print "num_moves = %d" % num_moves
  *         cdef list result = []             # <<<<<<<<<<<<<<
  *         cdef move mv
  *         for i in range(num_moves):
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 603, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 604, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_result = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "chessai/ai/bitboard.pyx":605
+  /* "chessai/ai/bitboard.pyx":606
  *         cdef list result = []
  *         cdef move mv
  *         for i in range(num_moves):             # <<<<<<<<<<<<<<
@@ -11863,7 +11863,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_moves(struct
   for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
     __pyx_v_i = __pyx_t_6;
 
-    /* "chessai/ai/bitboard.pyx":606
+    /* "chessai/ai/bitboard.pyx":607
  *         cdef move mv
  *         for i in range(num_moves):
  *             mv = mvs[i]             # <<<<<<<<<<<<<<
@@ -11872,20 +11872,20 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_moves(struct
  */
     __pyx_v_mv = (__pyx_v_mvs[__pyx_v_i]);
 
-    /* "chessai/ai/bitboard.pyx":607
+    /* "chessai/ai/bitboard.pyx":608
  *         for i in range(num_moves):
  *             mv = mvs[i]
  *             result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))             # <<<<<<<<<<<<<<
  *         return result
  * 
  */
-    __pyx_t_1 = __Pyx_PyInt_From_brdidx(__pyx_v_mv.from_square); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 607, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyInt_From_brdidx(__pyx_v_mv.from_square); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 608, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyInt_From_brdidx(__pyx_v_mv.to_square); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 607, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyInt_From_brdidx(__pyx_v_mv.to_square); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 608, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = __pyx_f_7chessai_2ai_8bitboard_piece_to_str(__pyx_v_mv.promotion); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 607, __pyx_L1_error)
+    __pyx_t_3 = __pyx_f_7chessai_2ai_8bitboard_piece_to_str(__pyx_v_mv.promotion); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 608, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 607, __pyx_L1_error)
+    __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 608, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
@@ -11896,14 +11896,14 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_moves(struct
     __pyx_t_1 = 0;
     __pyx_t_2 = 0;
     __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_Move), __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 607, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_Move), __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 608, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_7 = __Pyx_PyList_Append(__pyx_v_result, __pyx_t_3); if (unlikely(__pyx_t_7 == -1)) __PYX_ERR(0, 607, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyList_Append(__pyx_v_result, __pyx_t_3); if (unlikely(__pyx_t_7 == -1)) __PYX_ERR(0, 608, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":608
+  /* "chessai/ai/bitboard.pyx":609
  *             mv = mvs[i]
  *             result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))
  *         return result             # <<<<<<<<<<<<<<
@@ -11919,7 +11919,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_moves(struct
  *         return perft(&(self.bs), depth)
  * 
  *     cpdef all_moves(BitBoardState self):             # <<<<<<<<<<<<<<
- *         cdef move mvs[100];
+ *         cdef move mvs[300];
  *         cdef int num_moves = all_moves(&(self.bs), mvs)
  */
 
@@ -11974,17 +11974,17 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_14all_moves(str
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":610
+/* "chessai/ai/bitboard.pyx":611
  *         return result
  * 
  *     cpdef all_captures(BitBoardState self):             # <<<<<<<<<<<<<<
- *         cdef move mvs[100];  # @DuplicatedSignature
+ *         cdef move mvs[300];  # @DuplicatedSignature
  *         cdef int num_moves = all_captures(&(self.bs), mvs)
  */
 
 static PyObject *__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_17all_captures(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
 static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_captures(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, int __pyx_skip_dispatch) {
-  move __pyx_v_mvs[0x64];
+  move __pyx_v_mvs[0x12C];
   int __pyx_v_num_moves;
   PyObject *__pyx_v_result = 0;
   move __pyx_v_mv;
@@ -12003,7 +12003,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_captures(str
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_all_captures); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 610, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_all_captures); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 611, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_17all_captures)) {
       __Pyx_XDECREF(__pyx_r);
@@ -12019,10 +12019,10 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_captures(str
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 610, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 611, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 610, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 611, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -12034,28 +12034,28 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_captures(str
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":612
+  /* "chessai/ai/bitboard.pyx":613
  *     cpdef all_captures(BitBoardState self):
- *         cdef move mvs[100];  # @DuplicatedSignature
+ *         cdef move mvs[300];  # @DuplicatedSignature
  *         cdef int num_moves = all_captures(&(self.bs), mvs)             # <<<<<<<<<<<<<<
  *         cdef list result = []  # @DuplicatedSignature
  *         cdef move mv  # @DuplicatedSignature
  */
   __pyx_v_num_moves = all_captures((&__pyx_v_self->bs), __pyx_v_mvs);
 
-  /* "chessai/ai/bitboard.pyx":613
- *         cdef move mvs[100];  # @DuplicatedSignature
+  /* "chessai/ai/bitboard.pyx":614
+ *         cdef move mvs[300];  # @DuplicatedSignature
  *         cdef int num_moves = all_captures(&(self.bs), mvs)
  *         cdef list result = []  # @DuplicatedSignature             # <<<<<<<<<<<<<<
  *         cdef move mv  # @DuplicatedSignature
  *         for i in range(num_moves):
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 613, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 614, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_result = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "chessai/ai/bitboard.pyx":615
+  /* "chessai/ai/bitboard.pyx":616
  *         cdef list result = []  # @DuplicatedSignature
  *         cdef move mv  # @DuplicatedSignature
  *         for i in range(num_moves):             # <<<<<<<<<<<<<<
@@ -12066,7 +12066,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_captures(str
   for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
     __pyx_v_i = __pyx_t_6;
 
-    /* "chessai/ai/bitboard.pyx":616
+    /* "chessai/ai/bitboard.pyx":617
  *         cdef move mv  # @DuplicatedSignature
  *         for i in range(num_moves):
  *             mv = mvs[i]             # <<<<<<<<<<<<<<
@@ -12075,20 +12075,20 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_captures(str
  */
     __pyx_v_mv = (__pyx_v_mvs[__pyx_v_i]);
 
-    /* "chessai/ai/bitboard.pyx":617
+    /* "chessai/ai/bitboard.pyx":618
  *         for i in range(num_moves):
  *             mv = mvs[i]
  *             result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))             # <<<<<<<<<<<<<<
  *         return result
  * 
  */
-    __pyx_t_1 = __Pyx_PyInt_From_brdidx(__pyx_v_mv.from_square); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 617, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyInt_From_brdidx(__pyx_v_mv.from_square); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 618, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyInt_From_brdidx(__pyx_v_mv.to_square); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 617, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyInt_From_brdidx(__pyx_v_mv.to_square); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 618, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = __pyx_f_7chessai_2ai_8bitboard_piece_to_str(__pyx_v_mv.promotion); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 617, __pyx_L1_error)
+    __pyx_t_3 = __pyx_f_7chessai_2ai_8bitboard_piece_to_str(__pyx_v_mv.promotion); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 618, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 617, __pyx_L1_error)
+    __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 618, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
@@ -12099,14 +12099,14 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_captures(str
     __pyx_t_1 = 0;
     __pyx_t_2 = 0;
     __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_Move), __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 617, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_Move), __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 618, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_7 = __Pyx_PyList_Append(__pyx_v_result, __pyx_t_3); if (unlikely(__pyx_t_7 == -1)) __PYX_ERR(0, 617, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyList_Append(__pyx_v_result, __pyx_t_3); if (unlikely(__pyx_t_7 == -1)) __PYX_ERR(0, 618, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":618
+  /* "chessai/ai/bitboard.pyx":619
  *             mv = mvs[i]
  *             result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))
  *         return result             # <<<<<<<<<<<<<<
@@ -12118,11 +12118,11 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_captures(str
   __pyx_r = __pyx_v_result;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":610
+  /* "chessai/ai/bitboard.pyx":611
  *         return result
  * 
  *     cpdef all_captures(BitBoardState self):             # <<<<<<<<<<<<<<
- *         cdef move mvs[100];  # @DuplicatedSignature
+ *         cdef move mvs[300];  # @DuplicatedSignature
  *         cdef int num_moves = all_captures(&(self.bs), mvs)
  */
 
@@ -12160,7 +12160,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_16all_captures(
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("all_captures", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_captures(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 610, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_captures(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 611, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -12177,17 +12177,17 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_16all_captures(
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":620
+/* "chessai/ai/bitboard.pyx":621
  *         return result
  * 
  *     cpdef quiet_queen_moves(BitBoardState self):             # <<<<<<<<<<<<<<
- *         cdef move mvs[100];  # @DuplicatedSignature
+ *         cdef move mvs[300];  # @DuplicatedSignature
  *         cdef int num_moves = quiet_queen_moves(&(self.bs), mvs)
  */
 
 static PyObject *__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_19quiet_queen_moves(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
 static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_quiet_queen_moves(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, int __pyx_skip_dispatch) {
-  move __pyx_v_mvs[0x64];
+  move __pyx_v_mvs[0x12C];
   int __pyx_v_num_moves;
   PyObject *__pyx_v_result = 0;
   move __pyx_v_mv;
@@ -12206,7 +12206,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_quiet_queen_move
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_quiet_queen_moves); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 620, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_quiet_queen_moves); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 621, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_19quiet_queen_moves)) {
       __Pyx_XDECREF(__pyx_r);
@@ -12222,10 +12222,10 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_quiet_queen_move
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 620, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 621, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 620, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 621, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -12237,28 +12237,28 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_quiet_queen_move
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":622
+  /* "chessai/ai/bitboard.pyx":623
  *     cpdef quiet_queen_moves(BitBoardState self):
- *         cdef move mvs[100];  # @DuplicatedSignature
+ *         cdef move mvs[300];  # @DuplicatedSignature
  *         cdef int num_moves = quiet_queen_moves(&(self.bs), mvs)             # <<<<<<<<<<<<<<
  *         cdef list result = []  # @DuplicatedSignature
  *         cdef move mv  # @DuplicatedSignature
  */
   __pyx_v_num_moves = quiet_queen_moves((&__pyx_v_self->bs), __pyx_v_mvs);
 
-  /* "chessai/ai/bitboard.pyx":623
- *         cdef move mvs[100];  # @DuplicatedSignature
+  /* "chessai/ai/bitboard.pyx":624
+ *         cdef move mvs[300];  # @DuplicatedSignature
  *         cdef int num_moves = quiet_queen_moves(&(self.bs), mvs)
  *         cdef list result = []  # @DuplicatedSignature             # <<<<<<<<<<<<<<
  *         cdef move mv  # @DuplicatedSignature
  *         for i in range(num_moves):
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 623, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 624, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_result = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "chessai/ai/bitboard.pyx":625
+  /* "chessai/ai/bitboard.pyx":626
  *         cdef list result = []  # @DuplicatedSignature
  *         cdef move mv  # @DuplicatedSignature
  *         for i in range(num_moves):             # <<<<<<<<<<<<<<
@@ -12269,7 +12269,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_quiet_queen_move
   for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
     __pyx_v_i = __pyx_t_6;
 
-    /* "chessai/ai/bitboard.pyx":626
+    /* "chessai/ai/bitboard.pyx":627
  *         cdef move mv  # @DuplicatedSignature
  *         for i in range(num_moves):
  *             mv = mvs[i]             # <<<<<<<<<<<<<<
@@ -12278,20 +12278,20 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_quiet_queen_move
  */
     __pyx_v_mv = (__pyx_v_mvs[__pyx_v_i]);
 
-    /* "chessai/ai/bitboard.pyx":627
+    /* "chessai/ai/bitboard.pyx":628
  *         for i in range(num_moves):
  *             mv = mvs[i]
  *             result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))             # <<<<<<<<<<<<<<
  *         return result
  * 
  */
-    __pyx_t_1 = __Pyx_PyInt_From_brdidx(__pyx_v_mv.from_square); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 627, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyInt_From_brdidx(__pyx_v_mv.from_square); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 628, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyInt_From_brdidx(__pyx_v_mv.to_square); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 627, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyInt_From_brdidx(__pyx_v_mv.to_square); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 628, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = __pyx_f_7chessai_2ai_8bitboard_piece_to_str(__pyx_v_mv.promotion); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 627, __pyx_L1_error)
+    __pyx_t_3 = __pyx_f_7chessai_2ai_8bitboard_piece_to_str(__pyx_v_mv.promotion); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 628, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 627, __pyx_L1_error)
+    __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 628, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
@@ -12302,14 +12302,14 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_quiet_queen_move
     __pyx_t_1 = 0;
     __pyx_t_2 = 0;
     __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_Move), __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 627, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_Move), __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 628, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_7 = __Pyx_PyList_Append(__pyx_v_result, __pyx_t_3); if (unlikely(__pyx_t_7 == -1)) __PYX_ERR(0, 627, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyList_Append(__pyx_v_result, __pyx_t_3); if (unlikely(__pyx_t_7 == -1)) __PYX_ERR(0, 628, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":628
+  /* "chessai/ai/bitboard.pyx":629
  *             mv = mvs[i]
  *             result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))
  *         return result             # <<<<<<<<<<<<<<
@@ -12321,11 +12321,11 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_quiet_queen_move
   __pyx_r = __pyx_v_result;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":620
+  /* "chessai/ai/bitboard.pyx":621
  *         return result
  * 
  *     cpdef quiet_queen_moves(BitBoardState self):             # <<<<<<<<<<<<<<
- *         cdef move mvs[100];  # @DuplicatedSignature
+ *         cdef move mvs[300];  # @DuplicatedSignature
  *         cdef int num_moves = quiet_queen_moves(&(self.bs), mvs)
  */
 
@@ -12363,7 +12363,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_18quiet_queen_m
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("quiet_queen_moves", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_quiet_queen_moves(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 620, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_quiet_queen_moves(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 621, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -12380,17 +12380,17 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_18quiet_queen_m
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":630
+/* "chessai/ai/bitboard.pyx":631
  *         return result
  * 
  *     cpdef all_queen_moves(BitBoardState self):             # <<<<<<<<<<<<<<
- *         cdef move mvs[100];  # @DuplicatedSignature
+ *         cdef move mvs[300];  # @DuplicatedSignature
  *         cdef int num_moves = all_queen_moves(&(self.bs), mvs)
  */
 
 static PyObject *__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_21all_queen_moves(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
 static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_queen_moves(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, int __pyx_skip_dispatch) {
-  move __pyx_v_mvs[0x64];
+  move __pyx_v_mvs[0x12C];
   int __pyx_v_num_moves;
   PyObject *__pyx_v_result = 0;
   move __pyx_v_mv;
@@ -12409,7 +12409,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_queen_moves(
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_all_queen_moves); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 630, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_all_queen_moves); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 631, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_21all_queen_moves)) {
       __Pyx_XDECREF(__pyx_r);
@@ -12425,10 +12425,10 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_queen_moves(
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 630, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 631, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 630, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 631, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -12440,28 +12440,28 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_queen_moves(
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":632
+  /* "chessai/ai/bitboard.pyx":633
  *     cpdef all_queen_moves(BitBoardState self):
- *         cdef move mvs[100];  # @DuplicatedSignature
+ *         cdef move mvs[300];  # @DuplicatedSignature
  *         cdef int num_moves = all_queen_moves(&(self.bs), mvs)             # <<<<<<<<<<<<<<
  *         cdef list result = []  # @DuplicatedSignature
  *         cdef move mv  # @DuplicatedSignature
  */
   __pyx_v_num_moves = all_queen_moves((&__pyx_v_self->bs), __pyx_v_mvs);
 
-  /* "chessai/ai/bitboard.pyx":633
- *         cdef move mvs[100];  # @DuplicatedSignature
+  /* "chessai/ai/bitboard.pyx":634
+ *         cdef move mvs[300];  # @DuplicatedSignature
  *         cdef int num_moves = all_queen_moves(&(self.bs), mvs)
  *         cdef list result = []  # @DuplicatedSignature             # <<<<<<<<<<<<<<
  *         cdef move mv  # @DuplicatedSignature
  *         for i in range(num_moves):
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 633, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 634, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_result = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "chessai/ai/bitboard.pyx":635
+  /* "chessai/ai/bitboard.pyx":636
  *         cdef list result = []  # @DuplicatedSignature
  *         cdef move mv  # @DuplicatedSignature
  *         for i in range(num_moves):             # <<<<<<<<<<<<<<
@@ -12472,7 +12472,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_queen_moves(
   for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
     __pyx_v_i = __pyx_t_6;
 
-    /* "chessai/ai/bitboard.pyx":636
+    /* "chessai/ai/bitboard.pyx":637
  *         cdef move mv  # @DuplicatedSignature
  *         for i in range(num_moves):
  *             mv = mvs[i]             # <<<<<<<<<<<<<<
@@ -12481,20 +12481,20 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_queen_moves(
  */
     __pyx_v_mv = (__pyx_v_mvs[__pyx_v_i]);
 
-    /* "chessai/ai/bitboard.pyx":637
+    /* "chessai/ai/bitboard.pyx":638
  *         for i in range(num_moves):
  *             mv = mvs[i]
  *             result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))             # <<<<<<<<<<<<<<
  *         return result
  * 
  */
-    __pyx_t_1 = __Pyx_PyInt_From_brdidx(__pyx_v_mv.from_square); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 637, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyInt_From_brdidx(__pyx_v_mv.from_square); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 638, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyInt_From_brdidx(__pyx_v_mv.to_square); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 637, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyInt_From_brdidx(__pyx_v_mv.to_square); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 638, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = __pyx_f_7chessai_2ai_8bitboard_piece_to_str(__pyx_v_mv.promotion); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 637, __pyx_L1_error)
+    __pyx_t_3 = __pyx_f_7chessai_2ai_8bitboard_piece_to_str(__pyx_v_mv.promotion); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 638, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 637, __pyx_L1_error)
+    __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 638, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
@@ -12505,14 +12505,14 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_queen_moves(
     __pyx_t_1 = 0;
     __pyx_t_2 = 0;
     __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_Move), __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 637, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_Move), __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 638, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_7 = __Pyx_PyList_Append(__pyx_v_result, __pyx_t_3); if (unlikely(__pyx_t_7 == -1)) __PYX_ERR(0, 637, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyList_Append(__pyx_v_result, __pyx_t_3); if (unlikely(__pyx_t_7 == -1)) __PYX_ERR(0, 638, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":638
+  /* "chessai/ai/bitboard.pyx":639
  *             mv = mvs[i]
  *             result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))
  *         return result             # <<<<<<<<<<<<<<
@@ -12524,11 +12524,11 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_queen_moves(
   __pyx_r = __pyx_v_result;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":630
+  /* "chessai/ai/bitboard.pyx":631
  *         return result
  * 
  *     cpdef all_queen_moves(BitBoardState self):             # <<<<<<<<<<<<<<
- *         cdef move mvs[100];  # @DuplicatedSignature
+ *         cdef move mvs[300];  # @DuplicatedSignature
  *         cdef int num_moves = all_queen_moves(&(self.bs), mvs)
  */
 
@@ -12566,7 +12566,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_20all_queen_mov
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("all_queen_moves", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_queen_moves(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 630, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_all_queen_moves(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 631, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -12583,17 +12583,17 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_20all_queen_mov
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":640
+/* "chessai/ai/bitboard.pyx":641
  *         return result
  * 
  *     cpdef queen_captures(BitBoardState self):             # <<<<<<<<<<<<<<
- *         cdef move mvs[100];  # @DuplicatedSignature
+ *         cdef move mvs[300];  # @DuplicatedSignature
  *         cdef int num_moves = queen_captures(&(self.bs), mvs)
  */
 
 static PyObject *__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_23queen_captures(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
 static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_queen_captures(struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *__pyx_v_self, int __pyx_skip_dispatch) {
-  move __pyx_v_mvs[0x64];
+  move __pyx_v_mvs[0x12C];
   int __pyx_v_num_moves;
   PyObject *__pyx_v_result = 0;
   move __pyx_v_mv;
@@ -12612,7 +12612,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_queen_captures(s
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_queen_captures); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 640, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_queen_captures); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 641, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_23queen_captures)) {
       __Pyx_XDECREF(__pyx_r);
@@ -12628,10 +12628,10 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_queen_captures(s
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 640, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 641, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 640, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 641, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -12643,28 +12643,28 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_queen_captures(s
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":642
+  /* "chessai/ai/bitboard.pyx":643
  *     cpdef queen_captures(BitBoardState self):
- *         cdef move mvs[100];  # @DuplicatedSignature
+ *         cdef move mvs[300];  # @DuplicatedSignature
  *         cdef int num_moves = queen_captures(&(self.bs), mvs)             # <<<<<<<<<<<<<<
  *         cdef list result = []  # @DuplicatedSignature
  *         cdef move mv  # @DuplicatedSignature
  */
   __pyx_v_num_moves = queen_captures((&__pyx_v_self->bs), __pyx_v_mvs);
 
-  /* "chessai/ai/bitboard.pyx":643
- *         cdef move mvs[100];  # @DuplicatedSignature
+  /* "chessai/ai/bitboard.pyx":644
+ *         cdef move mvs[300];  # @DuplicatedSignature
  *         cdef int num_moves = queen_captures(&(self.bs), mvs)
  *         cdef list result = []  # @DuplicatedSignature             # <<<<<<<<<<<<<<
  *         cdef move mv  # @DuplicatedSignature
  *         for i in range(num_moves):
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 643, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 644, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_result = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "chessai/ai/bitboard.pyx":645
+  /* "chessai/ai/bitboard.pyx":646
  *         cdef list result = []  # @DuplicatedSignature
  *         cdef move mv  # @DuplicatedSignature
  *         for i in range(num_moves):             # <<<<<<<<<<<<<<
@@ -12675,7 +12675,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_queen_captures(s
   for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
     __pyx_v_i = __pyx_t_6;
 
-    /* "chessai/ai/bitboard.pyx":646
+    /* "chessai/ai/bitboard.pyx":647
  *         cdef move mv  # @DuplicatedSignature
  *         for i in range(num_moves):
  *             mv = mvs[i]             # <<<<<<<<<<<<<<
@@ -12684,20 +12684,20 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_queen_captures(s
  */
     __pyx_v_mv = (__pyx_v_mvs[__pyx_v_i]);
 
-    /* "chessai/ai/bitboard.pyx":647
+    /* "chessai/ai/bitboard.pyx":648
  *         for i in range(num_moves):
  *             mv = mvs[i]
  *             result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))             # <<<<<<<<<<<<<<
  *         return result
  * 
  */
-    __pyx_t_1 = __Pyx_PyInt_From_brdidx(__pyx_v_mv.from_square); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 647, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyInt_From_brdidx(__pyx_v_mv.from_square); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 648, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyInt_From_brdidx(__pyx_v_mv.to_square); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 647, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyInt_From_brdidx(__pyx_v_mv.to_square); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 648, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = __pyx_f_7chessai_2ai_8bitboard_piece_to_str(__pyx_v_mv.promotion); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 647, __pyx_L1_error)
+    __pyx_t_3 = __pyx_f_7chessai_2ai_8bitboard_piece_to_str(__pyx_v_mv.promotion); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 648, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 647, __pyx_L1_error)
+    __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 648, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
@@ -12708,14 +12708,14 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_queen_captures(s
     __pyx_t_1 = 0;
     __pyx_t_2 = 0;
     __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_Move), __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 647, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_Move), __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 648, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_7 = __Pyx_PyList_Append(__pyx_v_result, __pyx_t_3); if (unlikely(__pyx_t_7 == -1)) __PYX_ERR(0, 647, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyList_Append(__pyx_v_result, __pyx_t_3); if (unlikely(__pyx_t_7 == -1)) __PYX_ERR(0, 648, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":648
+  /* "chessai/ai/bitboard.pyx":649
  *             mv = mvs[i]
  *             result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))
  *         return result             # <<<<<<<<<<<<<<
@@ -12727,11 +12727,11 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_queen_captures(s
   __pyx_r = __pyx_v_result;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":640
+  /* "chessai/ai/bitboard.pyx":641
  *         return result
  * 
  *     cpdef queen_captures(BitBoardState self):             # <<<<<<<<<<<<<<
- *         cdef move mvs[100];  # @DuplicatedSignature
+ *         cdef move mvs[300];  # @DuplicatedSignature
  *         cdef int num_moves = queen_captures(&(self.bs), mvs)
  */
 
@@ -12769,7 +12769,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_22queen_capture
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("queen_captures", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_queen_captures(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 640, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_queen_captures(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 641, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -12786,7 +12786,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_22queen_capture
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":650
+/* "chessai/ai/bitboard.pyx":651
  *         return result
  * 
  *     cpdef place_piece(BitBoardState self, int idx, str pc):             # <<<<<<<<<<<<<<
@@ -12810,11 +12810,11 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_place_piece(stru
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_place_piece); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 650, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_place_piece); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 651, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_25place_piece)) {
       __Pyx_XDECREF(__pyx_r);
-      __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_idx); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 650, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_idx); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 651, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_INCREF(__pyx_t_1);
       __pyx_t_4 = __pyx_t_1; __pyx_t_5 = NULL;
@@ -12832,7 +12832,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_place_piece(stru
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_t_3, __pyx_v_pc};
-        __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 650, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 651, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
         __Pyx_GOTREF(__pyx_t_2);
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -12841,14 +12841,14 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_place_piece(stru
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_t_3, __pyx_v_pc};
-        __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 650, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 651, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
         __Pyx_GOTREF(__pyx_t_2);
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       } else
       #endif
       {
-        __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 650, __pyx_L1_error)
+        __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 651, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
         if (__pyx_t_5) {
           __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_5); __pyx_t_5 = NULL;
@@ -12859,7 +12859,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_place_piece(stru
         __Pyx_GIVEREF(__pyx_v_pc);
         PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_6, __pyx_v_pc);
         __pyx_t_3 = 0;
-        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 650, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 651, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       }
@@ -12872,7 +12872,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_place_piece(stru
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":651
+  /* "chessai/ai/bitboard.pyx":652
  * 
  *     cpdef place_piece(BitBoardState self, int idx, str pc):
  *         place_piece(&(self.bs), <brdidx> idx, str_to_piece(pc))             # <<<<<<<<<<<<<<
@@ -12881,7 +12881,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_place_piece(stru
  */
   place_piece((&__pyx_v_self->bs), ((brdidx)__pyx_v_idx), __pyx_f_7chessai_2ai_8bitboard_str_to_piece(__pyx_v_pc));
 
-  /* "chessai/ai/bitboard.pyx":650
+  /* "chessai/ai/bitboard.pyx":651
  *         return result
  * 
  *     cpdef place_piece(BitBoardState self, int idx, str pc):             # <<<<<<<<<<<<<<
@@ -12938,11 +12938,11 @@ static PyObject *__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_25place_piece(P
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_pc)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("place_piece", 1, 2, 2, 1); __PYX_ERR(0, 650, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("place_piece", 1, 2, 2, 1); __PYX_ERR(0, 651, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "place_piece") < 0)) __PYX_ERR(0, 650, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "place_piece") < 0)) __PYX_ERR(0, 651, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -12950,18 +12950,18 @@ static PyObject *__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_25place_piece(P
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
-    __pyx_v_idx = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_idx == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 650, __pyx_L3_error)
+    __pyx_v_idx = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_idx == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 651, __pyx_L3_error)
     __pyx_v_pc = ((PyObject*)values[1]);
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("place_piece", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 650, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("place_piece", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 651, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("chessai.ai.bitboard.BitBoardState.place_piece", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_pc), (&PyString_Type), 1, "pc", 1))) __PYX_ERR(0, 650, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_pc), (&PyString_Type), 1, "pc", 1))) __PYX_ERR(0, 651, __pyx_L1_error)
   __pyx_r = __pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_24place_piece(((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *)__pyx_v_self), __pyx_v_idx, __pyx_v_pc);
 
   /* function exit code */
@@ -12979,7 +12979,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_24place_piece(s
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("place_piece", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_place_piece(__pyx_v_self, __pyx_v_idx, __pyx_v_pc, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 650, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_place_piece(__pyx_v_self, __pyx_v_idx, __pyx_v_pc, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 651, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -12996,7 +12996,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_24place_piece(s
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":654
+/* "chessai/ai/bitboard.pyx":655
  * 
  *     @classmethod
  *     def from_fen(cls, str fen):             # <<<<<<<<<<<<<<
@@ -13010,7 +13010,7 @@ static PyObject *__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_27from_fen(PyOb
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("from_fen (wrapper)", 0);
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_fen), (&PyString_Type), 1, "fen", 1))) __PYX_ERR(0, 654, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_fen), (&PyString_Type), 1, "fen", 1))) __PYX_ERR(0, 655, __pyx_L1_error)
   __pyx_r = __pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_26from_fen(((PyTypeObject*)__pyx_v_cls), ((PyObject*)__pyx_v_fen));
 
   /* function exit code */
@@ -13030,7 +13030,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_26from_fen(CYTH
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("from_fen", 0);
 
-  /* "chessai/ai/bitboard.pyx":656
+  /* "chessai/ai/bitboard.pyx":657
  *     def from_fen(cls, str fen):
  *         cdef GameState bs
  *         bs = fen_to_bitboard(fen)             # <<<<<<<<<<<<<<
@@ -13039,19 +13039,19 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_26from_fen(CYTH
  */
   __pyx_v_bs = __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(__pyx_v_fen);
 
-  /* "chessai/ai/bitboard.pyx":657
+  /* "chessai/ai/bitboard.pyx":658
  *         cdef GameState bs
  *         bs = fen_to_bitboard(fen)
  *         cdef BitBoardState result = BitBoardState()             # <<<<<<<<<<<<<<
  *         result.bs = bs
  *         return result
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoardState), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 657, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoardState), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 658, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_result = ((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "chessai/ai/bitboard.pyx":658
+  /* "chessai/ai/bitboard.pyx":659
  *         bs = fen_to_bitboard(fen)
  *         cdef BitBoardState result = BitBoardState()
  *         result.bs = bs             # <<<<<<<<<<<<<<
@@ -13060,7 +13060,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_26from_fen(CYTH
  */
   __pyx_v_result->bs = __pyx_v_bs;
 
-  /* "chessai/ai/bitboard.pyx":659
+  /* "chessai/ai/bitboard.pyx":660
  *         cdef BitBoardState result = BitBoardState()
  *         result.bs = bs
  *         return result             # <<<<<<<<<<<<<<
@@ -13072,7 +13072,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_26from_fen(CYTH
   __pyx_r = ((PyObject *)__pyx_v_result);
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":654
+  /* "chessai/ai/bitboard.pyx":655
  * 
  *     @classmethod
  *     def from_fen(cls, str fen):             # <<<<<<<<<<<<<<
@@ -13092,7 +13092,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_26from_fen(CYTH
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":661
+/* "chessai/ai/bitboard.pyx":662
  *         return result
  * 
  *     cpdef MoveRecord make_move(BitBoardState self, Move mv):             # <<<<<<<<<<<<<<
@@ -13116,7 +13116,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_MoveRecord *__pyx_f_7chessai_2ai_
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_make_move); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 661, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_make_move); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 662, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_29make_move)) {
       __Pyx_XDECREF(((PyObject *)__pyx_r));
@@ -13132,13 +13132,13 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_MoveRecord *__pyx_f_7chessai_2ai_
         }
       }
       if (!__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, ((PyObject *)__pyx_v_mv)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 661, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, ((PyObject *)__pyx_v_mv)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 662, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
       } else {
         #if CYTHON_FAST_PYCALL
         if (PyFunction_Check(__pyx_t_3)) {
           PyObject *__pyx_temp[2] = {__pyx_t_4, ((PyObject *)__pyx_v_mv)};
-          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 661, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 662, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
           __Pyx_GOTREF(__pyx_t_2);
         } else
@@ -13146,25 +13146,25 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_MoveRecord *__pyx_f_7chessai_2ai_
         #if CYTHON_FAST_PYCCALL
         if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
           PyObject *__pyx_temp[2] = {__pyx_t_4, ((PyObject *)__pyx_v_mv)};
-          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 661, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 662, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
           __Pyx_GOTREF(__pyx_t_2);
         } else
         #endif
         {
-          __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 661, __pyx_L1_error)
+          __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 662, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_5);
           __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __pyx_t_4 = NULL;
           __Pyx_INCREF(((PyObject *)__pyx_v_mv));
           __Pyx_GIVEREF(((PyObject *)__pyx_v_mv));
           PyTuple_SET_ITEM(__pyx_t_5, 0+1, ((PyObject *)__pyx_v_mv));
-          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 661, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 662, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
         }
       }
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7chessai_2ai_8bitboard_MoveRecord))))) __PYX_ERR(0, 661, __pyx_L1_error)
+      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7chessai_2ai_8bitboard_MoveRecord))))) __PYX_ERR(0, 662, __pyx_L1_error)
       __pyx_r = ((struct __pyx_obj_7chessai_2ai_8bitboard_MoveRecord *)__pyx_t_2);
       __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -13173,7 +13173,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_MoveRecord *__pyx_f_7chessai_2ai_
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":663
+  /* "chessai/ai/bitboard.pyx":664
  *     cpdef MoveRecord make_move(BitBoardState self, Move mv):
  *         cdef moverecord rec
  *         rec = make_move(&(self.bs), &(mv.mv))             # <<<<<<<<<<<<<<
@@ -13182,19 +13182,19 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_MoveRecord *__pyx_f_7chessai_2ai_
  */
   __pyx_v_rec = make_move((&__pyx_v_self->bs), (&__pyx_v_mv->mv));
 
-  /* "chessai/ai/bitboard.pyx":665
+  /* "chessai/ai/bitboard.pyx":666
  *         rec = make_move(&(self.bs), &(mv.mv))
  *         cdef MoveRecord result
  *         result = MoveRecord()             # <<<<<<<<<<<<<<
  *         result.rec = rec
  *         return result
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_MoveRecord), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 665, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_MoveRecord), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 666, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_result = ((struct __pyx_obj_7chessai_2ai_8bitboard_MoveRecord *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "chessai/ai/bitboard.pyx":666
+  /* "chessai/ai/bitboard.pyx":667
  *         cdef MoveRecord result
  *         result = MoveRecord()
  *         result.rec = rec             # <<<<<<<<<<<<<<
@@ -13203,7 +13203,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_MoveRecord *__pyx_f_7chessai_2ai_
  */
   __pyx_v_result->rec = __pyx_v_rec;
 
-  /* "chessai/ai/bitboard.pyx":667
+  /* "chessai/ai/bitboard.pyx":668
  *         result = MoveRecord()
  *         result.rec = rec
  *         return result             # <<<<<<<<<<<<<<
@@ -13215,7 +13215,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_MoveRecord *__pyx_f_7chessai_2ai_
   __pyx_r = __pyx_v_result;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":661
+  /* "chessai/ai/bitboard.pyx":662
  *         return result
  * 
  *     cpdef MoveRecord make_move(BitBoardState self, Move mv):             # <<<<<<<<<<<<<<
@@ -13245,7 +13245,7 @@ static PyObject *__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_29make_move(PyO
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("make_move (wrapper)", 0);
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_mv), __pyx_ptype_7chessai_2ai_8bitboard_Move, 1, "mv", 0))) __PYX_ERR(0, 661, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_mv), __pyx_ptype_7chessai_2ai_8bitboard_Move, 1, "mv", 0))) __PYX_ERR(0, 662, __pyx_L1_error)
   __pyx_r = __pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_28make_move(((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *)__pyx_v_self), ((struct __pyx_obj_7chessai_2ai_8bitboard_Move *)__pyx_v_mv));
 
   /* function exit code */
@@ -13263,7 +13263,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_28make_move(str
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("make_move", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((PyObject *)__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_make_move(__pyx_v_self, __pyx_v_mv, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 661, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_make_move(__pyx_v_self, __pyx_v_mv, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 662, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -13280,7 +13280,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_28make_move(str
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":669
+/* "chessai/ai/bitboard.pyx":670
  *         return result
  * 
  *     cpdef void unmake_move(BitBoardState self, MoveRecord mv):             # <<<<<<<<<<<<<<
@@ -13301,7 +13301,7 @@ static void __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_unmake_move(struct __
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_unmake_move); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 669, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_unmake_move); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 670, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_31unmake_move)) {
       __Pyx_INCREF(__pyx_t_1);
@@ -13316,13 +13316,13 @@ static void __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_unmake_move(struct __
         }
       }
       if (!__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, ((PyObject *)__pyx_v_mv)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 669, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, ((PyObject *)__pyx_v_mv)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 670, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
       } else {
         #if CYTHON_FAST_PYCALL
         if (PyFunction_Check(__pyx_t_3)) {
           PyObject *__pyx_temp[2] = {__pyx_t_4, ((PyObject *)__pyx_v_mv)};
-          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 669, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 670, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
           __Pyx_GOTREF(__pyx_t_2);
         } else
@@ -13330,19 +13330,19 @@ static void __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_unmake_move(struct __
         #if CYTHON_FAST_PYCCALL
         if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
           PyObject *__pyx_temp[2] = {__pyx_t_4, ((PyObject *)__pyx_v_mv)};
-          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 669, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 670, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
           __Pyx_GOTREF(__pyx_t_2);
         } else
         #endif
         {
-          __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 669, __pyx_L1_error)
+          __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 670, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_5);
           __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __pyx_t_4 = NULL;
           __Pyx_INCREF(((PyObject *)__pyx_v_mv));
           __Pyx_GIVEREF(((PyObject *)__pyx_v_mv));
           PyTuple_SET_ITEM(__pyx_t_5, 0+1, ((PyObject *)__pyx_v_mv));
-          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 669, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 670, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
         }
@@ -13355,7 +13355,7 @@ static void __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_unmake_move(struct __
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":670
+  /* "chessai/ai/bitboard.pyx":671
  * 
  *     cpdef void unmake_move(BitBoardState self, MoveRecord mv):
  *         unmake_move(&(self.bs), &(mv.rec))             # <<<<<<<<<<<<<<
@@ -13364,7 +13364,7 @@ static void __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_unmake_move(struct __
  */
   unmake_move((&__pyx_v_self->bs), (&__pyx_v_mv->rec));
 
-  /* "chessai/ai/bitboard.pyx":669
+  /* "chessai/ai/bitboard.pyx":670
  *         return result
  * 
  *     cpdef void unmake_move(BitBoardState self, MoveRecord mv):             # <<<<<<<<<<<<<<
@@ -13391,7 +13391,7 @@ static PyObject *__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_31unmake_move(P
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("unmake_move (wrapper)", 0);
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_mv), __pyx_ptype_7chessai_2ai_8bitboard_MoveRecord, 1, "mv", 0))) __PYX_ERR(0, 669, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_mv), __pyx_ptype_7chessai_2ai_8bitboard_MoveRecord, 1, "mv", 0))) __PYX_ERR(0, 670, __pyx_L1_error)
   __pyx_r = __pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_30unmake_move(((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoardState *)__pyx_v_self), ((struct __pyx_obj_7chessai_2ai_8bitboard_MoveRecord *)__pyx_v_mv));
 
   /* function exit code */
@@ -13409,7 +13409,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_30unmake_move(s
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("unmake_move", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_void_to_None(__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_unmake_move(__pyx_v_self, __pyx_v_mv, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 669, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_void_to_None(__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_unmake_move(__pyx_v_self, __pyx_v_mv, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 670, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -13426,7 +13426,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_30unmake_move(s
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":672
+/* "chessai/ai/bitboard.pyx":673
  *         unmake_move(&(self.bs), &(mv.rec))
  * 
  *     cpdef str to_str(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -13453,7 +13453,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_str(struct __
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_to_str); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 672, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_to_str); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 673, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_33to_str)) {
       __Pyx_XDECREF(__pyx_r);
@@ -13469,14 +13469,14 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_str(struct __
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 672, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 673, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 672, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 673, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      if (!(likely(PyString_CheckExact(__pyx_t_2))||((__pyx_t_2) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_2)->tp_name), 0))) __PYX_ERR(0, 672, __pyx_L1_error)
+      if (!(likely(PyString_CheckExact(__pyx_t_2))||((__pyx_t_2) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_2)->tp_name), 0))) __PYX_ERR(0, 673, __pyx_L1_error)
       __pyx_r = ((PyObject*)__pyx_t_2);
       __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -13485,7 +13485,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_str(struct __
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":675
+  /* "chessai/ai/bitboard.pyx":676
  *         cdef int i
  *         cdef piece pc
  *         result = ''             # <<<<<<<<<<<<<<
@@ -13495,7 +13495,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_str(struct __
   __Pyx_INCREF(__pyx_kp_s_);
   __pyx_v_result = __pyx_kp_s_;
 
-  /* "chessai/ai/bitboard.pyx":676
+  /* "chessai/ai/bitboard.pyx":677
  *         cdef piece pc
  *         result = ''
  *         for i in range(64):             # <<<<<<<<<<<<<<
@@ -13505,7 +13505,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_str(struct __
   for (__pyx_t_5 = 0; __pyx_t_5 < 64; __pyx_t_5+=1) {
     __pyx_v_i = __pyx_t_5;
 
-    /* "chessai/ai/bitboard.pyx":677
+    /* "chessai/ai/bitboard.pyx":678
  *         result = ''
  *         for i in range(64):
  *             pc = self.bs.piece_map[i]             # <<<<<<<<<<<<<<
@@ -13514,29 +13514,29 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_str(struct __
  */
     __pyx_v_pc = (__pyx_v_self->bs.piece_map[__pyx_v_i]);
 
-    /* "chessai/ai/bitboard.pyx":678
+    /* "chessai/ai/bitboard.pyx":679
  *         for i in range(64):
  *             pc = self.bs.piece_map[i]
  *             c = piece_to_str(pc)             # <<<<<<<<<<<<<<
  *             if c == 'no':
  *                 c = '-'
  */
-    __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_piece_to_str(__pyx_v_pc); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 678, __pyx_L1_error)
+    __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_piece_to_str(__pyx_v_pc); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 679, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_XDECREF_SET(__pyx_v_c, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "chessai/ai/bitboard.pyx":679
+    /* "chessai/ai/bitboard.pyx":680
  *             pc = self.bs.piece_map[i]
  *             c = piece_to_str(pc)
  *             if c == 'no':             # <<<<<<<<<<<<<<
  *                 c = '-'
  *             if c.lower() == 'ep':
  */
-    __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_v_c, __pyx_n_s_no, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 679, __pyx_L1_error)
+    __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_v_c, __pyx_n_s_no, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 680, __pyx_L1_error)
     if (__pyx_t_6) {
 
-      /* "chessai/ai/bitboard.pyx":680
+      /* "chessai/ai/bitboard.pyx":681
  *             c = piece_to_str(pc)
  *             if c == 'no':
  *                 c = '-'             # <<<<<<<<<<<<<<
@@ -13546,7 +13546,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_str(struct __
       __Pyx_INCREF(__pyx_kp_s__4);
       __Pyx_DECREF_SET(__pyx_v_c, __pyx_kp_s__4);
 
-      /* "chessai/ai/bitboard.pyx":679
+      /* "chessai/ai/bitboard.pyx":680
  *             pc = self.bs.piece_map[i]
  *             c = piece_to_str(pc)
  *             if c == 'no':             # <<<<<<<<<<<<<<
@@ -13555,14 +13555,14 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_str(struct __
  */
     }
 
-    /* "chessai/ai/bitboard.pyx":681
+    /* "chessai/ai/bitboard.pyx":682
  *             if c == 'no':
  *                 c = '-'
  *             if c.lower() == 'ep':             # <<<<<<<<<<<<<<
  *                 c = '*'
  *             result = result + c
  */
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_c, __pyx_n_s_lower); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 681, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_c, __pyx_n_s_lower); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 682, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_t_3 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -13575,18 +13575,18 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_str(struct __
       }
     }
     if (__pyx_t_3) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 681, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 682, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     } else {
-      __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 681, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 682, __pyx_L1_error)
     }
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_n_s_ep, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 681, __pyx_L1_error)
+    __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_n_s_ep, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 682, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     if (__pyx_t_6) {
 
-      /* "chessai/ai/bitboard.pyx":682
+      /* "chessai/ai/bitboard.pyx":683
  *                 c = '-'
  *             if c.lower() == 'ep':
  *                 c = '*'             # <<<<<<<<<<<<<<
@@ -13596,7 +13596,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_str(struct __
       __Pyx_INCREF(__pyx_kp_s__16);
       __Pyx_DECREF_SET(__pyx_v_c, __pyx_kp_s__16);
 
-      /* "chessai/ai/bitboard.pyx":681
+      /* "chessai/ai/bitboard.pyx":682
  *             if c == 'no':
  *                 c = '-'
  *             if c.lower() == 'ep':             # <<<<<<<<<<<<<<
@@ -13605,20 +13605,20 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_str(struct __
  */
     }
 
-    /* "chessai/ai/bitboard.pyx":683
+    /* "chessai/ai/bitboard.pyx":684
  *             if c.lower() == 'ep':
  *                 c = '*'
  *             result = result + c             # <<<<<<<<<<<<<<
  *         return result
  * 
  */
-    __pyx_t_1 = PyNumber_Add(__pyx_v_result, __pyx_v_c); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 683, __pyx_L1_error)
+    __pyx_t_1 = PyNumber_Add(__pyx_v_result, __pyx_v_c); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 684, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF_SET(__pyx_v_result, __pyx_t_1);
     __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":684
+  /* "chessai/ai/bitboard.pyx":685
  *                 c = '*'
  *             result = result + c
  *         return result             # <<<<<<<<<<<<<<
@@ -13626,12 +13626,12 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_str(struct __
  *     cpdef str to_grid(BitBoardState self):
  */
   __Pyx_XDECREF(__pyx_r);
-  if (!(likely(PyString_CheckExact(__pyx_v_result))||((__pyx_v_result) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_result)->tp_name), 0))) __PYX_ERR(0, 684, __pyx_L1_error)
+  if (!(likely(PyString_CheckExact(__pyx_v_result))||((__pyx_v_result) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_result)->tp_name), 0))) __PYX_ERR(0, 685, __pyx_L1_error)
   __Pyx_INCREF(__pyx_v_result);
   __pyx_r = ((PyObject*)__pyx_v_result);
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":672
+  /* "chessai/ai/bitboard.pyx":673
  *         unmake_move(&(self.bs), &(mv.rec))
  * 
  *     cpdef str to_str(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -13674,7 +13674,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_32to_str(struct
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("to_str", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_str(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 672, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_str(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 673, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -13691,7 +13691,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_32to_str(struct
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":686
+/* "chessai/ai/bitboard.pyx":687
  *         return result
  * 
  *     cpdef str to_grid(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -13715,7 +13715,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_grid(struct _
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_to_grid); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 686, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_to_grid); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 687, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_35to_grid)) {
       __Pyx_XDECREF(__pyx_r);
@@ -13731,14 +13731,14 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_grid(struct _
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 686, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 687, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 686, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 687, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      if (!(likely(PyString_CheckExact(__pyx_t_2))||((__pyx_t_2) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_2)->tp_name), 0))) __PYX_ERR(0, 686, __pyx_L1_error)
+      if (!(likely(PyString_CheckExact(__pyx_t_2))||((__pyx_t_2) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_2)->tp_name), 0))) __PYX_ERR(0, 687, __pyx_L1_error)
       __pyx_r = ((PyObject*)__pyx_t_2);
       __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -13747,7 +13747,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_grid(struct _
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":690
+  /* "chessai/ai/bitboard.pyx":691
  *         Use the redundant piece_map instead of the bitboards.
  *         '''
  *         return '\n'.join(reversed(map(''.join, partition(8, self.to_str()))))             # <<<<<<<<<<<<<<
@@ -13755,11 +13755,11 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_grid(struct _
  *     cpdef str to_fen(BitBoardState self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_, __pyx_n_s_join); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 690, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_, __pyx_n_s_join); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 691, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_partition); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 690, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_partition); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 691, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = ((struct __pyx_vtabstruct_7chessai_2ai_8bitboard_BitBoardState *)__pyx_v_self->__pyx_vtab)->to_str(__pyx_v_self, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 690, __pyx_L1_error)
+  __pyx_t_4 = ((struct __pyx_vtabstruct_7chessai_2ai_8bitboard_BitBoardState *)__pyx_v_self->__pyx_vtab)->to_str(__pyx_v_self, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 691, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_5 = NULL;
   __pyx_t_6 = 0;
@@ -13776,7 +13776,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_grid(struct _
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_3)) {
     PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_int_8, __pyx_t_4};
-    __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 690, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 691, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -13785,14 +13785,14 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_grid(struct _
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
     PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_int_8, __pyx_t_4};
-    __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 690, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 691, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   } else
   #endif
   {
-    __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 690, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 691, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     if (__pyx_t_5) {
       __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_5); __pyx_t_5 = NULL;
@@ -13803,12 +13803,12 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_grid(struct _
     __Pyx_GIVEREF(__pyx_t_4);
     PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_6, __pyx_t_4);
     __pyx_t_4 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 690, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 691, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 690, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 691, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
@@ -13816,26 +13816,26 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_grid(struct _
   PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_2);
   __pyx_t_1 = 0;
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_map, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 690, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_map, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 691, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 690, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 691, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_reversed, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 690, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_reversed, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 691, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyString_Join(__pyx_kp_s__3, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 690, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyString_Join(__pyx_kp_s__3, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 691, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (!(likely(PyString_CheckExact(__pyx_t_3))||((__pyx_t_3) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_3)->tp_name), 0))) __PYX_ERR(0, 690, __pyx_L1_error)
+  if (!(likely(PyString_CheckExact(__pyx_t_3))||((__pyx_t_3) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_3)->tp_name), 0))) __PYX_ERR(0, 691, __pyx_L1_error)
   __pyx_r = ((PyObject*)__pyx_t_3);
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":686
+  /* "chessai/ai/bitboard.pyx":687
  *         return result
  * 
  *     cpdef str to_grid(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -13879,7 +13879,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_34to_grid(struc
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("to_grid", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_grid(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 686, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_grid(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 687, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -13896,7 +13896,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_34to_grid(struc
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":692
+/* "chessai/ai/bitboard.pyx":693
  *         return '\n'.join(reversed(map(''.join, partition(8, self.to_str()))))
  * 
  *     cpdef str to_fen(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -13938,7 +13938,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_to_fen); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 692, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_to_fen); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 693, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_37to_fen)) {
       __Pyx_XDECREF(__pyx_r);
@@ -13954,14 +13954,14 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 692, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 693, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 692, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 693, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      if (!(likely(PyString_CheckExact(__pyx_t_2))||((__pyx_t_2) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_2)->tp_name), 0))) __PYX_ERR(0, 692, __pyx_L1_error)
+      if (!(likely(PyString_CheckExact(__pyx_t_2))||((__pyx_t_2) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_2)->tp_name), 0))) __PYX_ERR(0, 693, __pyx_L1_error)
       __pyx_r = ((PyObject*)__pyx_t_2);
       __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -13970,34 +13970,34 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":695
+  /* "chessai/ai/bitboard.pyx":696
  * 
  *         # Get raw positions
  *         raw_positions = self.to_str().replace('*', '-')             # <<<<<<<<<<<<<<
  * 
  *         # Compress positions into fen format
  */
-  __pyx_t_1 = ((struct __pyx_vtabstruct_7chessai_2ai_8bitboard_BitBoardState *)__pyx_v_self->__pyx_vtab)->to_str(__pyx_v_self, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 695, __pyx_L1_error)
+  __pyx_t_1 = ((struct __pyx_vtabstruct_7chessai_2ai_8bitboard_BitBoardState *)__pyx_v_self->__pyx_vtab)->to_str(__pyx_v_self, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 696, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_replace); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 695, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_replace); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 696, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 695, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 696, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_raw_positions = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "chessai/ai/bitboard.pyx":698
+  /* "chessai/ai/bitboard.pyx":699
  * 
  *         # Compress positions into fen format
  *         rows = list(map(''.join, partition(8, raw_positions)))             # <<<<<<<<<<<<<<
  *         for i in range(len(rows)):
  *             rows[i] = compress_row(rows[i])
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_, __pyx_n_s_join); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 698, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_, __pyx_n_s_join); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 699, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_partition); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 698, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_partition); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 699, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_4 = NULL;
   __pyx_t_5 = 0;
@@ -14014,7 +14014,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_3)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_int_8, __pyx_v_raw_positions};
-    __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 698, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 699, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_2);
   } else
@@ -14022,13 +14022,13 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_int_8, __pyx_v_raw_positions};
-    __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 698, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 699, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_2);
   } else
   #endif
   {
-    __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 698, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 699, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     if (__pyx_t_4) {
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -14039,12 +14039,12 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
     __Pyx_INCREF(__pyx_v_raw_positions);
     __Pyx_GIVEREF(__pyx_v_raw_positions);
     PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_5, __pyx_v_raw_positions);
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 698, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 699, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 698, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 699, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
@@ -14052,36 +14052,36 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
   PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_2);
   __pyx_t_1 = 0;
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_map, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 698, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_map, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 699, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PySequence_List(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 698, __pyx_L1_error)
+  __pyx_t_3 = PySequence_List(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 699, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_rows = ((PyObject*)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "chessai/ai/bitboard.pyx":699
+  /* "chessai/ai/bitboard.pyx":700
  *         # Compress positions into fen format
  *         rows = list(map(''.join, partition(8, raw_positions)))
  *         for i in range(len(rows)):             # <<<<<<<<<<<<<<
  *             rows[i] = compress_row(rows[i])
  *         fen_positions = '/'.join(reversed(rows))
  */
-  __pyx_t_7 = PyList_GET_SIZE(__pyx_v_rows); if (unlikely(__pyx_t_7 == -1)) __PYX_ERR(0, 699, __pyx_L1_error)
+  __pyx_t_7 = PyList_GET_SIZE(__pyx_v_rows); if (unlikely(__pyx_t_7 == -1)) __PYX_ERR(0, 700, __pyx_L1_error)
   for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_7; __pyx_t_8+=1) {
     __pyx_v_i = __pyx_t_8;
 
-    /* "chessai/ai/bitboard.pyx":700
+    /* "chessai/ai/bitboard.pyx":701
  *         rows = list(map(''.join, partition(8, raw_positions)))
  *         for i in range(len(rows)):
  *             rows[i] = compress_row(rows[i])             # <<<<<<<<<<<<<<
  *         fen_positions = '/'.join(reversed(rows))
  * 
  */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_compress_row); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 700, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_compress_row); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 701, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_1 = __Pyx_GetItemInt_List(__pyx_v_rows, __pyx_v_i, Py_ssize_t, 1, PyInt_FromSsize_t, 1, 1, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 700, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_GetItemInt_List(__pyx_v_rows, __pyx_v_i, Py_ssize_t, 1, PyInt_FromSsize_t, 1, 1, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 701, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __pyx_t_6 = NULL;
     if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -14094,14 +14094,14 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
       }
     }
     if (!__pyx_t_6) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 700, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 701, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __Pyx_GOTREF(__pyx_t_3);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_2)) {
         PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_t_1};
-        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 700, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 701, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -14110,51 +14110,51 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
         PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_t_1};
-        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 700, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 701, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       } else
       #endif
       {
-        __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 700, __pyx_L1_error)
+        __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 701, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_6); __pyx_t_6 = NULL;
         __Pyx_GIVEREF(__pyx_t_1);
         PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_1);
         __pyx_t_1 = 0;
-        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 700, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 701, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       }
     }
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if (unlikely(__Pyx_SetItemInt(__pyx_v_rows, __pyx_v_i, __pyx_t_3, Py_ssize_t, 1, PyInt_FromSsize_t, 1, 1, 1) < 0)) __PYX_ERR(0, 700, __pyx_L1_error)
+    if (unlikely(__Pyx_SetItemInt(__pyx_v_rows, __pyx_v_i, __pyx_t_3, Py_ssize_t, 1, PyInt_FromSsize_t, 1, 1, 1) < 0)) __PYX_ERR(0, 701, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":701
+  /* "chessai/ai/bitboard.pyx":702
  *         for i in range(len(rows)):
  *             rows[i] = compress_row(rows[i])
  *         fen_positions = '/'.join(reversed(rows))             # <<<<<<<<<<<<<<
  * 
  *         # Get turn
  */
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 701, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 702, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_INCREF(__pyx_v_rows);
   __Pyx_GIVEREF(__pyx_v_rows);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_v_rows);
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_reversed, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 701, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_reversed, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 702, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyString_Join(__pyx_kp_s__18, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 701, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyString_Join(__pyx_kp_s__18, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 702, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_fen_positions = ((PyObject*)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "chessai/ai/bitboard.pyx":704
+  /* "chessai/ai/bitboard.pyx":705
  * 
  *         # Get turn
  *         cdef bool whites_turn = get_whites_turn(&(self.bs))             # <<<<<<<<<<<<<<
@@ -14163,7 +14163,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
  */
   __pyx_v_whites_turn = get_whites_turn((&__pyx_v_self->bs));
 
-  /* "chessai/ai/bitboard.pyx":705
+  /* "chessai/ai/bitboard.pyx":706
  *         # Get turn
  *         cdef bool whites_turn = get_whites_turn(&(self.bs))
  *         turn = 'w' if whites_turn else 'b'             # <<<<<<<<<<<<<<
@@ -14180,7 +14180,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
   __pyx_v_turn = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "chessai/ai/bitboard.pyx":708
+  /* "chessai/ai/bitboard.pyx":709
  * 
  *         # Get castles
  *         cdef bool white_castle_king = get_white_castle_king(&(self.bs))             # <<<<<<<<<<<<<<
@@ -14189,7 +14189,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
  */
   __pyx_v_white_castle_king = get_white_castle_king((&__pyx_v_self->bs));
 
-  /* "chessai/ai/bitboard.pyx":709
+  /* "chessai/ai/bitboard.pyx":710
  *         # Get castles
  *         cdef bool white_castle_king = get_white_castle_king(&(self.bs))
  *         cdef bool white_castle_queen = get_white_castle_queen(&(self.bs))             # <<<<<<<<<<<<<<
@@ -14198,7 +14198,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
  */
   __pyx_v_white_castle_queen = get_white_castle_queen((&__pyx_v_self->bs));
 
-  /* "chessai/ai/bitboard.pyx":710
+  /* "chessai/ai/bitboard.pyx":711
  *         cdef bool white_castle_king = get_white_castle_king(&(self.bs))
  *         cdef bool white_castle_queen = get_white_castle_queen(&(self.bs))
  *         cdef bool black_castle_king = get_black_castle_king(&(self.bs))             # <<<<<<<<<<<<<<
@@ -14207,7 +14207,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
  */
   __pyx_v_black_castle_king = get_black_castle_king((&__pyx_v_self->bs));
 
-  /* "chessai/ai/bitboard.pyx":711
+  /* "chessai/ai/bitboard.pyx":712
  *         cdef bool white_castle_queen = get_white_castle_queen(&(self.bs))
  *         cdef bool black_castle_king = get_black_castle_king(&(self.bs))
  *         cdef bool black_castle_queen = get_black_castle_queen(&(self.bs))             # <<<<<<<<<<<<<<
@@ -14216,7 +14216,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
  */
   __pyx_v_black_castle_queen = get_black_castle_queen((&__pyx_v_self->bs));
 
-  /* "chessai/ai/bitboard.pyx":712
+  /* "chessai/ai/bitboard.pyx":713
  *         cdef bool black_castle_king = get_black_castle_king(&(self.bs))
  *         cdef bool black_castle_queen = get_black_castle_queen(&(self.bs))
  *         castles = ''             # <<<<<<<<<<<<<<
@@ -14226,7 +14226,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
   __Pyx_INCREF(__pyx_kp_s_);
   __pyx_v_castles = __pyx_kp_s_;
 
-  /* "chessai/ai/bitboard.pyx":713
+  /* "chessai/ai/bitboard.pyx":714
  *         cdef bool black_castle_queen = get_black_castle_queen(&(self.bs))
  *         castles = ''
  *         castles += 'K' if white_castle_king else ''             # <<<<<<<<<<<<<<
@@ -14240,13 +14240,13 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
     __Pyx_INCREF(__pyx_kp_s_);
     __pyx_t_3 = __pyx_kp_s_;
   }
-  __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_castles, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 713, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_castles, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 714, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF_SET(__pyx_v_castles, __pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "chessai/ai/bitboard.pyx":714
+  /* "chessai/ai/bitboard.pyx":715
  *         castles = ''
  *         castles += 'K' if white_castle_king else ''
  *         castles += 'Q' if white_castle_queen else ''             # <<<<<<<<<<<<<<
@@ -14260,13 +14260,13 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
     __Pyx_INCREF(__pyx_kp_s_);
     __pyx_t_2 = __pyx_kp_s_;
   }
-  __pyx_t_3 = PyNumber_InPlaceAdd(__pyx_v_castles, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 714, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_InPlaceAdd(__pyx_v_castles, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 715, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF_SET(__pyx_v_castles, __pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "chessai/ai/bitboard.pyx":715
+  /* "chessai/ai/bitboard.pyx":716
  *         castles += 'K' if white_castle_king else ''
  *         castles += 'Q' if white_castle_queen else ''
  *         castles += 'k' if black_castle_king else ''             # <<<<<<<<<<<<<<
@@ -14280,13 +14280,13 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
     __Pyx_INCREF(__pyx_kp_s_);
     __pyx_t_3 = __pyx_kp_s_;
   }
-  __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_castles, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 715, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_castles, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 716, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF_SET(__pyx_v_castles, __pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "chessai/ai/bitboard.pyx":716
+  /* "chessai/ai/bitboard.pyx":717
  *         castles += 'Q' if white_castle_queen else ''
  *         castles += 'k' if black_castle_king else ''
  *         castles += 'q' if black_castle_queen else ''             # <<<<<<<<<<<<<<
@@ -14300,24 +14300,24 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
     __Pyx_INCREF(__pyx_kp_s_);
     __pyx_t_2 = __pyx_kp_s_;
   }
-  __pyx_t_3 = PyNumber_InPlaceAdd(__pyx_v_castles, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 716, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_InPlaceAdd(__pyx_v_castles, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 717, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF_SET(__pyx_v_castles, __pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "chessai/ai/bitboard.pyx":717
+  /* "chessai/ai/bitboard.pyx":718
  *         castles += 'k' if black_castle_king else ''
  *         castles += 'q' if black_castle_queen else ''
  *         if not castles:             # <<<<<<<<<<<<<<
  *             castles = '-'
  * 
  */
-  __pyx_t_9 = __Pyx_PyObject_IsTrue(__pyx_v_castles); if (unlikely(__pyx_t_9 < 0)) __PYX_ERR(0, 717, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_IsTrue(__pyx_v_castles); if (unlikely(__pyx_t_9 < 0)) __PYX_ERR(0, 718, __pyx_L1_error)
   __pyx_t_10 = ((!__pyx_t_9) != 0);
   if (__pyx_t_10) {
 
-    /* "chessai/ai/bitboard.pyx":718
+    /* "chessai/ai/bitboard.pyx":719
  *         castles += 'q' if black_castle_queen else ''
  *         if not castles:
  *             castles = '-'             # <<<<<<<<<<<<<<
@@ -14327,7 +14327,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
     __Pyx_INCREF(__pyx_kp_s__4);
     __Pyx_DECREF_SET(__pyx_v_castles, __pyx_kp_s__4);
 
-    /* "chessai/ai/bitboard.pyx":717
+    /* "chessai/ai/bitboard.pyx":718
  *         castles += 'k' if black_castle_king else ''
  *         castles += 'q' if black_castle_queen else ''
  *         if not castles:             # <<<<<<<<<<<<<<
@@ -14336,7 +14336,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
  */
   }
 
-  /* "chessai/ai/bitboard.pyx":721
+  /* "chessai/ai/bitboard.pyx":722
  * 
  *         # Get en passant
  *         cdef int en_passant_int = get_enpassant(&(self.bs))             # <<<<<<<<<<<<<<
@@ -14345,7 +14345,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
  */
   __pyx_v_en_passant_int = get_enpassant((&__pyx_v_self->bs));
 
-  /* "chessai/ai/bitboard.pyx":722
+  /* "chessai/ai/bitboard.pyx":723
  *         # Get en passant
  *         cdef int en_passant_int = get_enpassant(&(self.bs))
  *         en_passant = int_to_algebraic(en_passant_int) if en_passant_int != 255 else '-'             # <<<<<<<<<<<<<<
@@ -14353,7 +14353,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
  *         # Get clocks and counts
  */
   if (((__pyx_v_en_passant_int != 0xFF) != 0)) {
-    __pyx_t_2 = __pyx_f_7chessai_2ai_8bitboard_int_to_algebraic(__pyx_v_en_passant_int, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 722, __pyx_L1_error)
+    __pyx_t_2 = __pyx_f_7chessai_2ai_8bitboard_int_to_algebraic(__pyx_v_en_passant_int, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 723, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_t_3 = __pyx_t_2;
     __pyx_t_2 = 0;
@@ -14364,7 +14364,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
   __pyx_v_en_passant = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "chessai/ai/bitboard.pyx":725
+  /* "chessai/ai/bitboard.pyx":726
  * 
  *         # Get clocks and counts
  *         cdef int halfmove_clock = get_halfmove_clock(&(self.bs))             # <<<<<<<<<<<<<<
@@ -14373,7 +14373,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
  */
   __pyx_v_halfmove_clock = get_halfmove_clock((&__pyx_v_self->bs));
 
-  /* "chessai/ai/bitboard.pyx":726
+  /* "chessai/ai/bitboard.pyx":727
  *         # Get clocks and counts
  *         cdef int halfmove_clock = get_halfmove_clock(&(self.bs))
  *         cdef int fullmove_count = get_fullmove_counter(&(self.bs))             # <<<<<<<<<<<<<<
@@ -14382,7 +14382,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
  */
   __pyx_v_fullmove_count = get_fullmove_counter((&__pyx_v_self->bs));
 
-  /* "chessai/ai/bitboard.pyx":728
+  /* "chessai/ai/bitboard.pyx":729
  *         cdef int fullmove_count = get_fullmove_counter(&(self.bs))
  * 
  *         return ' '.join([fen_positions, turn, castles, en_passant, str(halfmove_clock), str(fullmove_count)])             # <<<<<<<<<<<<<<
@@ -14390,27 +14390,27 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
  *     cpdef BitBoard get_k(BitBoardState self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_halfmove_clock); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 728, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_halfmove_clock); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 729, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 728, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 729, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3);
   __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)(&PyString_Type)), __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 728, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)(&PyString_Type)), __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 729, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_fullmove_count); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 728, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_fullmove_count); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 729, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 728, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 729, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2);
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)(&PyString_Type)), __pyx_t_4, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 728, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)(&PyString_Type)), __pyx_t_4, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 729, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = PyList_New(6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 728, __pyx_L1_error)
+  __pyx_t_4 = PyList_New(6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 729, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_INCREF(__pyx_v_fen_positions);
   __Pyx_GIVEREF(__pyx_v_fen_positions);
@@ -14430,15 +14430,15 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(struct __
   PyList_SET_ITEM(__pyx_t_4, 5, __pyx_t_2);
   __pyx_t_3 = 0;
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyString_Join(__pyx_kp_s__19, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 728, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyString_Join(__pyx_kp_s__19, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 729, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (!(likely(PyString_CheckExact(__pyx_t_2))||((__pyx_t_2) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_2)->tp_name), 0))) __PYX_ERR(0, 728, __pyx_L1_error)
+  if (!(likely(PyString_CheckExact(__pyx_t_2))||((__pyx_t_2) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_2)->tp_name), 0))) __PYX_ERR(0, 729, __pyx_L1_error)
   __pyx_r = ((PyObject*)__pyx_t_2);
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":692
+  /* "chessai/ai/bitboard.pyx":693
  *         return '\n'.join(reversed(map(''.join, partition(8, self.to_str()))))
  * 
  *     cpdef str to_fen(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -14486,7 +14486,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_36to_fen(struct
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("to_fen", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 692, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_to_fen(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 693, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -14503,7 +14503,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_36to_fen(struct
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":730
+/* "chessai/ai/bitboard.pyx":731
  *         return ' '.join([fen_positions, turn, castles, en_passant, str(halfmove_clock), str(fullmove_count)])
  * 
  *     cpdef BitBoard get_k(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -14526,7 +14526,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_k); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 730, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_k); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 731, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_39get_k)) {
       __Pyx_XDECREF(((PyObject *)__pyx_r));
@@ -14542,14 +14542,14 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 730, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 731, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 730, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 731, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7chessai_2ai_8bitboard_BitBoard))))) __PYX_ERR(0, 730, __pyx_L1_error)
+      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7chessai_2ai_8bitboard_BitBoard))))) __PYX_ERR(0, 731, __pyx_L1_error)
       __pyx_r = ((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *)__pyx_t_2);
       __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -14558,19 +14558,19 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":731
+  /* "chessai/ai/bitboard.pyx":732
  * 
  *     cpdef BitBoard get_k(BitBoardState self):
  *         result = BitBoard()             # <<<<<<<<<<<<<<
  *         result.bb =  self.bs.board_state.k
  *         return result
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoard), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 731, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoard), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 732, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_result = ((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "chessai/ai/bitboard.pyx":732
+  /* "chessai/ai/bitboard.pyx":733
  *     cpdef BitBoard get_k(BitBoardState self):
  *         result = BitBoard()
  *         result.bb =  self.bs.board_state.k             # <<<<<<<<<<<<<<
@@ -14580,7 +14580,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   __pyx_t_5 = __pyx_v_self->bs.board_state.k;
   __pyx_v_result->bb = __pyx_t_5;
 
-  /* "chessai/ai/bitboard.pyx":733
+  /* "chessai/ai/bitboard.pyx":734
  *         result = BitBoard()
  *         result.bb =  self.bs.board_state.k
  *         return result             # <<<<<<<<<<<<<<
@@ -14592,7 +14592,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   __pyx_r = __pyx_v_result;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":730
+  /* "chessai/ai/bitboard.pyx":731
  *         return ' '.join([fen_positions, turn, castles, en_passant, str(halfmove_clock), str(fullmove_count)])
  * 
  *     cpdef BitBoard get_k(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -14634,7 +14634,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_38get_k(struct 
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("get_k", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((PyObject *)__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_k(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 730, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_k(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 731, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -14651,7 +14651,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_38get_k(struct 
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":735
+/* "chessai/ai/bitboard.pyx":736
  *         return result
  * 
  *     cpdef BitBoard get_q(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -14674,7 +14674,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_q); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 735, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_q); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 736, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_41get_q)) {
       __Pyx_XDECREF(((PyObject *)__pyx_r));
@@ -14690,14 +14690,14 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 735, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 736, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 735, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 736, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7chessai_2ai_8bitboard_BitBoard))))) __PYX_ERR(0, 735, __pyx_L1_error)
+      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7chessai_2ai_8bitboard_BitBoard))))) __PYX_ERR(0, 736, __pyx_L1_error)
       __pyx_r = ((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *)__pyx_t_2);
       __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -14706,19 +14706,19 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":736
+  /* "chessai/ai/bitboard.pyx":737
  * 
  *     cpdef BitBoard get_q(BitBoardState self):
  *         result = BitBoard()             # <<<<<<<<<<<<<<
  *         result.bb =  self.bs.board_state.q
  *         return result
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoard), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 736, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoard), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 737, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_result = ((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "chessai/ai/bitboard.pyx":737
+  /* "chessai/ai/bitboard.pyx":738
  *     cpdef BitBoard get_q(BitBoardState self):
  *         result = BitBoard()
  *         result.bb =  self.bs.board_state.q             # <<<<<<<<<<<<<<
@@ -14728,7 +14728,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   __pyx_t_5 = __pyx_v_self->bs.board_state.q;
   __pyx_v_result->bb = __pyx_t_5;
 
-  /* "chessai/ai/bitboard.pyx":738
+  /* "chessai/ai/bitboard.pyx":739
  *         result = BitBoard()
  *         result.bb =  self.bs.board_state.q
  *         return result             # <<<<<<<<<<<<<<
@@ -14740,7 +14740,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   __pyx_r = __pyx_v_result;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":735
+  /* "chessai/ai/bitboard.pyx":736
  *         return result
  * 
  *     cpdef BitBoard get_q(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -14782,7 +14782,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_40get_q(struct 
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("get_q", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((PyObject *)__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_q(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 735, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_q(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 736, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -14799,7 +14799,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_40get_q(struct 
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":740
+/* "chessai/ai/bitboard.pyx":741
  *         return result
  * 
  *     cpdef BitBoard get_b(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -14822,7 +14822,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_b); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 740, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_b); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 741, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_43get_b)) {
       __Pyx_XDECREF(((PyObject *)__pyx_r));
@@ -14838,14 +14838,14 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 740, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 741, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 740, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 741, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7chessai_2ai_8bitboard_BitBoard))))) __PYX_ERR(0, 740, __pyx_L1_error)
+      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7chessai_2ai_8bitboard_BitBoard))))) __PYX_ERR(0, 741, __pyx_L1_error)
       __pyx_r = ((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *)__pyx_t_2);
       __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -14854,19 +14854,19 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":741
+  /* "chessai/ai/bitboard.pyx":742
  * 
  *     cpdef BitBoard get_b(BitBoardState self):
  *         result = BitBoard()             # <<<<<<<<<<<<<<
  *         result.bb =  self.bs.board_state.b
  *         return result
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoard), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 741, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoard), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 742, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_result = ((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "chessai/ai/bitboard.pyx":742
+  /* "chessai/ai/bitboard.pyx":743
  *     cpdef BitBoard get_b(BitBoardState self):
  *         result = BitBoard()
  *         result.bb =  self.bs.board_state.b             # <<<<<<<<<<<<<<
@@ -14876,7 +14876,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   __pyx_t_5 = __pyx_v_self->bs.board_state.b;
   __pyx_v_result->bb = __pyx_t_5;
 
-  /* "chessai/ai/bitboard.pyx":743
+  /* "chessai/ai/bitboard.pyx":744
  *         result = BitBoard()
  *         result.bb =  self.bs.board_state.b
  *         return result             # <<<<<<<<<<<<<<
@@ -14888,7 +14888,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   __pyx_r = __pyx_v_result;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":740
+  /* "chessai/ai/bitboard.pyx":741
  *         return result
  * 
  *     cpdef BitBoard get_b(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -14930,7 +14930,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_42get_b(struct 
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("get_b", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((PyObject *)__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_b(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 740, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_b(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 741, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -14947,7 +14947,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_42get_b(struct 
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":745
+/* "chessai/ai/bitboard.pyx":746
  *         return result
  * 
  *     cpdef BitBoard get_r(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -14970,7 +14970,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_r); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 745, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_r); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 746, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_45get_r)) {
       __Pyx_XDECREF(((PyObject *)__pyx_r));
@@ -14986,14 +14986,14 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 745, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 746, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 745, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 746, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7chessai_2ai_8bitboard_BitBoard))))) __PYX_ERR(0, 745, __pyx_L1_error)
+      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7chessai_2ai_8bitboard_BitBoard))))) __PYX_ERR(0, 746, __pyx_L1_error)
       __pyx_r = ((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *)__pyx_t_2);
       __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -15002,19 +15002,19 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":746
+  /* "chessai/ai/bitboard.pyx":747
  * 
  *     cpdef BitBoard get_r(BitBoardState self):
  *         result = BitBoard()             # <<<<<<<<<<<<<<
  *         result.bb =  self.bs.board_state.r
  *         return result
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoard), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 746, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoard), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 747, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_result = ((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "chessai/ai/bitboard.pyx":747
+  /* "chessai/ai/bitboard.pyx":748
  *     cpdef BitBoard get_r(BitBoardState self):
  *         result = BitBoard()
  *         result.bb =  self.bs.board_state.r             # <<<<<<<<<<<<<<
@@ -15024,7 +15024,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   __pyx_t_5 = __pyx_v_self->bs.board_state.r;
   __pyx_v_result->bb = __pyx_t_5;
 
-  /* "chessai/ai/bitboard.pyx":748
+  /* "chessai/ai/bitboard.pyx":749
  *         result = BitBoard()
  *         result.bb =  self.bs.board_state.r
  *         return result             # <<<<<<<<<<<<<<
@@ -15036,7 +15036,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   __pyx_r = __pyx_v_result;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":745
+  /* "chessai/ai/bitboard.pyx":746
  *         return result
  * 
  *     cpdef BitBoard get_r(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -15078,7 +15078,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_44get_r(struct 
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("get_r", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((PyObject *)__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_r(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 745, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_r(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 746, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -15095,7 +15095,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_44get_r(struct 
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":750
+/* "chessai/ai/bitboard.pyx":751
  *         return result
  * 
  *     cpdef BitBoard get_n(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -15118,7 +15118,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_n); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 750, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_n); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 751, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_47get_n)) {
       __Pyx_XDECREF(((PyObject *)__pyx_r));
@@ -15134,14 +15134,14 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 750, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 751, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 750, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 751, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7chessai_2ai_8bitboard_BitBoard))))) __PYX_ERR(0, 750, __pyx_L1_error)
+      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7chessai_2ai_8bitboard_BitBoard))))) __PYX_ERR(0, 751, __pyx_L1_error)
       __pyx_r = ((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *)__pyx_t_2);
       __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -15150,19 +15150,19 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":751
+  /* "chessai/ai/bitboard.pyx":752
  * 
  *     cpdef BitBoard get_n(BitBoardState self):
  *         result = BitBoard()             # <<<<<<<<<<<<<<
  *         result.bb =  self.bs.board_state.n
  *         return result
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoard), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 751, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoard), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 752, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_result = ((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "chessai/ai/bitboard.pyx":752
+  /* "chessai/ai/bitboard.pyx":753
  *     cpdef BitBoard get_n(BitBoardState self):
  *         result = BitBoard()
  *         result.bb =  self.bs.board_state.n             # <<<<<<<<<<<<<<
@@ -15172,7 +15172,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   __pyx_t_5 = __pyx_v_self->bs.board_state.n;
   __pyx_v_result->bb = __pyx_t_5;
 
-  /* "chessai/ai/bitboard.pyx":753
+  /* "chessai/ai/bitboard.pyx":754
  *         result = BitBoard()
  *         result.bb =  self.bs.board_state.n
  *         return result             # <<<<<<<<<<<<<<
@@ -15184,7 +15184,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   __pyx_r = __pyx_v_result;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":750
+  /* "chessai/ai/bitboard.pyx":751
  *         return result
  * 
  *     cpdef BitBoard get_n(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -15226,7 +15226,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_46get_n(struct 
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("get_n", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((PyObject *)__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_n(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 750, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_n(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 751, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -15243,7 +15243,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_46get_n(struct 
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":755
+/* "chessai/ai/bitboard.pyx":756
  *         return result
  * 
  *     cpdef BitBoard get_p(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -15266,7 +15266,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_p); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 755, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_p); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 756, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_49get_p)) {
       __Pyx_XDECREF(((PyObject *)__pyx_r));
@@ -15282,14 +15282,14 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 755, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 756, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 755, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 756, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7chessai_2ai_8bitboard_BitBoard))))) __PYX_ERR(0, 755, __pyx_L1_error)
+      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7chessai_2ai_8bitboard_BitBoard))))) __PYX_ERR(0, 756, __pyx_L1_error)
       __pyx_r = ((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *)__pyx_t_2);
       __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -15298,19 +15298,19 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":756
+  /* "chessai/ai/bitboard.pyx":757
  * 
  *     cpdef BitBoard get_p(BitBoardState self):
  *         result = BitBoard()             # <<<<<<<<<<<<<<
  *         result.bb =  self.bs.board_state.p
  *         return result
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoard), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 756, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoard), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 757, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_result = ((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "chessai/ai/bitboard.pyx":757
+  /* "chessai/ai/bitboard.pyx":758
  *     cpdef BitBoard get_p(BitBoardState self):
  *         result = BitBoard()
  *         result.bb =  self.bs.board_state.p             # <<<<<<<<<<<<<<
@@ -15320,7 +15320,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   __pyx_t_5 = __pyx_v_self->bs.board_state.p;
   __pyx_v_result->bb = __pyx_t_5;
 
-  /* "chessai/ai/bitboard.pyx":758
+  /* "chessai/ai/bitboard.pyx":759
  *         result = BitBoard()
  *         result.bb =  self.bs.board_state.p
  *         return result             # <<<<<<<<<<<<<<
@@ -15332,7 +15332,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   __pyx_r = __pyx_v_result;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":755
+  /* "chessai/ai/bitboard.pyx":756
  *         return result
  * 
  *     cpdef BitBoard get_p(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -15374,7 +15374,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_48get_p(struct 
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("get_p", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((PyObject *)__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_p(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 755, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_p(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 756, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -15391,7 +15391,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_48get_p(struct 
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":760
+/* "chessai/ai/bitboard.pyx":761
  *         return result
  * 
  *     cpdef BitBoard get_white(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -15414,7 +15414,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_white); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 760, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_white); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 761, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_51get_white)) {
       __Pyx_XDECREF(((PyObject *)__pyx_r));
@@ -15430,14 +15430,14 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 760, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 761, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 760, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 761, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7chessai_2ai_8bitboard_BitBoard))))) __PYX_ERR(0, 760, __pyx_L1_error)
+      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7chessai_2ai_8bitboard_BitBoard))))) __PYX_ERR(0, 761, __pyx_L1_error)
       __pyx_r = ((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *)__pyx_t_2);
       __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -15446,19 +15446,19 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":761
+  /* "chessai/ai/bitboard.pyx":762
  * 
  *     cpdef BitBoard get_white(BitBoardState self):
  *         result = BitBoard()             # <<<<<<<<<<<<<<
  *         result.bb =  self.bs.board_state.white
  *         return result
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoard), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 761, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoard), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 762, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_result = ((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "chessai/ai/bitboard.pyx":762
+  /* "chessai/ai/bitboard.pyx":763
  *     cpdef BitBoard get_white(BitBoardState self):
  *         result = BitBoard()
  *         result.bb =  self.bs.board_state.white             # <<<<<<<<<<<<<<
@@ -15468,7 +15468,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   __pyx_t_5 = __pyx_v_self->bs.board_state.white;
   __pyx_v_result->bb = __pyx_t_5;
 
-  /* "chessai/ai/bitboard.pyx":763
+  /* "chessai/ai/bitboard.pyx":764
  *         result = BitBoard()
  *         result.bb =  self.bs.board_state.white
  *         return result             # <<<<<<<<<<<<<<
@@ -15480,7 +15480,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   __pyx_r = __pyx_v_result;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":760
+  /* "chessai/ai/bitboard.pyx":761
  *         return result
  * 
  *     cpdef BitBoard get_white(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -15522,7 +15522,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_50get_white(str
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("get_white", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((PyObject *)__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_white(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 760, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_white(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 761, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -15539,7 +15539,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_50get_white(str
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":765
+/* "chessai/ai/bitboard.pyx":766
  *         return result
  * 
  *     cpdef BitBoard get_black(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -15562,7 +15562,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_black); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 765, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_black); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 766, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_53get_black)) {
       __Pyx_XDECREF(((PyObject *)__pyx_r));
@@ -15578,14 +15578,14 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 765, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 766, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 765, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 766, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7chessai_2ai_8bitboard_BitBoard))))) __PYX_ERR(0, 765, __pyx_L1_error)
+      if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_7chessai_2ai_8bitboard_BitBoard))))) __PYX_ERR(0, 766, __pyx_L1_error)
       __pyx_r = ((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *)__pyx_t_2);
       __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -15594,19 +15594,19 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":766
+  /* "chessai/ai/bitboard.pyx":767
  * 
  *     cpdef BitBoard get_black(BitBoardState self):
  *         result = BitBoard()             # <<<<<<<<<<<<<<
  *         result.bb =  self.bs.board_state.black
  *         return result
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoard), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 766, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoard), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 767, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_result = ((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "chessai/ai/bitboard.pyx":767
+  /* "chessai/ai/bitboard.pyx":768
  *     cpdef BitBoard get_black(BitBoardState self):
  *         result = BitBoard()
  *         result.bb =  self.bs.board_state.black             # <<<<<<<<<<<<<<
@@ -15616,7 +15616,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   __pyx_t_5 = __pyx_v_self->bs.board_state.black;
   __pyx_v_result->bb = __pyx_t_5;
 
-  /* "chessai/ai/bitboard.pyx":768
+  /* "chessai/ai/bitboard.pyx":769
  *         result = BitBoard()
  *         result.bb =  self.bs.board_state.black
  *         return result             # <<<<<<<<<<<<<<
@@ -15628,7 +15628,7 @@ static struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *__pyx_f_7chessai_2ai_8b
   __pyx_r = __pyx_v_result;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":765
+  /* "chessai/ai/bitboard.pyx":766
  *         return result
  * 
  *     cpdef BitBoard get_black(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -15670,7 +15670,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_52get_black(str
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("get_black", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((PyObject *)__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_black(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 765, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_black(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 766, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -15687,7 +15687,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_52get_black(str
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":770
+/* "chessai/ai/bitboard.pyx":771
  *         return result
  * 
  *     cpdef int get_enpassant(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -15711,7 +15711,7 @@ static int __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_enpassant(struct _
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_enpassant); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 770, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_enpassant); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 771, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_55get_enpassant)) {
       __Pyx_INCREF(__pyx_t_1);
@@ -15726,14 +15726,14 @@ static int __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_enpassant(struct _
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 770, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 771, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 770, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 771, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 770, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 771, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __pyx_r = __pyx_t_5;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -15742,7 +15742,7 @@ static int __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_enpassant(struct _
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":771
+  /* "chessai/ai/bitboard.pyx":772
  * 
  *     cpdef int get_enpassant(BitBoardState self):
  *         cdef int result = self.bs.board_state.enpassant             # <<<<<<<<<<<<<<
@@ -15752,7 +15752,7 @@ static int __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_enpassant(struct _
   __pyx_t_6 = __pyx_v_self->bs.board_state.enpassant;
   __pyx_v_result = __pyx_t_6;
 
-  /* "chessai/ai/bitboard.pyx":772
+  /* "chessai/ai/bitboard.pyx":773
  *     cpdef int get_enpassant(BitBoardState self):
  *         cdef int result = self.bs.board_state.enpassant
  *         return result             # <<<<<<<<<<<<<<
@@ -15762,7 +15762,7 @@ static int __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_enpassant(struct _
   __pyx_r = __pyx_v_result;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":770
+  /* "chessai/ai/bitboard.pyx":771
  *         return result
  * 
  *     cpdef int get_enpassant(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -15802,7 +15802,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_54get_enpassant
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("get_enpassant", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_enpassant(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 770, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_enpassant(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 771, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -15819,7 +15819,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_54get_enpassant
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":774
+/* "chessai/ai/bitboard.pyx":775
  *         return result
  * 
  *     cpdef bool get_white_castle_king(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -15842,7 +15842,7 @@ static bool __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_white_castle_king
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_white_castle_king); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 774, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_white_castle_king); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 775, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_57get_white_castle_king)) {
       __Pyx_INCREF(__pyx_t_1);
@@ -15857,14 +15857,14 @@ static bool __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_white_castle_king
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 774, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 775, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 774, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 775, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_t_5 = __Pyx_PyInt_As_bool(__pyx_t_2); if (unlikely((__pyx_t_5 == ((bool)-1)) && PyErr_Occurred())) __PYX_ERR(0, 774, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyInt_As_bool(__pyx_t_2); if (unlikely((__pyx_t_5 == ((bool)-1)) && PyErr_Occurred())) __PYX_ERR(0, 775, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __pyx_r = __pyx_t_5;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -15873,7 +15873,7 @@ static bool __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_white_castle_king
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":775
+  /* "chessai/ai/bitboard.pyx":776
  * 
  *     cpdef bool get_white_castle_king(BitBoardState self):
  *         cdef bool result = get_white_castle_king(&(self.bs))             # <<<<<<<<<<<<<<
@@ -15882,7 +15882,7 @@ static bool __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_white_castle_king
  */
   __pyx_v_result = get_white_castle_king((&__pyx_v_self->bs));
 
-  /* "chessai/ai/bitboard.pyx":776
+  /* "chessai/ai/bitboard.pyx":777
  *     cpdef bool get_white_castle_king(BitBoardState self):
  *         cdef bool result = get_white_castle_king(&(self.bs))
  *         return result             # <<<<<<<<<<<<<<
@@ -15892,7 +15892,7 @@ static bool __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_white_castle_king
   __pyx_r = __pyx_v_result;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":774
+  /* "chessai/ai/bitboard.pyx":775
  *         return result
  * 
  *     cpdef bool get_white_castle_king(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -15932,7 +15932,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_56get_white_cas
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("get_white_castle_king", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_bool(__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_white_castle_king(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 774, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_bool(__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_white_castle_king(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 775, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -15949,7 +15949,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_56get_white_cas
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":778
+/* "chessai/ai/bitboard.pyx":779
  *         return result
  * 
  *     cpdef bool get_white_castle_queen(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -15972,7 +15972,7 @@ static bool __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_white_castle_quee
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_white_castle_queen); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 778, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_white_castle_queen); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 779, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_59get_white_castle_queen)) {
       __Pyx_INCREF(__pyx_t_1);
@@ -15987,14 +15987,14 @@ static bool __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_white_castle_quee
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 778, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 779, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 778, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 779, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_t_5 = __Pyx_PyInt_As_bool(__pyx_t_2); if (unlikely((__pyx_t_5 == ((bool)-1)) && PyErr_Occurred())) __PYX_ERR(0, 778, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyInt_As_bool(__pyx_t_2); if (unlikely((__pyx_t_5 == ((bool)-1)) && PyErr_Occurred())) __PYX_ERR(0, 779, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __pyx_r = __pyx_t_5;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -16003,7 +16003,7 @@ static bool __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_white_castle_quee
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":779
+  /* "chessai/ai/bitboard.pyx":780
  * 
  *     cpdef bool get_white_castle_queen(BitBoardState self):
  *         cdef bool result = get_white_castle_queen(&(self.bs))             # <<<<<<<<<<<<<<
@@ -16012,7 +16012,7 @@ static bool __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_white_castle_quee
  */
   __pyx_v_result = get_white_castle_queen((&__pyx_v_self->bs));
 
-  /* "chessai/ai/bitboard.pyx":780
+  /* "chessai/ai/bitboard.pyx":781
  *     cpdef bool get_white_castle_queen(BitBoardState self):
  *         cdef bool result = get_white_castle_queen(&(self.bs))
  *         return result             # <<<<<<<<<<<<<<
@@ -16022,7 +16022,7 @@ static bool __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_white_castle_quee
   __pyx_r = __pyx_v_result;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":778
+  /* "chessai/ai/bitboard.pyx":779
  *         return result
  * 
  *     cpdef bool get_white_castle_queen(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -16062,7 +16062,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_58get_white_cas
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("get_white_castle_queen", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_bool(__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_white_castle_queen(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 778, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_bool(__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_white_castle_queen(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 779, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -16079,7 +16079,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_58get_white_cas
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":782
+/* "chessai/ai/bitboard.pyx":783
  *         return result
  * 
  *     cpdef bool get_black_castle_king(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -16102,7 +16102,7 @@ static bool __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_black_castle_king
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_black_castle_king); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 782, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_black_castle_king); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 783, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_61get_black_castle_king)) {
       __Pyx_INCREF(__pyx_t_1);
@@ -16117,14 +16117,14 @@ static bool __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_black_castle_king
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 782, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 783, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 782, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 783, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_t_5 = __Pyx_PyInt_As_bool(__pyx_t_2); if (unlikely((__pyx_t_5 == ((bool)-1)) && PyErr_Occurred())) __PYX_ERR(0, 782, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyInt_As_bool(__pyx_t_2); if (unlikely((__pyx_t_5 == ((bool)-1)) && PyErr_Occurred())) __PYX_ERR(0, 783, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __pyx_r = __pyx_t_5;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -16133,7 +16133,7 @@ static bool __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_black_castle_king
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":783
+  /* "chessai/ai/bitboard.pyx":784
  * 
  *     cpdef bool get_black_castle_king(BitBoardState self):
  *         cdef bool result = get_black_castle_king(&(self.bs))             # <<<<<<<<<<<<<<
@@ -16142,7 +16142,7 @@ static bool __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_black_castle_king
  */
   __pyx_v_result = get_black_castle_king((&__pyx_v_self->bs));
 
-  /* "chessai/ai/bitboard.pyx":784
+  /* "chessai/ai/bitboard.pyx":785
  *     cpdef bool get_black_castle_king(BitBoardState self):
  *         cdef bool result = get_black_castle_king(&(self.bs))
  *         return result             # <<<<<<<<<<<<<<
@@ -16152,7 +16152,7 @@ static bool __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_black_castle_king
   __pyx_r = __pyx_v_result;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":782
+  /* "chessai/ai/bitboard.pyx":783
  *         return result
  * 
  *     cpdef bool get_black_castle_king(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -16192,7 +16192,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_60get_black_cas
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("get_black_castle_king", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_bool(__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_black_castle_king(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 782, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_bool(__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_black_castle_king(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 783, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -16209,7 +16209,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_60get_black_cas
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":786
+/* "chessai/ai/bitboard.pyx":787
  *         return result
  * 
  *     cpdef bool get_black_castle_queen(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -16232,7 +16232,7 @@ static bool __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_black_castle_quee
   if (unlikely(__pyx_skip_dispatch)) ;
   /* Check if overridden in Python */
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_black_castle_queen); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 786, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_black_castle_queen); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 787, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_7chessai_2ai_8bitboard_13BitBoardState_63get_black_castle_queen)) {
       __Pyx_INCREF(__pyx_t_1);
@@ -16247,14 +16247,14 @@ static bool __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_black_castle_quee
         }
       }
       if (__pyx_t_4) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 786, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 787, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 786, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 787, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_t_5 = __Pyx_PyInt_As_bool(__pyx_t_2); if (unlikely((__pyx_t_5 == ((bool)-1)) && PyErr_Occurred())) __PYX_ERR(0, 786, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyInt_As_bool(__pyx_t_2); if (unlikely((__pyx_t_5 == ((bool)-1)) && PyErr_Occurred())) __PYX_ERR(0, 787, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __pyx_r = __pyx_t_5;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -16263,7 +16263,7 @@ static bool __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_black_castle_quee
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "chessai/ai/bitboard.pyx":787
+  /* "chessai/ai/bitboard.pyx":788
  * 
  *     cpdef bool get_black_castle_queen(BitBoardState self):
  *         cdef bool result = get_black_castle_queen(&(self.bs))             # <<<<<<<<<<<<<<
@@ -16272,7 +16272,7 @@ static bool __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_black_castle_quee
  */
   __pyx_v_result = get_black_castle_queen((&__pyx_v_self->bs));
 
-  /* "chessai/ai/bitboard.pyx":788
+  /* "chessai/ai/bitboard.pyx":789
  *     cpdef bool get_black_castle_queen(BitBoardState self):
  *         cdef bool result = get_black_castle_queen(&(self.bs))
  *         return result             # <<<<<<<<<<<<<<
@@ -16282,7 +16282,7 @@ static bool __pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_black_castle_quee
   __pyx_r = __pyx_v_result;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":786
+  /* "chessai/ai/bitboard.pyx":787
  *         return result
  * 
  *     cpdef bool get_black_castle_queen(BitBoardState self):             # <<<<<<<<<<<<<<
@@ -16322,7 +16322,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_62get_black_cas
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("get_black_castle_queen", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_bool(__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_black_castle_queen(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 786, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_bool(__pyx_f_7chessai_2ai_8bitboard_13BitBoardState_get_black_castle_queen(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 787, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -16446,7 +16446,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_13BitBoardState_66__setstate_cy
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":790
+/* "chessai/ai/bitboard.pyx":791
  *         return result
  * 
  * cpdef int algebraic_to_int(str alg):             # <<<<<<<<<<<<<<
@@ -16465,16 +16465,16 @@ static int __pyx_f_7chessai_2ai_8bitboard_algebraic_to_int(PyObject *__pyx_v_alg
   int __pyx_t_5;
   __Pyx_RefNannySetupContext("algebraic_to_int", 0);
 
-  /* "chessai/ai/bitboard.pyx":791
+  /* "chessai/ai/bitboard.pyx":792
  * 
  * cpdef int algebraic_to_int(str alg):
  *     return ord(alg[0].lower()) - ord('a') + 8 * (int(alg[1]) - 1)             # <<<<<<<<<<<<<<
  * 
  * cpdef str int_to_algebraic(int n):
  */
-  __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_alg, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 791, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_alg, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 792, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_lower); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 791, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_lower); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 792, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -16488,38 +16488,38 @@ static int __pyx_f_7chessai_2ai_8bitboard_algebraic_to_int(PyObject *__pyx_v_alg
     }
   }
   if (__pyx_t_2) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 791, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 792, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 791, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 792, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_4 = __Pyx_PyObject_Ord(__pyx_t_1); if (unlikely(__pyx_t_4 == (long)(Py_UCS4)-1)) __PYX_ERR(0, 791, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Ord(__pyx_t_1); if (unlikely(__pyx_t_4 == (long)(Py_UCS4)-1)) __PYX_ERR(0, 792, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_long((__pyx_t_4 - 97)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 791, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_long((__pyx_t_4 - 97)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 792, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_alg, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 791, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_alg, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 792, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = __Pyx_PyNumber_Int(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 791, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyNumber_Int(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 792, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_SubtractObjC(__pyx_t_2, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 791, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_SubtractObjC(__pyx_t_2, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 792, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyNumber_Multiply(__pyx_int_8, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 791, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_Multiply(__pyx_int_8, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 792, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyNumber_Add(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 791, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_Add(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 792, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_3); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 791, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_3); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 792, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_r = __pyx_t_5;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":790
+  /* "chessai/ai/bitboard.pyx":791
  *         return result
  * 
  * cpdef int algebraic_to_int(str alg):             # <<<<<<<<<<<<<<
@@ -16545,7 +16545,7 @@ static PyObject *__pyx_pw_7chessai_2ai_8bitboard_5algebraic_to_int(PyObject *__p
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("algebraic_to_int (wrapper)", 0);
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_alg), (&PyString_Type), 1, "alg", 1))) __PYX_ERR(0, 790, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_alg), (&PyString_Type), 1, "alg", 1))) __PYX_ERR(0, 791, __pyx_L1_error)
   __pyx_r = __pyx_pf_7chessai_2ai_8bitboard_4algebraic_to_int(__pyx_self, ((PyObject*)__pyx_v_alg));
 
   /* function exit code */
@@ -16563,7 +16563,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_4algebraic_to_int(CYTHON_UNUSED
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("algebraic_to_int", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_f_7chessai_2ai_8bitboard_algebraic_to_int(__pyx_v_alg, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 790, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_f_7chessai_2ai_8bitboard_algebraic_to_int(__pyx_v_alg, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 791, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -16580,7 +16580,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_4algebraic_to_int(CYTHON_UNUSED
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":793
+/* "chessai/ai/bitboard.pyx":794
  *     return ord(alg[0].lower()) - ord('a') + 8 * (int(alg[1]) - 1)
  * 
  * cpdef str int_to_algebraic(int n):             # <<<<<<<<<<<<<<
@@ -16597,7 +16597,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_int_to_algebraic(int __pyx_v_n, 
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("int_to_algebraic", 0);
 
-  /* "chessai/ai/bitboard.pyx":794
+  /* "chessai/ai/bitboard.pyx":795
  * 
  * cpdef str int_to_algebraic(int n):
  *     return chr(ord('a') + (n % 8)) + str((n / 8) + 1)             # <<<<<<<<<<<<<<
@@ -16605,36 +16605,36 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_int_to_algebraic(int __pyx_v_n, 
  * cdef str bb_to_grid(bitboard bb):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_long((97 + __Pyx_mod_long(__pyx_v_n, 8))); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 794, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_long((97 + __Pyx_mod_long(__pyx_v_n, 8))); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 795, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 794, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 795, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_chr, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 794, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_chr, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 795, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyInt_From_long((__Pyx_div_long(__pyx_v_n, 8) + 1)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 794, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_long((__Pyx_div_long(__pyx_v_n, 8) + 1)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 795, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 794, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 795, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)(&PyString_Type)), __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 794, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)(&PyString_Type)), __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 795, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyNumber_Add(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 794, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_Add(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 795, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (!(likely(PyString_CheckExact(__pyx_t_3))||((__pyx_t_3) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_3)->tp_name), 0))) __PYX_ERR(0, 794, __pyx_L1_error)
+  if (!(likely(PyString_CheckExact(__pyx_t_3))||((__pyx_t_3) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_3)->tp_name), 0))) __PYX_ERR(0, 795, __pyx_L1_error)
   __pyx_r = ((PyObject*)__pyx_t_3);
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":793
+  /* "chessai/ai/bitboard.pyx":794
  *     return ord(alg[0].lower()) - ord('a') + 8 * (int(alg[1]) - 1)
  * 
  * cpdef str int_to_algebraic(int n):             # <<<<<<<<<<<<<<
@@ -16663,7 +16663,7 @@ static PyObject *__pyx_pw_7chessai_2ai_8bitboard_7int_to_algebraic(PyObject *__p
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("int_to_algebraic (wrapper)", 0);
   assert(__pyx_arg_n); {
-    __pyx_v_n = __Pyx_PyInt_As_int(__pyx_arg_n); if (unlikely((__pyx_v_n == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 793, __pyx_L3_error)
+    __pyx_v_n = __Pyx_PyInt_As_int(__pyx_arg_n); if (unlikely((__pyx_v_n == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 794, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -16684,7 +16684,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_6int_to_algebraic(CYTHON_UNUSED
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("int_to_algebraic", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_int_to_algebraic(__pyx_v_n, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 793, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_7chessai_2ai_8bitboard_int_to_algebraic(__pyx_v_n, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 794, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -16701,7 +16701,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_6int_to_algebraic(CYTHON_UNUSED
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":796
+/* "chessai/ai/bitboard.pyx":797
  *     return chr(ord('a') + (n % 8)) + str((n / 8) + 1)
  * 
  * cdef str bb_to_grid(bitboard bb):             # <<<<<<<<<<<<<<
@@ -16718,19 +16718,19 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_bb_to_grid(bitboard __pyx_v_bb) 
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("bb_to_grid", 0);
 
-  /* "chessai/ai/bitboard.pyx":797
+  /* "chessai/ai/bitboard.pyx":798
  * 
  * cdef str bb_to_grid(bitboard bb):
  *     r = BitBoard()             # <<<<<<<<<<<<<<
  *     r.bb = bb
  *     return r.to_grid()
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoard), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 797, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoard), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 798, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_r = ((struct __pyx_obj_7chessai_2ai_8bitboard_BitBoard *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "chessai/ai/bitboard.pyx":798
+  /* "chessai/ai/bitboard.pyx":799
  * cdef str bb_to_grid(bitboard bb):
  *     r = BitBoard()
  *     r.bb = bb             # <<<<<<<<<<<<<<
@@ -16739,7 +16739,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_bb_to_grid(bitboard __pyx_v_bb) 
  */
   __pyx_v_r->bb = __pyx_v_bb;
 
-  /* "chessai/ai/bitboard.pyx":799
+  /* "chessai/ai/bitboard.pyx":800
  *     r = BitBoard()
  *     r.bb = bb
  *     return r.to_grid()             # <<<<<<<<<<<<<<
@@ -16747,7 +16747,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_bb_to_grid(bitboard __pyx_v_bb) 
  * cdef GameState fen_to_bitboard(str fen):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_r), __pyx_n_s_to_grid); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 799, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_r), __pyx_n_s_to_grid); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 800, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -16760,19 +16760,19 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_bb_to_grid(bitboard __pyx_v_bb) 
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 799, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 800, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 799, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 800, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (!(likely(PyString_CheckExact(__pyx_t_1))||((__pyx_t_1) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_1)->tp_name), 0))) __PYX_ERR(0, 799, __pyx_L1_error)
+  if (!(likely(PyString_CheckExact(__pyx_t_1))||((__pyx_t_1) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_1)->tp_name), 0))) __PYX_ERR(0, 800, __pyx_L1_error)
   __pyx_r = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":796
+  /* "chessai/ai/bitboard.pyx":797
  *     return chr(ord('a') + (n % 8)) + str((n / 8) + 1)
  * 
  * cdef str bb_to_grid(bitboard bb):             # <<<<<<<<<<<<<<
@@ -16794,7 +16794,7 @@ static PyObject *__pyx_f_7chessai_2ai_8bitboard_bb_to_grid(bitboard __pyx_v_bb) 
   return __pyx_r;
 }
 
-/* "chessai/ai/bitboard.pyx":801
+/* "chessai/ai/bitboard.pyx":802
  *     return r.to_grid()
  * 
  * cdef GameState fen_to_bitboard(str fen):             # <<<<<<<<<<<<<<
@@ -16836,7 +16836,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
   BoardState __pyx_t_18;
   __Pyx_RefNannySetupContext("fen_to_bitboard", 0);
 
-  /* "chessai/ai/bitboard.pyx":802
+  /* "chessai/ai/bitboard.pyx":803
  * 
  * cdef GameState fen_to_bitboard(str fen):
  *     cdef GameState bs = GameState();             # <<<<<<<<<<<<<<
@@ -16845,16 +16845,16 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
  */
   __pyx_v_bs = __pyx_t_1;
 
-  /* "chessai/ai/bitboard.pyx":804
+  /* "chessai/ai/bitboard.pyx":805
  *     cdef GameState bs = GameState();
  *     cdef str pieces, turn, castles, en_passant, halfmove_clock, move_number
  *     pieces, turn, castles, en_passant, halfmove_clock, move_number = fen.split(' ')             # <<<<<<<<<<<<<<
  * 
  *     cdef int pos = 0
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_fen, __pyx_n_s_split); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 804, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_fen, __pyx_n_s_split); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 805, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__22, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 804, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__22, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 805, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if ((likely(PyTuple_CheckExact(__pyx_t_3))) || (PyList_CheckExact(__pyx_t_3))) {
@@ -16867,7 +16867,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
     if (unlikely(size != 6)) {
       if (size > 6) __Pyx_RaiseTooManyValuesError(6);
       else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-      __PYX_ERR(0, 804, __pyx_L1_error)
+      __PYX_ERR(0, 805, __pyx_L1_error)
     }
     #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
     if (likely(PyTuple_CheckExact(sequence))) {
@@ -16896,7 +16896,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
       Py_ssize_t i;
       PyObject** temps[6] = {&__pyx_t_2,&__pyx_t_4,&__pyx_t_5,&__pyx_t_6,&__pyx_t_7,&__pyx_t_8};
       for (i=0; i < 6; i++) {
-        PyObject* item = PySequence_ITEM(sequence, i); if (unlikely(!item)) __PYX_ERR(0, 804, __pyx_L1_error)
+        PyObject* item = PySequence_ITEM(sequence, i); if (unlikely(!item)) __PYX_ERR(0, 805, __pyx_L1_error)
         __Pyx_GOTREF(item);
         *(temps[i]) = item;
       }
@@ -16906,7 +16906,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
   } else {
     Py_ssize_t index = -1;
     PyObject** temps[6] = {&__pyx_t_2,&__pyx_t_4,&__pyx_t_5,&__pyx_t_6,&__pyx_t_7,&__pyx_t_8};
-    __pyx_t_9 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 804, __pyx_L1_error)
+    __pyx_t_9 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 805, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_t_10 = Py_TYPE(__pyx_t_9)->tp_iternext;
@@ -16915,7 +16915,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
       __Pyx_GOTREF(item);
       *(temps[index]) = item;
     }
-    if (__Pyx_IternextUnpackEndCheck(__pyx_t_10(__pyx_t_9), 6) < 0) __PYX_ERR(0, 804, __pyx_L1_error)
+    if (__Pyx_IternextUnpackEndCheck(__pyx_t_10(__pyx_t_9), 6) < 0) __PYX_ERR(0, 805, __pyx_L1_error)
     __pyx_t_10 = NULL;
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     goto __pyx_L4_unpacking_done;
@@ -16923,15 +16923,15 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     __pyx_t_10 = NULL;
     if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-    __PYX_ERR(0, 804, __pyx_L1_error)
+    __PYX_ERR(0, 805, __pyx_L1_error)
     __pyx_L4_unpacking_done:;
   }
-  if (!(likely(PyString_CheckExact(__pyx_t_2))||((__pyx_t_2) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_2)->tp_name), 0))) __PYX_ERR(0, 804, __pyx_L1_error)
-  if (!(likely(PyString_CheckExact(__pyx_t_4))||((__pyx_t_4) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_4)->tp_name), 0))) __PYX_ERR(0, 804, __pyx_L1_error)
-  if (!(likely(PyString_CheckExact(__pyx_t_5))||((__pyx_t_5) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_5)->tp_name), 0))) __PYX_ERR(0, 804, __pyx_L1_error)
-  if (!(likely(PyString_CheckExact(__pyx_t_6))||((__pyx_t_6) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_6)->tp_name), 0))) __PYX_ERR(0, 804, __pyx_L1_error)
-  if (!(likely(PyString_CheckExact(__pyx_t_7))||((__pyx_t_7) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_7)->tp_name), 0))) __PYX_ERR(0, 804, __pyx_L1_error)
-  if (!(likely(PyString_CheckExact(__pyx_t_8))||((__pyx_t_8) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_8)->tp_name), 0))) __PYX_ERR(0, 804, __pyx_L1_error)
+  if (!(likely(PyString_CheckExact(__pyx_t_2))||((__pyx_t_2) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_2)->tp_name), 0))) __PYX_ERR(0, 805, __pyx_L1_error)
+  if (!(likely(PyString_CheckExact(__pyx_t_4))||((__pyx_t_4) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_4)->tp_name), 0))) __PYX_ERR(0, 805, __pyx_L1_error)
+  if (!(likely(PyString_CheckExact(__pyx_t_5))||((__pyx_t_5) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_5)->tp_name), 0))) __PYX_ERR(0, 805, __pyx_L1_error)
+  if (!(likely(PyString_CheckExact(__pyx_t_6))||((__pyx_t_6) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_6)->tp_name), 0))) __PYX_ERR(0, 805, __pyx_L1_error)
+  if (!(likely(PyString_CheckExact(__pyx_t_7))||((__pyx_t_7) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_7)->tp_name), 0))) __PYX_ERR(0, 805, __pyx_L1_error)
+  if (!(likely(PyString_CheckExact(__pyx_t_8))||((__pyx_t_8) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_8)->tp_name), 0))) __PYX_ERR(0, 805, __pyx_L1_error)
   __pyx_v_pieces = ((PyObject*)__pyx_t_2);
   __pyx_t_2 = 0;
   __pyx_v_turn = ((PyObject*)__pyx_t_4);
@@ -16945,7 +16945,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
   __pyx_v_move_number = ((PyObject*)__pyx_t_8);
   __pyx_t_8 = 0;
 
-  /* "chessai/ai/bitboard.pyx":806
+  /* "chessai/ai/bitboard.pyx":807
  *     pieces, turn, castles, en_passant, halfmove_clock, move_number = fen.split(' ')
  * 
  *     cdef int pos = 0             # <<<<<<<<<<<<<<
@@ -16954,33 +16954,33 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
  */
   __pyx_v_pos = 0;
 
-  /* "chessai/ai/bitboard.pyx":808
+  /* "chessai/ai/bitboard.pyx":809
  *     cdef int pos = 0
  *     cdef str ch
  *     ranks = list(reversed(pieces.split('/')))             # <<<<<<<<<<<<<<
  *     for rank in ranks:
  *         for ch in rank:
  */
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_pieces, __pyx_n_s_split); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 808, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_pieces, __pyx_n_s_split); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 809, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__23, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 808, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__23, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 809, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 808, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 809, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_8);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_8);
   __pyx_t_8 = 0;
-  __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_reversed, __pyx_t_3, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 808, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_reversed, __pyx_t_3, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 809, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PySequence_List(__pyx_t_8); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 808, __pyx_L1_error)
+  __pyx_t_3 = PySequence_List(__pyx_t_8); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 809, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   __pyx_v_ranks = ((PyObject*)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "chessai/ai/bitboard.pyx":809
+  /* "chessai/ai/bitboard.pyx":810
  *     cdef str ch
  *     ranks = list(reversed(pieces.split('/')))
  *     for rank in ranks:             # <<<<<<<<<<<<<<
@@ -16991,15 +16991,15 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
   for (;;) {
     if (__pyx_t_11 >= PyList_GET_SIZE(__pyx_t_3)) break;
     #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    __pyx_t_8 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_11); __Pyx_INCREF(__pyx_t_8); __pyx_t_11++; if (unlikely(0 < 0)) __PYX_ERR(0, 809, __pyx_L1_error)
+    __pyx_t_8 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_11); __Pyx_INCREF(__pyx_t_8); __pyx_t_11++; if (unlikely(0 < 0)) __PYX_ERR(0, 810, __pyx_L1_error)
     #else
-    __pyx_t_8 = PySequence_ITEM(__pyx_t_3, __pyx_t_11); __pyx_t_11++; if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 809, __pyx_L1_error)
+    __pyx_t_8 = PySequence_ITEM(__pyx_t_3, __pyx_t_11); __pyx_t_11++; if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 810, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     #endif
     __Pyx_XDECREF_SET(__pyx_v_rank, __pyx_t_8);
     __pyx_t_8 = 0;
 
-    /* "chessai/ai/bitboard.pyx":810
+    /* "chessai/ai/bitboard.pyx":811
  *     ranks = list(reversed(pieces.split('/')))
  *     for rank in ranks:
  *         for ch in rank:             # <<<<<<<<<<<<<<
@@ -17010,26 +17010,26 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
       __pyx_t_8 = __pyx_v_rank; __Pyx_INCREF(__pyx_t_8); __pyx_t_12 = 0;
       __pyx_t_13 = NULL;
     } else {
-      __pyx_t_12 = -1; __pyx_t_8 = PyObject_GetIter(__pyx_v_rank); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 810, __pyx_L1_error)
+      __pyx_t_12 = -1; __pyx_t_8 = PyObject_GetIter(__pyx_v_rank); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 811, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
-      __pyx_t_13 = Py_TYPE(__pyx_t_8)->tp_iternext; if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 810, __pyx_L1_error)
+      __pyx_t_13 = Py_TYPE(__pyx_t_8)->tp_iternext; if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 811, __pyx_L1_error)
     }
     for (;;) {
       if (likely(!__pyx_t_13)) {
         if (likely(PyList_CheckExact(__pyx_t_8))) {
           if (__pyx_t_12 >= PyList_GET_SIZE(__pyx_t_8)) break;
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_7 = PyList_GET_ITEM(__pyx_t_8, __pyx_t_12); __Pyx_INCREF(__pyx_t_7); __pyx_t_12++; if (unlikely(0 < 0)) __PYX_ERR(0, 810, __pyx_L1_error)
+          __pyx_t_7 = PyList_GET_ITEM(__pyx_t_8, __pyx_t_12); __Pyx_INCREF(__pyx_t_7); __pyx_t_12++; if (unlikely(0 < 0)) __PYX_ERR(0, 811, __pyx_L1_error)
           #else
-          __pyx_t_7 = PySequence_ITEM(__pyx_t_8, __pyx_t_12); __pyx_t_12++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 810, __pyx_L1_error)
+          __pyx_t_7 = PySequence_ITEM(__pyx_t_8, __pyx_t_12); __pyx_t_12++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 811, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_7);
           #endif
         } else {
           if (__pyx_t_12 >= PyTuple_GET_SIZE(__pyx_t_8)) break;
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_7 = PyTuple_GET_ITEM(__pyx_t_8, __pyx_t_12); __Pyx_INCREF(__pyx_t_7); __pyx_t_12++; if (unlikely(0 < 0)) __PYX_ERR(0, 810, __pyx_L1_error)
+          __pyx_t_7 = PyTuple_GET_ITEM(__pyx_t_8, __pyx_t_12); __Pyx_INCREF(__pyx_t_7); __pyx_t_12++; if (unlikely(0 < 0)) __PYX_ERR(0, 811, __pyx_L1_error)
           #else
-          __pyx_t_7 = PySequence_ITEM(__pyx_t_8, __pyx_t_12); __pyx_t_12++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 810, __pyx_L1_error)
+          __pyx_t_7 = PySequence_ITEM(__pyx_t_8, __pyx_t_12); __pyx_t_12++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 811, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_7);
           #endif
         }
@@ -17039,24 +17039,24 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
           PyObject* exc_type = PyErr_Occurred();
           if (exc_type) {
             if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-            else __PYX_ERR(0, 810, __pyx_L1_error)
+            else __PYX_ERR(0, 811, __pyx_L1_error)
           }
           break;
         }
         __Pyx_GOTREF(__pyx_t_7);
       }
-      if (!(likely(PyString_CheckExact(__pyx_t_7))||((__pyx_t_7) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_7)->tp_name), 0))) __PYX_ERR(0, 810, __pyx_L1_error)
+      if (!(likely(PyString_CheckExact(__pyx_t_7))||((__pyx_t_7) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_7)->tp_name), 0))) __PYX_ERR(0, 811, __pyx_L1_error)
       __Pyx_XDECREF_SET(__pyx_v_ch, ((PyObject*)__pyx_t_7));
       __pyx_t_7 = 0;
 
-      /* "chessai/ai/bitboard.pyx":811
+      /* "chessai/ai/bitboard.pyx":812
  *     for rank in ranks:
  *         for ch in rank:
  *             if ch.isdigit():             # <<<<<<<<<<<<<<
  *                 pos += int(ch)
  *             else:
  */
-      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_ch, __pyx_n_s_isdigit); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 811, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_ch, __pyx_n_s_isdigit); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 812, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       __pyx_t_5 = NULL;
       if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_6))) {
@@ -17069,37 +17069,37 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
         }
       }
       if (__pyx_t_5) {
-        __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_5); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 811, __pyx_L1_error)
+        __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_5); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 812, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       } else {
-        __pyx_t_7 = __Pyx_PyObject_CallNoArg(__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 811, __pyx_L1_error)
+        __pyx_t_7 = __Pyx_PyObject_CallNoArg(__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 812, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __pyx_t_14 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_14 < 0)) __PYX_ERR(0, 811, __pyx_L1_error)
+      __pyx_t_14 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_14 < 0)) __PYX_ERR(0, 812, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       if (__pyx_t_14) {
 
-        /* "chessai/ai/bitboard.pyx":812
+        /* "chessai/ai/bitboard.pyx":813
  *         for ch in rank:
  *             if ch.isdigit():
  *                 pos += int(ch)             # <<<<<<<<<<<<<<
  *             else:
  *                 place_piece(&bs, pos, str_to_piece(ch))
  */
-        __pyx_t_7 = __Pyx_PyInt_From_int(__pyx_v_pos); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 812, __pyx_L1_error)
+        __pyx_t_7 = __Pyx_PyInt_From_int(__pyx_v_pos); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 813, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
-        __pyx_t_6 = __Pyx_PyNumber_Int(__pyx_v_ch); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 812, __pyx_L1_error)
+        __pyx_t_6 = __Pyx_PyNumber_Int(__pyx_v_ch); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 813, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
-        __pyx_t_5 = PyNumber_InPlaceAdd(__pyx_t_7, __pyx_t_6); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 812, __pyx_L1_error)
+        __pyx_t_5 = PyNumber_InPlaceAdd(__pyx_t_7, __pyx_t_6); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 813, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 812, __pyx_L1_error)
+        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 813, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
         __pyx_v_pos = __pyx_t_15;
 
-        /* "chessai/ai/bitboard.pyx":811
+        /* "chessai/ai/bitboard.pyx":812
  *     for rank in ranks:
  *         for ch in rank:
  *             if ch.isdigit():             # <<<<<<<<<<<<<<
@@ -17109,7 +17109,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
         goto __pyx_L9;
       }
 
-      /* "chessai/ai/bitboard.pyx":814
+      /* "chessai/ai/bitboard.pyx":815
  *                 pos += int(ch)
  *             else:
  *                 place_piece(&bs, pos, str_to_piece(ch))             # <<<<<<<<<<<<<<
@@ -17119,7 +17119,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
       /*else*/ {
         place_piece((&__pyx_v_bs), __pyx_v_pos, __pyx_f_7chessai_2ai_8bitboard_str_to_piece(__pyx_v_ch));
 
-        /* "chessai/ai/bitboard.pyx":815
+        /* "chessai/ai/bitboard.pyx":816
  *             else:
  *                 place_piece(&bs, pos, str_to_piece(ch))
  *                 pos += 1             # <<<<<<<<<<<<<<
@@ -17130,7 +17130,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
       }
       __pyx_L9:;
 
-      /* "chessai/ai/bitboard.pyx":810
+      /* "chessai/ai/bitboard.pyx":811
  *     ranks = list(reversed(pieces.split('/')))
  *     for rank in ranks:
  *         for ch in rank:             # <<<<<<<<<<<<<<
@@ -17140,7 +17140,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
     }
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
-    /* "chessai/ai/bitboard.pyx":809
+    /* "chessai/ai/bitboard.pyx":810
  *     cdef str ch
  *     ranks = list(reversed(pieces.split('/')))
  *     for rank in ranks:             # <<<<<<<<<<<<<<
@@ -17150,14 +17150,14 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "chessai/ai/bitboard.pyx":817
+  /* "chessai/ai/bitboard.pyx":818
  *                 pos += 1
  * 
  *     if turn.lower() == 'w':             # <<<<<<<<<<<<<<
  *         set_whites_turn(&bs)
  *     else:
  */
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_turn, __pyx_n_s_lower); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 817, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_turn, __pyx_n_s_lower); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 818, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __pyx_t_5 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_8))) {
@@ -17170,18 +17170,18 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
     }
   }
   if (__pyx_t_5) {
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 817, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 818, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   } else {
-    __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_8); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 817, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_8); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 818, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __pyx_t_14 = (__Pyx_PyString_Equals(__pyx_t_3, __pyx_n_s_w, Py_EQ)); if (unlikely(__pyx_t_14 < 0)) __PYX_ERR(0, 817, __pyx_L1_error)
+  __pyx_t_14 = (__Pyx_PyString_Equals(__pyx_t_3, __pyx_n_s_w, Py_EQ)); if (unlikely(__pyx_t_14 < 0)) __PYX_ERR(0, 818, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (__pyx_t_14) {
 
-    /* "chessai/ai/bitboard.pyx":818
+    /* "chessai/ai/bitboard.pyx":819
  * 
  *     if turn.lower() == 'w':
  *         set_whites_turn(&bs)             # <<<<<<<<<<<<<<
@@ -17190,7 +17190,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
  */
     set_whites_turn((&__pyx_v_bs));
 
-    /* "chessai/ai/bitboard.pyx":817
+    /* "chessai/ai/bitboard.pyx":818
  *                 pos += 1
  * 
  *     if turn.lower() == 'w':             # <<<<<<<<<<<<<<
@@ -17200,7 +17200,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
     goto __pyx_L10;
   }
 
-  /* "chessai/ai/bitboard.pyx":820
+  /* "chessai/ai/bitboard.pyx":821
  *         set_whites_turn(&bs)
  *     else:
  *         set_blacks_turn(&bs)             # <<<<<<<<<<<<<<
@@ -17212,18 +17212,18 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
   }
   __pyx_L10:;
 
-  /* "chessai/ai/bitboard.pyx":822
+  /* "chessai/ai/bitboard.pyx":823
  *         set_blacks_turn(&bs)
  * 
  *     if 'K' in castles:             # <<<<<<<<<<<<<<
  *         set_white_castle_king(&bs)
  *     if 'k' in castles:
  */
-  __pyx_t_14 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_K, __pyx_v_castles, Py_EQ)); if (unlikely(__pyx_t_14 < 0)) __PYX_ERR(0, 822, __pyx_L1_error)
+  __pyx_t_14 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_K, __pyx_v_castles, Py_EQ)); if (unlikely(__pyx_t_14 < 0)) __PYX_ERR(0, 823, __pyx_L1_error)
   __pyx_t_16 = (__pyx_t_14 != 0);
   if (__pyx_t_16) {
 
-    /* "chessai/ai/bitboard.pyx":823
+    /* "chessai/ai/bitboard.pyx":824
  * 
  *     if 'K' in castles:
  *         set_white_castle_king(&bs)             # <<<<<<<<<<<<<<
@@ -17232,7 +17232,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
  */
     set_white_castle_king((&__pyx_v_bs));
 
-    /* "chessai/ai/bitboard.pyx":822
+    /* "chessai/ai/bitboard.pyx":823
  *         set_blacks_turn(&bs)
  * 
  *     if 'K' in castles:             # <<<<<<<<<<<<<<
@@ -17241,18 +17241,18 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
  */
   }
 
-  /* "chessai/ai/bitboard.pyx":824
+  /* "chessai/ai/bitboard.pyx":825
  *     if 'K' in castles:
  *         set_white_castle_king(&bs)
  *     if 'k' in castles:             # <<<<<<<<<<<<<<
  *         set_black_castle_king(&bs)
  *     if 'Q' in castles:
  */
-  __pyx_t_16 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_k, __pyx_v_castles, Py_EQ)); if (unlikely(__pyx_t_16 < 0)) __PYX_ERR(0, 824, __pyx_L1_error)
+  __pyx_t_16 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_k, __pyx_v_castles, Py_EQ)); if (unlikely(__pyx_t_16 < 0)) __PYX_ERR(0, 825, __pyx_L1_error)
   __pyx_t_14 = (__pyx_t_16 != 0);
   if (__pyx_t_14) {
 
-    /* "chessai/ai/bitboard.pyx":825
+    /* "chessai/ai/bitboard.pyx":826
  *         set_white_castle_king(&bs)
  *     if 'k' in castles:
  *         set_black_castle_king(&bs)             # <<<<<<<<<<<<<<
@@ -17261,7 +17261,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
  */
     set_black_castle_king((&__pyx_v_bs));
 
-    /* "chessai/ai/bitboard.pyx":824
+    /* "chessai/ai/bitboard.pyx":825
  *     if 'K' in castles:
  *         set_white_castle_king(&bs)
  *     if 'k' in castles:             # <<<<<<<<<<<<<<
@@ -17270,18 +17270,18 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
  */
   }
 
-  /* "chessai/ai/bitboard.pyx":826
+  /* "chessai/ai/bitboard.pyx":827
  *     if 'k' in castles:
  *         set_black_castle_king(&bs)
  *     if 'Q' in castles:             # <<<<<<<<<<<<<<
  *         set_white_castle_queen(&bs)
  *     if 'q' in castles:
  */
-  __pyx_t_14 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_Q, __pyx_v_castles, Py_EQ)); if (unlikely(__pyx_t_14 < 0)) __PYX_ERR(0, 826, __pyx_L1_error)
+  __pyx_t_14 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_Q, __pyx_v_castles, Py_EQ)); if (unlikely(__pyx_t_14 < 0)) __PYX_ERR(0, 827, __pyx_L1_error)
   __pyx_t_16 = (__pyx_t_14 != 0);
   if (__pyx_t_16) {
 
-    /* "chessai/ai/bitboard.pyx":827
+    /* "chessai/ai/bitboard.pyx":828
  *         set_black_castle_king(&bs)
  *     if 'Q' in castles:
  *         set_white_castle_queen(&bs)             # <<<<<<<<<<<<<<
@@ -17290,7 +17290,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
  */
     set_white_castle_queen((&__pyx_v_bs));
 
-    /* "chessai/ai/bitboard.pyx":826
+    /* "chessai/ai/bitboard.pyx":827
  *     if 'k' in castles:
  *         set_black_castle_king(&bs)
  *     if 'Q' in castles:             # <<<<<<<<<<<<<<
@@ -17299,18 +17299,18 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
  */
   }
 
-  /* "chessai/ai/bitboard.pyx":828
+  /* "chessai/ai/bitboard.pyx":829
  *     if 'Q' in castles:
  *         set_white_castle_queen(&bs)
  *     if 'q' in castles:             # <<<<<<<<<<<<<<
  *         set_black_castle_queen(&bs)
  * 
  */
-  __pyx_t_16 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_q, __pyx_v_castles, Py_EQ)); if (unlikely(__pyx_t_16 < 0)) __PYX_ERR(0, 828, __pyx_L1_error)
+  __pyx_t_16 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_q, __pyx_v_castles, Py_EQ)); if (unlikely(__pyx_t_16 < 0)) __PYX_ERR(0, 829, __pyx_L1_error)
   __pyx_t_14 = (__pyx_t_16 != 0);
   if (__pyx_t_14) {
 
-    /* "chessai/ai/bitboard.pyx":829
+    /* "chessai/ai/bitboard.pyx":830
  *         set_white_castle_queen(&bs)
  *     if 'q' in castles:
  *         set_black_castle_queen(&bs)             # <<<<<<<<<<<<<<
@@ -17319,7 +17319,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
  */
     set_black_castle_queen((&__pyx_v_bs));
 
-    /* "chessai/ai/bitboard.pyx":828
+    /* "chessai/ai/bitboard.pyx":829
  *     if 'Q' in castles:
  *         set_white_castle_queen(&bs)
  *     if 'q' in castles:             # <<<<<<<<<<<<<<
@@ -17328,18 +17328,18 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
  */
   }
 
-  /* "chessai/ai/bitboard.pyx":831
+  /* "chessai/ai/bitboard.pyx":832
  *         set_black_castle_queen(&bs)
  * 
  *     if en_passant != '-':             # <<<<<<<<<<<<<<
  *         set_enpassant(&bs, algebraic_to_int(en_passant))
  *         if bs.board_state.whites_turn:
  */
-  __pyx_t_14 = (__Pyx_PyString_Equals(__pyx_v_en_passant, __pyx_kp_s__4, Py_NE)); if (unlikely(__pyx_t_14 < 0)) __PYX_ERR(0, 831, __pyx_L1_error)
+  __pyx_t_14 = (__Pyx_PyString_Equals(__pyx_v_en_passant, __pyx_kp_s__4, Py_NE)); if (unlikely(__pyx_t_14 < 0)) __PYX_ERR(0, 832, __pyx_L1_error)
   __pyx_t_16 = (__pyx_t_14 != 0);
   if (__pyx_t_16) {
 
-    /* "chessai/ai/bitboard.pyx":832
+    /* "chessai/ai/bitboard.pyx":833
  * 
  *     if en_passant != '-':
  *         set_enpassant(&bs, algebraic_to_int(en_passant))             # <<<<<<<<<<<<<<
@@ -17348,7 +17348,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
  */
     set_enpassant((&__pyx_v_bs), __pyx_f_7chessai_2ai_8bitboard_algebraic_to_int(__pyx_v_en_passant, 0));
 
-    /* "chessai/ai/bitboard.pyx":833
+    /* "chessai/ai/bitboard.pyx":834
  *     if en_passant != '-':
  *         set_enpassant(&bs, algebraic_to_int(en_passant))
  *         if bs.board_state.whites_turn:             # <<<<<<<<<<<<<<
@@ -17358,7 +17358,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
     __pyx_t_16 = (__pyx_v_bs.board_state.whites_turn != 0);
     if (__pyx_t_16) {
 
-      /* "chessai/ai/bitboard.pyx":834
+      /* "chessai/ai/bitboard.pyx":835
  *         set_enpassant(&bs, algebraic_to_int(en_passant))
  *         if bs.board_state.whites_turn:
  *             bs.piece_map[algebraic_to_int(en_passant)] = ep             # <<<<<<<<<<<<<<
@@ -17367,7 +17367,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
  */
       (__pyx_v_bs.piece_map[__pyx_f_7chessai_2ai_8bitboard_algebraic_to_int(__pyx_v_en_passant, 0)]) = ep;
 
-      /* "chessai/ai/bitboard.pyx":833
+      /* "chessai/ai/bitboard.pyx":834
  *     if en_passant != '-':
  *         set_enpassant(&bs, algebraic_to_int(en_passant))
  *         if bs.board_state.whites_turn:             # <<<<<<<<<<<<<<
@@ -17377,7 +17377,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
       goto __pyx_L16;
     }
 
-    /* "chessai/ai/bitboard.pyx":836
+    /* "chessai/ai/bitboard.pyx":837
  *             bs.piece_map[algebraic_to_int(en_passant)] = ep
  *         else:
  *             bs.piece_map[algebraic_to_int(en_passant)] = EP             # <<<<<<<<<<<<<<
@@ -17389,7 +17389,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
     }
     __pyx_L16:;
 
-    /* "chessai/ai/bitboard.pyx":831
+    /* "chessai/ai/bitboard.pyx":832
  *         set_black_castle_queen(&bs)
  * 
  *     if en_passant != '-':             # <<<<<<<<<<<<<<
@@ -17398,33 +17398,33 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
  */
   }
 
-  /* "chessai/ai/bitboard.pyx":837
+  /* "chessai/ai/bitboard.pyx":838
  *         else:
  *             bs.piece_map[algebraic_to_int(en_passant)] = EP
  *     set_halfmove_clock(&bs, int(halfmove_clock))             # <<<<<<<<<<<<<<
  *     set_fullmove_counter(&bs, int(move_number))
  *     set_hash(&bs, zobrist.hash(&bs))
  */
-  __pyx_t_3 = __Pyx_PyNumber_Int(__pyx_v_halfmove_clock); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 837, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyNumber_Int(__pyx_v_halfmove_clock); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 838, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_17 = __Pyx_PyInt_As_unsigned_int(__pyx_t_3); if (unlikely((__pyx_t_17 == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 837, __pyx_L1_error)
+  __pyx_t_17 = __Pyx_PyInt_As_unsigned_int(__pyx_t_3); if (unlikely((__pyx_t_17 == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 838, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   set_halfmove_clock((&__pyx_v_bs), __pyx_t_17);
 
-  /* "chessai/ai/bitboard.pyx":838
+  /* "chessai/ai/bitboard.pyx":839
  *             bs.piece_map[algebraic_to_int(en_passant)] = EP
  *     set_halfmove_clock(&bs, int(halfmove_clock))
  *     set_fullmove_counter(&bs, int(move_number))             # <<<<<<<<<<<<<<
  *     set_hash(&bs, zobrist.hash(&bs))
  *     bs.record[0] = bs.board_state
  */
-  __pyx_t_3 = __Pyx_PyNumber_Int(__pyx_v_move_number); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 838, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyNumber_Int(__pyx_v_move_number); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 839, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_17 = __Pyx_PyInt_As_unsigned_int(__pyx_t_3); if (unlikely((__pyx_t_17 == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 838, __pyx_L1_error)
+  __pyx_t_17 = __Pyx_PyInt_As_unsigned_int(__pyx_t_3); if (unlikely((__pyx_t_17 == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 839, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   set_fullmove_counter((&__pyx_v_bs), __pyx_t_17);
 
-  /* "chessai/ai/bitboard.pyx":839
+  /* "chessai/ai/bitboard.pyx":840
  *     set_halfmove_clock(&bs, int(halfmove_clock))
  *     set_fullmove_counter(&bs, int(move_number))
  *     set_hash(&bs, zobrist.hash(&bs))             # <<<<<<<<<<<<<<
@@ -17433,7 +17433,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
  */
   set_hash((&__pyx_v_bs), zobrist.hash((&__pyx_v_bs)));
 
-  /* "chessai/ai/bitboard.pyx":840
+  /* "chessai/ai/bitboard.pyx":841
  *     set_fullmove_counter(&bs, int(move_number))
  *     set_hash(&bs, zobrist.hash(&bs))
  *     bs.record[0] = bs.board_state             # <<<<<<<<<<<<<<
@@ -17442,7 +17442,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
   __pyx_t_18 = __pyx_v_bs.board_state;
   (__pyx_v_bs.record[0]) = __pyx_t_18;
 
-  /* "chessai/ai/bitboard.pyx":841
+  /* "chessai/ai/bitboard.pyx":842
  *     set_hash(&bs, zobrist.hash(&bs))
  *     bs.record[0] = bs.board_state
  *     return bs             # <<<<<<<<<<<<<<
@@ -17450,7 +17450,7 @@ static GameState __pyx_f_7chessai_2ai_8bitboard_fen_to_bitboard(PyObject *__pyx_
   __pyx_r = __pyx_v_bs;
   goto __pyx_L0;
 
-  /* "chessai/ai/bitboard.pyx":801
+  /* "chessai/ai/bitboard.pyx":802
  *     return r.to_grid()
  * 
  * cdef GameState fen_to_bitboard(str fen):             # <<<<<<<<<<<<<<
@@ -19837,7 +19837,7 @@ static int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_reversed = __Pyx_GetBuiltinName(__pyx_n_s_reversed); if (!__pyx_builtin_reversed) __PYX_ERR(0, 206, __pyx_L1_error)
   __pyx_builtin_map = __Pyx_GetBuiltinName(__pyx_n_s_map); if (!__pyx_builtin_map) __PYX_ERR(0, 215, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(1, 2, __pyx_L1_error)
-  __pyx_builtin_chr = __Pyx_GetBuiltinName(__pyx_n_s_chr); if (!__pyx_builtin_chr) __PYX_ERR(0, 794, __pyx_L1_error)
+  __pyx_builtin_chr = __Pyx_GetBuiltinName(__pyx_n_s_chr); if (!__pyx_builtin_chr) __PYX_ERR(0, 795, __pyx_L1_error)
   __pyx_builtin_KeyError = __Pyx_GetBuiltinName(__pyx_n_s_KeyError); if (!__pyx_builtin_KeyError) __PYX_ERR(1, 18, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 19, __pyx_L1_error)
   return 0;
@@ -19958,14 +19958,14 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__15);
   __Pyx_GIVEREF(__pyx_tuple__15);
 
-  /* "chessai/ai/bitboard.pyx":695
+  /* "chessai/ai/bitboard.pyx":696
  * 
  *         # Get raw positions
  *         raw_positions = self.to_str().replace('*', '-')             # <<<<<<<<<<<<<<
  * 
  *         # Compress positions into fen format
  */
-  __pyx_tuple__17 = PyTuple_Pack(2, __pyx_kp_s__16, __pyx_kp_s__4); if (unlikely(!__pyx_tuple__17)) __PYX_ERR(0, 695, __pyx_L1_error)
+  __pyx_tuple__17 = PyTuple_Pack(2, __pyx_kp_s__16, __pyx_kp_s__4); if (unlikely(!__pyx_tuple__17)) __PYX_ERR(0, 696, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__17);
   __Pyx_GIVEREF(__pyx_tuple__17);
 
@@ -19988,25 +19988,25 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__21);
   __Pyx_GIVEREF(__pyx_tuple__21);
 
-  /* "chessai/ai/bitboard.pyx":804
+  /* "chessai/ai/bitboard.pyx":805
  *     cdef GameState bs = GameState();
  *     cdef str pieces, turn, castles, en_passant, halfmove_clock, move_number
  *     pieces, turn, castles, en_passant, halfmove_clock, move_number = fen.split(' ')             # <<<<<<<<<<<<<<
  * 
  *     cdef int pos = 0
  */
-  __pyx_tuple__22 = PyTuple_Pack(1, __pyx_kp_s__19); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 804, __pyx_L1_error)
+  __pyx_tuple__22 = PyTuple_Pack(1, __pyx_kp_s__19); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 805, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__22);
   __Pyx_GIVEREF(__pyx_tuple__22);
 
-  /* "chessai/ai/bitboard.pyx":808
+  /* "chessai/ai/bitboard.pyx":809
  *     cdef int pos = 0
  *     cdef str ch
  *     ranks = list(reversed(pieces.split('/')))             # <<<<<<<<<<<<<<
  *     for rank in ranks:
  *         for ch in rank:
  */
-  __pyx_tuple__23 = PyTuple_Pack(1, __pyx_kp_s__18); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 808, __pyx_L1_error)
+  __pyx_tuple__23 = PyTuple_Pack(1, __pyx_kp_s__18); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 809, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__23);
   __Pyx_GIVEREF(__pyx_tuple__23);
 
@@ -20441,27 +20441,27 @@ PyMODINIT_FUNC PyInit_bitboard(void)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   PyType_Modified(__pyx_ptype_7chessai_2ai_8bitboard_Move);
 
-  /* "chessai/ai/bitboard.pyx":654
+  /* "chessai/ai/bitboard.pyx":655
  * 
  *     @classmethod
  *     def from_fen(cls, str fen):             # <<<<<<<<<<<<<<
  *         cdef GameState bs
  *         bs = fen_to_bitboard(fen)
  */
-  __pyx_t_1 = __Pyx_GetNameInClass((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoardState, __pyx_n_s_from_fen); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 654, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetNameInClass((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoardState, __pyx_n_s_from_fen); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 655, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "chessai/ai/bitboard.pyx":653
+  /* "chessai/ai/bitboard.pyx":654
  *         place_piece(&(self.bs), <brdidx> idx, str_to_piece(pc))
  * 
  *     @classmethod             # <<<<<<<<<<<<<<
  *     def from_fen(cls, str fen):
  *         cdef GameState bs
  */
-  __pyx_t_2 = __Pyx_Method_ClassMethod(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 653, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_Method_ClassMethod(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 654, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (PyDict_SetItem((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoardState->tp_dict, __pyx_n_s_from_fen, __pyx_t_2) < 0) __PYX_ERR(0, 654, __pyx_L1_error)
+  if (PyDict_SetItem((PyObject *)__pyx_ptype_7chessai_2ai_8bitboard_BitBoardState->tp_dict, __pyx_n_s_from_fen, __pyx_t_2) < 0) __PYX_ERR(0, 655, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   PyType_Modified(__pyx_ptype_7chessai_2ai_8bitboard_BitBoardState);
 
