@@ -170,7 +170,7 @@ GameState::GameState(){
 		this->piece_map[i] = no;
 	}
 	this->hash = 0;
-	this->record[0] = this->board_state;
+	this->record[0] = {this->hash, this->board_state};
 	//this->position_count = new PositionCounter();
 	//this->current_position_count = 1;
 }
@@ -248,16 +248,31 @@ negamax_result negamax(GameState *brd, double prob, double threshold, double alp
 					double beta, move *best_move, bool *stop, MoveSearchMemory *msm,
 					int depth, unsigned long long int *node_count, bool quiesce){
 	//printf("depth = %d\n", depth);
-	TranspositionTable *tt = msm->tt;
-	MoveHistoryTable *hh = msm->hh;
 	
 	negamax_result result;
 	// Check for threefold repetition
-//	if(brd->current_position_count >= 3){
-//		result.value = 0;
-//		result.lower_bound = false;
-//		result.upper_bound = false;
-//	}
+	int repetition_count=0;
+	int repetition_check;
+	record_entry rep_entry;
+	if(brd->threefold_repetition_clock >= 4){
+		for(repetition_check=brd->halfmove_counter-2;
+			repetition_check<=brd->threefold_repetition_clock;
+			repetition_check-=2){
+			rep_entry = brd->record[repetition_check];
+			if(brd->hash == rep_entry.key && brd->board_state == rep_entry.board_state){
+				repetition_count++;
+			}
+			if(repetition_count>=3){
+				result.value = 0;
+				result.lower_bound = false;
+				result.upper_bound = false;
+				return result;
+			}
+		}
+	}
+	
+	TranspositionTable *tt = msm->tt;
+	MoveHistoryTable *hh = msm->hh[depth];
 	
 	// This will store the moves
 	move *moves = msm->move_buffer[depth];
@@ -293,6 +308,9 @@ negamax_result negamax(GameState *brd, double prob, double threshold, double alp
 //	num_moves = moves.size();
 	
 	// If there are no legal moves, this is either checkmate or stalemate
+	move mv;
+	moverecord rec;
+	MoveHistoryTable *quiescence_orderer;
 	if (num_moves == 0) {
 		if (own_check(brd)){
 			result.value = -200000.0 + depth; // checkmate!
@@ -306,20 +324,32 @@ negamax_result negamax(GameState *brd, double prob, double threshold, double alp
 			skip_recursion = true;
 		}
 	}else{
-		std::sort(moves, moves + num_moves, [hh, depth](move lhs, move rhs){return hh->compare_moves(lhs, rhs, depth);});
+		// Sort moves based on previous observations to try to get a cutoff earlier
+		std::sort(moves, moves + num_moves, [hh](move lhs, move rhs){return hh->compare_moves(lhs, rhs);});
 	}
-	
+	/*
+	else{
+		// In this case we're in quiescence mode.  Sort based on evaluation function.
+		quiescence_orderer = msm->quiescence_orderer;
+		for(int j=0;j<num_moves;j++){
+			mv = moves[j];
+			rec = make_move(brd, &mv);
+			quiescence_orderer->setitem(mv, -simple_evaluation(brd), 1.);
+			unmake_move(brd, &rec);
+		}
+		std::sort(moves, moves + num_moves, 
+			[quiescence_orderer](move lhs, move rhs){return quiescence_orderer->compare_moves(lhs, rhs);});
+	}
+	*/
 	
 	// Now we're ready to recurse
 	negamax_result subresult;
-	moverecord rec;
 	double quotient = prob / num_moves;
 	move best_counter = nomove;
 	double value;
 	bool init = true;
 	
 	double this_eval = simple_evaluation(brd);
-	move mv;
 	for(int i=0; i<num_moves;i++){
 		mv = moves[i];
 		if(skip_recursion){
@@ -358,6 +388,9 @@ negamax_result negamax(GameState *brd, double prob, double threshold, double alp
 		unmake_move(brd, &rec);
 		
 		// Reconcile what we've learned
+		if(!result.upper_bound){
+			hh->setitem(mv, value, prob);
+		}
 		if(value > beta || (*stop)){
 			result.value = value;
 			result.lower_bound = true;
@@ -424,11 +457,12 @@ void iterative_negamax(void *varg){
 						&best_move, arg->stop, arg->msm, 0, &node_count,
 						arg->quiesce);
 		value = result.value;
-		*(arg->best_move) = best_move;
+		
 		if(!(*arg->stop)){
+			*(arg->best_move) = best_move;
 			arg->thresh = thresh;
 		}
-		thresh /= 100;
+		thresh /= 3;
 	}
 }
 
@@ -1564,20 +1598,18 @@ transposition_entry TranspositionTable::getitem(GameState *brd){
 }
 
 MoveHistoryTable::MoveHistoryTable(){
-	for(int depth=0;depth<50;depth++){
-		for(int i=0;i<64;i++){
-			for(int j=0;j<64;j++){
-				this->data[depth][i][j] = std::make_tuple(0.0, -1.0);
-			}
+	for(int i=0;i<64;i++){
+		for(int j=0;j<64;j++){
+			this->data[i][j] = std::make_tuple(0.0, -1.0);
 		}
 	}
 }
 
-bool MoveHistoryTable::compare_moves(move &lhs, move &rhs, int depth){
+bool MoveHistoryTable::compare_moves(move &lhs, move &rhs){
 	// We want sorting to put the best moves first, so this 
 	// is kinda reversed.
-	std::tuple<double, double> left_item = this->getitem(lhs, depth);
-	std::tuple<double, double> right_item = this->getitem(rhs, depth);
+	std::tuple<double, double> left_item = this->getitem(lhs);
+	std::tuple<double, double> right_item = this->getitem(rhs);
 	double left_value = std::get<0>(left_item);
 	double right_value = std::get<0>(right_item);
 	double left_strength = std::get<1>(left_item);
@@ -1591,16 +1623,16 @@ bool MoveHistoryTable::compare_moves(move &lhs, move &rhs, int depth){
 	return false;
 }
 
-std::tuple<double, double> MoveHistoryTable::getitem(move mv, int depth){
-	return this->data[depth][mv.from_square][mv.to_square];
+std::tuple<double, double> MoveHistoryTable::getitem(move mv){
+	return this->data[mv.from_square][mv.to_square];
 }
 
-void MoveHistoryTable::setitem(move mv, double value, double strength, int depth){
-	std::tuple<double, double> item = this->getitem(mv, depth);
+void MoveHistoryTable::setitem(move mv, double value, double strength){
+	std::tuple<double, double> item = this->getitem(mv);
 	//double value = std::get<0>(item);
 	double old_strength = std::get<1>(item);
 	if(strength >= old_strength){
-		this->data[depth][mv.from_square][mv.to_square] = std::make_tuple(value, strength);
+		this->data[mv.from_square][mv.to_square] = std::make_tuple(value, strength);
 	}
 }
 
@@ -1611,11 +1643,17 @@ MoveSearchMemory::MoveSearchMemory(unsigned long int tt_size){
 	}else{
 		this->tt = NULL;
 	}
-	this->hh = new MoveHistoryTable();
+	for(int i=0;i<50;i++){
+		this->hh[i] = new MoveHistoryTable();
+	}
+//	this->quiescence_orderer = new MoveHistoryTable();
 }
 
 MoveSearchMemory::~MoveSearchMemory(){
 	delete this->tt;
+	for(int i=0; i<50; i++){
+		delete this->hh[i];
+	}
 //	delete this->hh;
 }
 									

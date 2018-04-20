@@ -541,6 +541,11 @@ struct PositionCountHasher {
 typedef std::unordered_map<std::tuple<zobrist_int, BoardState>, int, PositionCountHasher> PositionCounter;
 */
 
+struct record_entry {
+	zobrist_int key;
+	BoardState board_state;
+};
+
 struct GameState{
 	BoardState board_state;
 	unsigned int halfmove_clock;
@@ -549,33 +554,13 @@ struct GameState{
 	unsigned int threefold_repetition_clock;
 	piece piece_map[64];
 	zobrist_int hash;
-	BoardState record[10000];
+	record_entry record[10000];
 //	PositionCounter *position_count;
 //	int current_position_count;
 	GameState();
 	~GameState();
 };
 
-/*
-inline BoardState smallify(GameState *brd){
-	BoardState result;
-	result.k = brd->board_state.k;
-	result.q = brd->board_state.q;
-	result.b = brd->board_state.b;
-	result.n = brd->board_state.n;
-	result.r = brd->board_state.r;
-	result.p = brd->board_state.p;
-	result.white = brd->board_state.white;
-	result.black = brd->board_state.black;
-	result.enpassant = brd->board_state.enpassant;
-	result.whites_turn = brd->board_state.whites_turn;
-	result.white_castle_king = brd->board_state.white_castle_king;
-	result.white_castle_queen = brd->board_state.white_castle_queen;
-	result.black_castle_king = brd->board_state.black_castle_king;
-	result.black_castle_queen = brd->board_state.black_castle_queen;
-	return result;
-}
-*/
 inline bool operator==(const BoardState& lhs, const BoardState& rhs)
 {
 	if (lhs.k == rhs.k &&
@@ -592,6 +577,15 @@ inline bool operator==(const BoardState& lhs, const BoardState& rhs)
        	lhs.white_castle_queen == rhs.white_castle_queen &&
        	lhs.black_castle_king == rhs.black_castle_king &&
        	lhs.black_castle_queen == rhs.black_castle_queen){
+		return true;
+	} else {
+		return false;
+	}
+}
+
+inline bool operator==(const record_entry& lhs, const record_entry& rhs)
+{
+	if (lhs.key == rhs.key && lhs.board_state == rhs.board_state){
 		return true;
 	} else {
 		return false;
@@ -1475,7 +1469,7 @@ inline moverecord make_move(GameState *brd, move *mv){
 //		(*(brd->position_count))[key] = 1;
 //	}
 //	brd->current_position_count = (*(brd->position_count))[key];
-	brd->record[brd->halfmove_counter] = brd->board_state;
+	brd->record[brd->halfmove_counter] = {brd->hash, brd->board_state};
 	return(record);
 }
 
@@ -2976,6 +2970,43 @@ inline int piece_to_zobrist_index(piece pc){
 	}
 }
 
+inline int piece_to_search_order(piece pc){
+	// Higher means more valuable
+	// Start with low attacking high
+	switch(pc){
+		case K:
+			return(0);
+		case k:
+			return(0);
+		case Q:
+			return(5);
+		case q:
+			return(5);
+		case B:
+			return(3);
+		case b:
+			return(3);
+		case N:
+			return(2);
+		case n:
+			return(2);
+		case R:
+			return(4);
+		case r:
+			return(4);
+		case P:
+			return(1);
+		case p:
+			return(1);
+		case EP:
+			return(1);
+		case ep:
+			return(1);
+	}
+}
+
+
+
 typedef struct {
 	// If it's not a lower_bound then it's exact.
 	// If lower_bound, the negamax call that returned this
@@ -2995,6 +3026,16 @@ inline bool operator==(const negamax_result& lhs, const negamax_result& rhs){
 	}
 }
 
+class MoveHistoryTable {
+	public:
+		MoveHistoryTable();
+		bool compare_moves(move &lhs, move &rhs);
+		void setitem(move mv, double value, double strength);
+		std::tuple<double, double> getitem(move mv);
+	private:
+		std::tuple<double, double> data[64][64];
+};
+
 typedef struct {
 	zobrist_int key;
 	double strength;
@@ -3002,6 +3043,8 @@ typedef struct {
 	move best_move;
 	BoardState brd;
 } transposition_entry;
+
+extern const transposition_entry empty_transposition_entry;
 
 inline bool operator==(const transposition_entry& lhs, const transposition_entry& rhs){
 	if (lhs.key == rhs.key && lhs.strength == rhs.strength && lhs.value == rhs.value &&
@@ -3028,24 +3071,12 @@ class TranspositionTable {
 		transposition_entry (*data)[2];
 };
 
-extern const transposition_entry empty_transposition_entry;
-
-
-class MoveHistoryTable {
-	public:
-		MoveHistoryTable();
-		bool compare_moves(move &lhs, move &rhs, int depth);
-		void setitem(move mv, double value, double strength, int depth);
-		std::tuple<double, double> getitem(move mv, int depth);
-	private:
-		std::tuple<double, double> data[50][64][64];
-};
-
 class MoveSearchMemory {
 	public:
 		TranspositionTable *tt;
-		MoveHistoryTable *hh;
+		MoveHistoryTable *hh[50];
 		move move_buffer[100][300];
+//		MoveHistoryTable *quiescence_orderer;
 		MoveSearchMemory(unsigned long int tt_size);
 		~MoveSearchMemory();
 };

@@ -50,13 +50,17 @@ cdef extern from "bitboardlib.h":
         bool black_castle_king
         bool black_castle_queen
     
+    ctypedef struct record_entry:
+        zobrist_int key
+        BoardState board_state
+    
     ctypedef struct GameState:
         BoardState board_state;
         unsigned int halfmove_clock
         unsigned int fullmove_counter
         piece piece_map[64]
         zobrist_int hash
-        BoardState record[10000];
+        record_entry record[10000]
     
     ctypedef struct move:
         brdidx from_square
@@ -393,6 +397,10 @@ cdef class Move:
         else:
             promotion = promotion.lower()  
         return cls(algebraic_to_int(from_square), algebraic_to_int(to_square), promotion)
+    
+    @classmethod
+    def from_algebraic(cls, white, rep):
+        
     
     cpdef nomove(Move self):
         if self.mv == nomove:
@@ -838,5 +846,6 @@ cdef GameState fen_to_bitboard(str fen):
     set_halfmove_clock(&bs, int(halfmove_clock))
     set_fullmove_counter(&bs, int(move_number))
     set_hash(&bs, zobrist.hash(&bs))
-    bs.record[0] = bs.board_state
+    bs.record[0].board_state = bs.board_state
+    bs.record[0].key = bs.hash
     return bs
