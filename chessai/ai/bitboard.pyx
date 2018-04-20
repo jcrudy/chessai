@@ -398,10 +398,6 @@ cdef class Move:
             promotion = promotion.lower()  
         return cls(algebraic_to_int(from_square), algebraic_to_int(to_square), promotion)
     
-    @classmethod
-    def from_algebraic(cls, white, rep):
-        
-    
     cpdef nomove(Move self):
         if self.mv == nomove:
             return True
