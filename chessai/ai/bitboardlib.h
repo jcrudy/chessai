@@ -3033,17 +3033,17 @@ extern const transposition_entry empty_transposition_entry;
 class MoveHistoryTable {
 	public:
 		MoveHistoryTable();
-		bool compare_moves(move &lhs, move &rhs);
-		void setitem(move mv, double value, double strength);
-		std::tuple<double, double> getitem(move mv);
+		bool compare_moves(move &lhs, move &rhs, int depth);
+		void setitem(move mv, double value, double strength, int depth);
+		std::tuple<double, double> getitem(move mv, int depth);
 	private:
-		std::tuple<double, double> data[64][64];
+		std::tuple<double, double> data[50][64][64];
 };
 
 class MoveSearchMemory {
 	public:
 		TranspositionTable *tt;
-		//MoveHistoryTable *hh;
+		MoveHistoryTable *hh;
 		move move_buffer[100][100];
 		MoveSearchMemory(unsigned long int tt_size);
 		~MoveSearchMemory();

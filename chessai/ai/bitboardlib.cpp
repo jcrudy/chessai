@@ -249,7 +249,7 @@ negamax_result negamax(GameState *brd, double prob, double threshold, double alp
 					int depth, unsigned long long int *node_count, bool quiesce){
 	//printf("depth = %d\n", depth);
 	TranspositionTable *tt = msm->tt;
-	//MoveHistoryTable *hh = msm->hh;
+	MoveHistoryTable *hh = msm->hh;
 	
 	negamax_result result;
 	// Check for threefold repetition
@@ -291,8 +291,7 @@ negamax_result negamax(GameState *brd, double prob, double threshold, double alp
 	// Generate all legal moves
 	num_moves = all_moves(brd, moves);
 //	num_moves = moves.size();
-	//std::sort(moves.begin(), moves.end(), [hh](move lhs, move rhs){return hh->compare_moves(lhs, rhs);});
-
+	
 	// If there are no legal moves, this is either checkmate or stalemate
 	if (num_moves == 0) {
 		if (own_check(brd)){
@@ -306,6 +305,8 @@ negamax_result negamax(GameState *brd, double prob, double threshold, double alp
 			result.upper_bound = false;
 			skip_recursion = true;
 		}
+	}else{
+		std::sort(moves, moves + num_moves, [hh, depth](move lhs, move rhs){return hh->compare_moves(lhs, rhs, depth);});
 	}
 	
 	
@@ -427,7 +428,7 @@ void iterative_negamax(void *varg){
 		if(!(*arg->stop)){
 			arg->thresh = thresh;
 		}
-		thresh /= 2;
+		thresh /= 100;
 	}
 }
 
@@ -1563,18 +1564,20 @@ transposition_entry TranspositionTable::getitem(GameState *brd){
 }
 
 MoveHistoryTable::MoveHistoryTable(){
-	for(int i=0;i<64;i++){
-		for(int j=0;j<64;j++){
-			this->data[i][j] = std::make_tuple(0.0, -1.0);
+	for(int depth=0;depth<50;depth++){
+		for(int i=0;i<64;i++){
+			for(int j=0;j<64;j++){
+				this->data[depth][i][j] = std::make_tuple(0.0, -1.0);
+			}
 		}
 	}
 }
 
-bool MoveHistoryTable::compare_moves(move &lhs, move &rhs){
+bool MoveHistoryTable::compare_moves(move &lhs, move &rhs, int depth){
 	// We want sorting to put the best moves first, so this 
 	// is kinda reversed.
-	std::tuple<double, double> left_item = this->getitem(lhs);
-	std::tuple<double, double> right_item = this->getitem(rhs);
+	std::tuple<double, double> left_item = this->getitem(lhs, depth);
+	std::tuple<double, double> right_item = this->getitem(rhs, depth);
 	double left_value = std::get<0>(left_item);
 	double right_value = std::get<0>(right_item);
 	double left_strength = std::get<1>(left_item);
@@ -1588,16 +1591,16 @@ bool MoveHistoryTable::compare_moves(move &lhs, move &rhs){
 	return false;
 }
 
-std::tuple<double, double> MoveHistoryTable::getitem(move mv){
-	return this->data[mv.from_square][mv.to_square];
+std::tuple<double, double> MoveHistoryTable::getitem(move mv, int depth){
+	return this->data[depth][mv.from_square][mv.to_square];
 }
 
-void MoveHistoryTable::setitem(move mv, double value, double strength){
-	std::tuple<double, double> item = this->getitem(mv);
+void MoveHistoryTable::setitem(move mv, double value, double strength, int depth){
+	std::tuple<double, double> item = this->getitem(mv, depth);
 	//double value = std::get<0>(item);
 	double old_strength = std::get<1>(item);
 	if(strength >= old_strength){
-		this->data[mv.from_square][mv.to_square] = std::make_tuple(value, strength);
+		this->data[depth][mv.from_square][mv.to_square] = std::make_tuple(value, strength);
 	}
 }
 
@@ -1608,7 +1611,7 @@ MoveSearchMemory::MoveSearchMemory(unsigned long int tt_size){
 	}else{
 		this->tt = NULL;
 	}
-	//this->hh = new MoveHistoryTable();
+	this->hh = new MoveHistoryTable();
 }
 
 MoveSearchMemory::~MoveSearchMemory(){
