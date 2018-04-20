@@ -660,7 +660,7 @@ def confirm_moves(fen, depth):
     return total
 
 def test_move_tree_depth_4():
-    fen = '1k6/1b6/8/8/7R/8/8/4K2R b K - 0 1'
+    fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     compare_to_python(fen, 4)
 
 def test_positions():

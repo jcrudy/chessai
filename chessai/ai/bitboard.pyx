@@ -33,8 +33,8 @@ cdef extern from "bitboardlib.h":
         ep
 
     ctypedef unsigned char brdidx
-
-    ctypedef struct boardstate:
+    
+    ctypedef struct BoardState:
         bitboard k
         bitboard q
         bitboard b
@@ -49,27 +49,15 @@ cdef extern from "bitboardlib.h":
         bool white_castle_queen
         bool black_castle_king
         bool black_castle_queen
+    
+    ctypedef struct GameState:
+        BoardState board_state;
         unsigned int halfmove_clock
         unsigned int fullmove_counter
         piece piece_map[64]
         zobrist_int hash
+        BoardState record[10000];
     
-    ctypedef struct smallboardstate:
-        bitboard k
-        bitboard q
-        bitboard b
-        bitboard n
-        bitboard r
-        bitboard p
-        bitboard white
-        bitboard black
-        brdidx enpassant;
-        bool whites_turn;
-        bool white_castle_king
-        bool white_castle_queen
-        bool black_castle_king
-        bool black_castle_queen
-
     ctypedef struct move:
         brdidx from_square
         brdidx to_square
@@ -88,35 +76,34 @@ cdef extern from "bitboardlib.h":
         brdidx to_square
         piece promoted_from
 
-    cdef moverecord make_move(boardstate *brd, move *mv)
-    cdef void unmake_move(boardstate *brd, moverecord *mv)
-    cdef const boardstate emptyboardstate
-    cdef void set_hash(boardstate *bs, zobrist_int value)
-    cdef zobrist_int get_hash(boardstate *bs)
-    cdef bool get_white_castle_king(boardstate *bs)
-    cdef void set_white_castle_king(boardstate *bs)
-    cdef void unset_white_castle_king(boardstate *bs)
-    cdef bool get_white_castle_queen(boardstate *bs)
-    cdef void set_white_castle_queen(boardstate *bs)
-    cdef void unset_white_castle_queen(boardstate *bs)
-    cdef bool get_black_castle_king(boardstate *bs)
-    cdef void set_black_castle_king(boardstate *bs)
-    cdef void unset_black_castle_king(boardstate *bs)
-    cdef bool get_black_castle_queen(boardstate *bs)
-    cdef void set_black_castle_queen(boardstate *bs)
-    cdef void unset_black_castle_queen(boardstate *bs)
-    cdef bool get_whites_turn(boardstate *bs)
-    cdef void set_whites_turn(boardstate *bs)
-    cdef void unset_whites_turn(boardstate *bs)
-    cdef bool get_blacks_turn(boardstate *bs)
-    cdef void set_blacks_turn(boardstate *bs)
-    cdef void unset_blacks_turn(boardstate *bs)
-    cdef unsigned int get_halfmove_clock(boardstate *bs)
-    cdef void set_halfmove_clock(boardstate *bs, unsigned int n)
-    cdef unsigned int get_fullmove_counter(boardstate *bs)
-    cdef void set_fullmove_counter(boardstate *bs, unsigned int n)
-    cdef uint8_t get_enpassant(boardstate *bs)
-    cdef void set_enpassant(boardstate *bs, uint8_t pos)
+    cdef moverecord make_move(GameState *brd, move *mv)
+    cdef void unmake_move(GameState *brd, moverecord *mv)
+    cdef void set_hash(GameState *bs, zobrist_int value)
+    cdef zobrist_int get_hash(GameState *bs)
+    cdef bool get_white_castle_king(GameState *bs)
+    cdef void set_white_castle_king(GameState *bs)
+    cdef void unset_white_castle_king(GameState *bs)
+    cdef bool get_white_castle_queen(GameState *bs)
+    cdef void set_white_castle_queen(GameState *bs)
+    cdef void unset_white_castle_queen(GameState *bs)
+    cdef bool get_black_castle_king(GameState *bs)
+    cdef void set_black_castle_king(GameState *bs)
+    cdef void unset_black_castle_king(GameState *bs)
+    cdef bool get_black_castle_queen(GameState *bs)
+    cdef void set_black_castle_queen(GameState *bs)
+    cdef void unset_black_castle_queen(GameState *bs)
+    cdef bool get_whites_turn(GameState *bs)
+    cdef void set_whites_turn(GameState *bs)
+    cdef void unset_whites_turn(GameState *bs)
+    cdef bool get_blacks_turn(GameState *bs)
+    cdef void set_blacks_turn(GameState *bs)
+    cdef void unset_blacks_turn(GameState *bs)
+    cdef unsigned int get_halfmove_clock(GameState *bs)
+    cdef void set_halfmove_clock(GameState *bs, unsigned int n)
+    cdef unsigned int get_fullmove_counter(GameState *bs)
+    cdef void set_fullmove_counter(GameState *bs, unsigned int n)
+    cdef uint8_t get_enpassant(GameState *bs)
+    cdef void set_enpassant(GameState *bs, uint8_t pos)
     cdef const bitboard places[64]
     cdef const bitboard empty;
     cdef bitboard slide_north(bitboard pieces, bitboard unoccupied)
@@ -136,22 +123,22 @@ cdef extern from "bitboardlib.h":
     cdef int greatest_diag_index(bitboard b)
     cdef int greatest_antidiag_index(bitboard b)
     cdef bitboard bitboard_from_square_index(int i)
-    cdef piece unplace_piece(boardstate *bs, brdidx square_index)
-    cdef void place_piece(boardstate *bs, brdidx square_index, piece pc)
-    cdef void quiet_queen_moves(boardstate *brd, vector[move] &moves)
-    cdef void all_queen_moves(boardstate *brd, vector[move] &moves)
-    cdef void queen_captures(boardstate *brd, vector[move] &moves)
-    cdef void all_moves(boardstate *brd, vector[move] &moves)
-    cdef void all_captures(boardstate *brd, vector[move] &moves)
-    cdef unsigned long long perft(boardstate *brd, int depth)
-    cdef bool own_check(boardstate *brd)
+    cdef piece unplace_piece(GameState *bs, brdidx square_index)
+    cdef void place_piece(GameState *bs, brdidx square_index, piece pc)
+    cdef int quiet_queen_moves(GameState *brd, move *moves)
+    cdef int all_queen_moves(GameState *brd, move *moves)
+    cdef int queen_captures(GameState *brd, move *moves)
+    cdef int all_moves(GameState *brd, move *moves)
+    cdef int all_captures(GameState *brd, move *moves)
+    cdef unsigned long long perft(GameState *brd, int depth)
+    cdef bool own_check(GameState *brd)
     ctypedef struct movechoice:
         move mv
         double score
     cdef cppclass Zobrist:
         Zobrist()
-        zobrist_int hash(boardstate *brd)
-        zobrist_int update(zobrist_int previous, boardstate *brd, moverecord *mv)
+        zobrist_int hash(GameState *brd)
+        zobrist_int update(zobrist_int previous, GameState *brd, moverecord *mv)
     cdef Zobrist zobrist
     ctypedef struct transposition_entry:
         zobrist_int key
@@ -160,22 +147,31 @@ cdef extern from "bitboardlib.h":
         double alpha
         double beta
         move best_move
-        smallboardstate brd
+        BoardState brd
     cdef cppclass TranspositionTable:
         TranspositionTable(unsigned long int size)
-        void setitem(boardstate *brd, transposition_entry &entry)
-        unsigned long int getindex(boardstate *brd)
-        bool exists(boardstate *brd)
-        transposition_entry getitem(boardstate *brd)
+        void setitem(GameState *brd, transposition_entry &entry)
+        unsigned long int getindex(GameState *brd)
+        bool exists(GameState *brd)
+        transposition_entry getitem(GameState *brd)
 #     cdef cppclass MoveHistoryTable:
 #         MoveHistoryTable();
 #         bool compare_moves(move &lhs, move &rhs);
 #         void setitem(move mv, double value, double strength);
 #         std::tuple<double, double> getitem(move mv);
-    cdef move movesearch(boardstate *brd, double time_limit, int *depth)
-    cdef move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable *tt, bool quiesce)
-    cdef move movesearch_time(boardstate *brd, double time_limit, double *thresh,
-                    TranspositionTable *tt, bool quiesce)
+    cdef cppclass MoveHistoryTable:
+        MoveHistoryTable()
+        bool compare_moves(move &lhs, move &rhs)
+        void setitem(move mv, double value, double strength)
+    cdef cppclass MoveSearchMemory:
+        TranspositionTable *tt
+        #MoveHistoryTable **hh
+        move move_buffer[1000][100]
+        MoveSearchMemory(unsigned long int tt_size)
+    cdef move movesearch(GameState *brd, double time_limit, int *depth)
+    cdef move movesearch_threshold(GameState *brd, double threshold, MoveSearchMemory *msm, bool quiesce)
+    cdef move movesearch_time(GameState *brd, double time_limit, double *thresh,
+                    MoveSearchMemory *msm, bool quiesce)
 cpdef bitboard_to_str(bitboard bb):
     cdef int i
     result = ''
@@ -508,46 +504,39 @@ cdef class ZobristHash:
         return result
 
 cdef class TimePlayer:
-    cdef TranspositionTable *tt
+    cdef MoveSearchMemory *msm
     cdef readonly double time_per_move
     cdef readonly bool quiesce
     def __init__(TimePlayer self, unsigned long int size, double time_per_move, bool quiesce):
-        if size > 0:
-            self.tt = new TranspositionTable(size)
-        else:
-            self.tt = NULL
+        self.msm = new MoveSearchMemory(size)
         self.time_per_move = time_per_move
         self.quiesce = quiesce
     
     cpdef Move movesearch(TimePlayer self, BitBoardState board):
         cdef double thresh
-        cdef move mv = movesearch_time(&(board.bs), self.time_per_move, &thresh, self.tt, self.quiesce)
+        cdef move mv = movesearch_time(&(board.bs), self.time_per_move, &thresh, self.msm, self.quiesce)
         cdef Move result = Move()  # @DuplicatedSignature
         result.mv = mv
         print('Reached threshold %f' % thresh)
         return result
 
 cdef class ThresholdPlayer:
-    cdef TranspositionTable *tt
+    cdef MoveSearchMemory *msm
     cdef readonly double threshold
     cdef readonly bool quiesce
     def __init__(ThresholdPlayer self, unsigned long int size, double threshold, bool quiesce):
-        if size > 0:
-            self.tt = new TranspositionTable(size)
-        else:
-            self.tt = NULL
+        self.msm = new MoveSearchMemory(size)
         self.threshold = threshold
         self.quiesce = quiesce
     
     cpdef Move movesearch(ThresholdPlayer self, BitBoardState board):
-        cdef move mv = movesearch_threshold(&(board.bs), self.threshold, self.tt, self.quiesce)
+        cdef move mv = movesearch_threshold(&(board.bs), self.threshold, self.msm, self.quiesce)
         cdef Move result = Move()  # @DuplicatedSignature
         result.mv = mv
         return result
 
-
 cdef class BitBoardState:
-    cdef readonly boardstate bs
+    cdef GameState bs
     
     cpdef bool check(BitBoardState self):
         if own_check(&(self.bs)):
@@ -574,7 +563,7 @@ cdef class BitBoardState:
     
     property whites_turn:
         def __get__(BitBoardState self):  # @DuplicatedSignature
-            if self.bs.whites_turn:
+            if self.bs.board_state.whites_turn:
                 return True
             else:
                 return False
@@ -583,22 +572,7 @@ cdef class BitBoardState:
         if not isinstance(other, BitBoardState) or op != Py_EQ:
             return NotImplemented
         cdef BitBoardState other_ = other
-        if not (self.bs.k == other_.bs.k and
-           self.bs.q == other_.bs.q and
-           self.bs.b == other_.bs.b and
-           self.bs.r == other_.bs.r and
-           self.bs.k == other_.bs.k and
-           self.bs.p == other_.bs.p and
-           self.bs.white == other_.bs.white and
-           self.bs.black == other_.bs.black and
-           self.bs.enpassant == other_.bs.enpassant and
-           self.bs.whites_turn == other_.bs.whites_turn and
-           self.bs.white_castle_king == other_.bs.white_castle_king and
-           self.bs.white_castle_queen == other_.bs.white_castle_queen and
-           self.bs.black_castle_king == other_.bs.black_castle_king and
-           self.bs.black_castle_queen == other_.bs.black_castle_queen and
-           self.bs.halfmove_clock == other_.bs.halfmove_clock and
-           self.bs.fullmove_counter == other_.bs.fullmove_counter):
+        if not (self.bs == other_.bs):
             return False
         for i in range(64):
             if self.bs.piece_map[i] != other_.bs.piece_map[i]:
@@ -624,58 +598,53 @@ cdef class BitBoardState:
         return perft(&(self.bs), depth)
     
     cpdef all_moves(BitBoardState self):
-        cdef vector[move] mvs = vector[move]()
-        all_moves(&(self.bs), mvs)
+        cdef move mvs[100];
+        cdef int num_moves = all_moves(&(self.bs), mvs)
         cdef list result = []
         cdef move mv
-        while not mvs.empty():
-            mv = mvs.back()
-            mvs.pop_back()
+        for i in range(num_moves):
+            mv = mvs[i]
             result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))
         return result
     
     cpdef all_captures(BitBoardState self):
-        cdef vector[move] mvs = vector[move]()  # @DuplicatedSignature
-        all_captures(&(self.bs), mvs)
+        cdef move mvs[100];  # @DuplicatedSignature
+        cdef int num_moves = all_captures(&(self.bs), mvs)
         cdef list result = []  # @DuplicatedSignature
         cdef move mv  # @DuplicatedSignature
-        while not mvs.empty():
-            mv = mvs.back()
-            mvs.pop_back()
+        for i in range(num_moves):
+            mv = mvs[i]
             result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))
         return result
     
     cpdef quiet_queen_moves(BitBoardState self):
-        cdef vector[move] q = vector[move]()
-        quiet_queen_moves(&(self.bs), q)
-        cdef list result = []
-        cdef move mv
-        while not q.empty():
-            mv = q.back()
-            q.pop_back()
-            result.append(Move(mv.from_square, mv.to_square))
+        cdef move mvs[100];  # @DuplicatedSignature
+        cdef int num_moves = quiet_queen_moves(&(self.bs), mvs)
+        cdef list result = []  # @DuplicatedSignature
+        cdef move mv  # @DuplicatedSignature
+        for i in range(num_moves):
+            mv = mvs[i]
+            result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))
         return result
     
     cpdef all_queen_moves(BitBoardState self):
-        cdef vector[move] q = vector[move]()  # @DuplicatedSignature
-        all_queen_moves(&(self.bs), q)
+        cdef move mvs[100];  # @DuplicatedSignature
+        cdef int num_moves = all_queen_moves(&(self.bs), mvs)
         cdef list result = []  # @DuplicatedSignature
         cdef move mv  # @DuplicatedSignature
-        while not q.empty():
-            mv = q.back()
-            q.pop_back()
-            result.append(Move(mv.from_square, mv.to_square))
+        for i in range(num_moves):
+            mv = mvs[i]
+            result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))
         return result
     
     cpdef queen_captures(BitBoardState self):
-        cdef vector[move] q = vector[move]()  # @DuplicatedSignature
-        queen_captures(&(self.bs), q)
+        cdef move mvs[100];  # @DuplicatedSignature
+        cdef int num_moves = queen_captures(&(self.bs), mvs)
         cdef list result = []  # @DuplicatedSignature
         cdef move mv  # @DuplicatedSignature
-        while not q.empty():
-            mv = q.back()
-            q.pop_back()
-            result.append(Move(mv.from_square, mv.to_square))
+        for i in range(num_moves):
+            mv = mvs[i]
+            result.append(Move(mv.from_square, mv.to_square, piece_to_str(mv.promotion)))
         return result
     
     cpdef place_piece(BitBoardState self, int idx, str pc):
@@ -683,7 +652,7 @@ cdef class BitBoardState:
 
     @classmethod
     def from_fen(cls, str fen):
-        cdef boardstate bs
+        cdef GameState bs
         bs = fen_to_bitboard(fen)
         cdef BitBoardState result = BitBoardState()
         result.bs = bs
@@ -760,46 +729,46 @@ cdef class BitBoardState:
 
     cpdef BitBoard get_k(BitBoardState self):
         result = BitBoard()
-        result.bb =  self.bs.k
+        result.bb =  self.bs.board_state.k
         return result
 
     cpdef BitBoard get_q(BitBoardState self):
         result = BitBoard()
-        result.bb =  self.bs.q
+        result.bb =  self.bs.board_state.q
         return result
 
     cpdef BitBoard get_b(BitBoardState self):
         result = BitBoard()
-        result.bb =  self.bs.b
+        result.bb =  self.bs.board_state.b
         return result
 
     cpdef BitBoard get_r(BitBoardState self):
         result = BitBoard()
-        result.bb =  self.bs.r
+        result.bb =  self.bs.board_state.r
         return result
 
     cpdef BitBoard get_n(BitBoardState self):
         result = BitBoard()
-        result.bb =  self.bs.n
+        result.bb =  self.bs.board_state.n
         return result
 
     cpdef BitBoard get_p(BitBoardState self):
         result = BitBoard()
-        result.bb =  self.bs.p
+        result.bb =  self.bs.board_state.p
         return result
 
     cpdef BitBoard get_white(BitBoardState self):
         result = BitBoard()
-        result.bb =  self.bs.white
+        result.bb =  self.bs.board_state.white
         return result
 
     cpdef BitBoard get_black(BitBoardState self):
         result = BitBoard()
-        result.bb =  self.bs.black
+        result.bb =  self.bs.board_state.black
         return result
 
     cpdef int get_enpassant(BitBoardState self):
-        cdef int result = self.bs.enpassant
+        cdef int result = self.bs.board_state.enpassant
         return result
     
     cpdef bool get_white_castle_king(BitBoardState self):
@@ -829,8 +798,8 @@ cdef str bb_to_grid(bitboard bb):
     r.bb = bb
     return r.to_grid()
 
-cdef boardstate fen_to_bitboard(str fen):
-    cdef boardstate bs = boardstate();
+cdef GameState fen_to_bitboard(str fen):
+    cdef GameState bs = GameState();
     cdef str pieces, turn, castles, en_passant, halfmove_clock, move_number
     pieces, turn, castles, en_passant, halfmove_clock, move_number = fen.split(' ')
 
@@ -861,12 +830,12 @@ cdef boardstate fen_to_bitboard(str fen):
 
     if en_passant != '-':
         set_enpassant(&bs, algebraic_to_int(en_passant))
-        if bs.whites_turn:
+        if bs.board_state.whites_turn:
             bs.piece_map[algebraic_to_int(en_passant)] = ep
         else:
             bs.piece_map[algebraic_to_int(en_passant)] = EP
     set_halfmove_clock(&bs, int(halfmove_clock))
     set_fullmove_counter(&bs, int(move_number))
     set_hash(&bs, zobrist.hash(&bs))
-
+    bs.record[0] = bs.board_state
     return bs

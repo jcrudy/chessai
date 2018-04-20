@@ -3,13 +3,18 @@ import clipboard
 random.seed(1)
 
 
+# def rand():
+#     suff = 'ULL'
+#     n1 = random.getrandbits(64)
+#     n2 = random.getrandbits(64)
+#     return '(((zobrist_int) %s) + (((zobrist_int) %s) << 64))' % \
+#         (hex(n1).upper().replace('X', 'x').replace('L', suff), 
+#          hex(n2).upper().replace('X', 'x').replace('L', suff))
+
 def rand():
     suff = 'ULL'
-    n1 = random.getrandbits(64)
-    n2 = random.getrandbits(64)
-    return '(((zobrist_int) %s) + (((zobrist_int) %s) << 64))' % \
-        (hex(n1).upper().replace('X', 'x').replace('L', suff), 
-         hex(n2).upper().replace('X', 'x').replace('L', suff))
+    n = random.getrandbits(64)
+    return hex(n).upper().replace('X', 'x').replace('L', suff)
 
 result = ''
 

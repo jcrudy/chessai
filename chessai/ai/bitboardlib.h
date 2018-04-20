@@ -11,7 +11,7 @@
 #include <boost/multiprecision/cpp_int.hpp>
 
 typedef uint64_t bitboard;
-typedef unsigned __int128 zobrist_int;
+typedef uint64_t zobrist_int;
 
 extern const bitboard empty;
 extern const bitboard full;
@@ -514,7 +514,7 @@ inline bitboard bishop_moves_from_square_index(brdidx s){
 typedef enum {no=0,K,Q,B,N,R,P,EP,k,q,b,n,r,p,ep} piece;
 
 // Just the parts needed to have same legal moves (ignoring clock)
-typedef struct {
+struct BoardState{
 	bitboard k;
 	bitboard q;
 	bitboard b;
@@ -529,63 +529,54 @@ typedef struct {
 	bool white_castle_queen;
 	bool black_castle_king;
 	bool black_castle_queen;
-} smallboardstate;
+};
 
+/*
 struct PositionCountHasher {
-	std::size_t operator()(const std::tuple<zobrist_int, smallboardstate> &k) const {
+	std::size_t operator()(const std::tuple<zobrist_int, BoardState> &k) const {
 		return (std::size_t) std::get<0>(k);
 	}
 };
 
-typedef std::unordered_map<std::tuple<zobrist_int, smallboardstate>, int, PositionCountHasher> PositionCounter;
+typedef std::unordered_map<std::tuple<zobrist_int, BoardState>, int, PositionCountHasher> PositionCounter;
+*/
 
-
-struct boardstate{
-	bitboard k;
-	bitboard q;
-	bitboard b;
-	bitboard n;
-	bitboard r;
-	bitboard p;
-	bitboard white;
-	bitboard black;
-	brdidx enpassant;
-	bool whites_turn;
-	bool white_castle_king;
-	bool white_castle_queen;
-	bool black_castle_king;
-	bool black_castle_queen;
+struct GameState{
+	BoardState board_state;
 	unsigned int halfmove_clock;
 	unsigned int fullmove_counter;
+	unsigned int halfmove_counter;
+	unsigned int threefold_repetition_clock;
 	piece piece_map[64];
 	zobrist_int hash;
-	PositionCounter *position_count;
-	int current_position_count;
-	boardstate();
-	~boardstate();
+	BoardState record[10000];
+//	PositionCounter *position_count;
+//	int current_position_count;
+	GameState();
+	~GameState();
 };
 
-
-inline smallboardstate smallify(boardstate *brd){
-	smallboardstate result;
-	result.k = brd->k;
-	result.q = brd->q;
-	result.b = brd->b;
-	result.n = brd->n;
-	result.r = brd->r;
-	result.p = brd->p;
-	result.white = brd->white;
-	result.black = brd->black;
-	result.enpassant = brd->enpassant;
-	result.whites_turn = brd->whites_turn;
-	result.white_castle_king = brd->white_castle_king;
-	result.white_castle_queen = brd->white_castle_queen;
-	result.black_castle_king = brd->black_castle_king;
-	result.black_castle_queen = brd->black_castle_queen;
+/*
+inline BoardState smallify(GameState *brd){
+	BoardState result;
+	result.k = brd->board_state.k;
+	result.q = brd->board_state.q;
+	result.b = brd->board_state.b;
+	result.n = brd->board_state.n;
+	result.r = brd->board_state.r;
+	result.p = brd->board_state.p;
+	result.white = brd->board_state.white;
+	result.black = brd->board_state.black;
+	result.enpassant = brd->board_state.enpassant;
+	result.whites_turn = brd->board_state.whites_turn;
+	result.white_castle_king = brd->board_state.white_castle_king;
+	result.white_castle_queen = brd->board_state.white_castle_queen;
+	result.black_castle_king = brd->board_state.black_castle_king;
+	result.black_castle_queen = brd->board_state.black_castle_queen;
 	return result;
 }
-
-inline bool operator==(const smallboardstate& lhs, const smallboardstate& rhs)
+*/
+inline bool operator==(const BoardState& lhs, const BoardState& rhs)
 {
 	if (lhs.k == rhs.k &&
       	lhs.q == rhs.q &&
@@ -607,26 +598,19 @@ inline bool operator==(const smallboardstate& lhs, const smallboardstate& rhs)
 	}
 }
 
-inline bool operator==(const boardstate& lhs, const boardstate& rhs)
+inline bool operator==(const GameState& lhs, const GameState& rhs)
 {
-    if (!(lhs.k == rhs.k &&
-           lhs.q == rhs.q &&
-           lhs.b == rhs.b &&
-           lhs.r == rhs.r &&
-           lhs.k == rhs.k &&
-           lhs.p == rhs.p &&
-           lhs.white == rhs.white &&
-           lhs.black == rhs.black &&
-           lhs.enpassant == rhs.enpassant &&
-           lhs.whites_turn == rhs.whites_turn &&
-           lhs.white_castle_king == rhs.white_castle_king &&
-           lhs.white_castle_queen == rhs.white_castle_queen &&
-           lhs.black_castle_king == rhs.black_castle_king &&
-           lhs.black_castle_queen == rhs.black_castle_queen &&
+    if (!(
+           lhs.board_state == rhs.board_state &&
            lhs.halfmove_clock == rhs.halfmove_clock &&
-           lhs.fullmove_counter == rhs.fullmove_counter)){
+           lhs.threefold_repetition_clock == rhs.threefold_repetition_clock &&
+           lhs.fullmove_counter == rhs.fullmove_counter &&
+           lhs.halfmove_counter == rhs.halfmove_counter &&
+           lhs.threefold_repetition_clock == rhs.threefold_repetition_clock
+           )){
  		return(false);
  	}
+ 	
     for(int i=0; i<64; i++){
     	if(lhs.piece_map[i] != rhs.piece_map[i]){
     		return(false);
@@ -635,132 +619,132 @@ inline bool operator==(const boardstate& lhs, const boardstate& rhs)
     return(true);
 }
 
-inline piece piece_from_square_index(boardstate *bs, brdidx square_index){
+inline piece piece_from_square_index(GameState *bs, brdidx square_index){
 	// May return no (=0), meaning not occupied.  Check for this before using the piece.
 	return(bs->piece_map[square_index]);
 }
 
-inline void unsafe_place_piece(boardstate *bs, brdidx square_index, piece pc){
+inline void unsafe_place_piece(GameState *bs, brdidx square_index, piece pc){
 	bitboard bb = bitboard_from_square_index(square_index);
 	(bs->piece_map)[square_index] = pc;
 	switch(pc){
 		case K:
-			(bs->k) |= bb;
-			(bs->white) |= bb;
+			(bs->board_state.k) |= bb;
+			(bs->board_state.white) |= bb;
 			break;
 		case k:
-			(bs->k) |= bb;
-			(bs->black) |= bb;
+			(bs->board_state.k) |= bb;
+			(bs->board_state.black) |= bb;
 			break;
 		case Q:
-			(bs->q) |= bb;
-			(bs->white) |= bb;
+			(bs->board_state.q) |= bb;
+			(bs->board_state.white) |= bb;
 			break;
 		case q:
-			(bs->q) |= bb;
-			(bs->black) |= bb;
+			(bs->board_state.q) |= bb;
+			(bs->board_state.black) |= bb;
 			break;
 		case B:
-			(bs->b) |= bb;
-			(bs->white) |= bb;
+			(bs->board_state.b) |= bb;
+			(bs->board_state.white) |= bb;
 			break;
 		case b:
-			(bs->b) |= bb;
-			(bs->black) |= bb;
+			(bs->board_state.b) |= bb;
+			(bs->board_state.black) |= bb;
 			break;
 		case N:
-			(bs->n) |= bb;
-			(bs->white) |= bb;
+			(bs->board_state.n) |= bb;
+			(bs->board_state.white) |= bb;
 			break;
 		case n:
-			(bs->n) |= bb;
-			(bs->black) |= bb;
+			(bs->board_state.n) |= bb;
+			(bs->board_state.black) |= bb;
 			break;
 		case R:
-			(bs->r) |= bb;
-			(bs->white) |= bb;
+			(bs->board_state.r) |= bb;
+			(bs->board_state.white) |= bb;
 			break;
 		case r:
-			(bs->r) |= bb;
-			(bs->black) |= bb;
+			(bs->board_state.r) |= bb;
+			(bs->board_state.black) |= bb;
 			break;
 		case P:
-			(bs->p) |= bb;
-			(bs->white) |= bb;
+			(bs->board_state.p) |= bb;
+			(bs->board_state.white) |= bb;
 			break;
 		case p:
-			(bs->p) |= bb;
-			(bs->black) |= bb;
+			(bs->board_state.p) |= bb;
+			(bs->board_state.black) |= bb;
 			break;
 		case EP:
-			(bs->enpassant) = square_index;
+			(bs->board_state.enpassant) = square_index;
 			break;
 		case ep:
-			(bs->enpassant) = square_index;
+			(bs->board_state.enpassant) = square_index;
 			break;
 		case no:
 			{}
 	}
 }
 
-inline piece unplace_piece(boardstate *bs, brdidx square_index){
+inline piece unplace_piece(GameState *bs, brdidx square_index){
 	bitboard bb = ~bitboard_from_square_index(square_index);
 	piece pc = (bs->piece_map)[square_index];
 	bs->piece_map[square_index] = no;
 	switch(pc){
 		case K:
-			(bs->k) &= bb;
-			(bs->white) &= bb;
+			(bs->board_state.k) &= bb;
+			(bs->board_state.white) &= bb;
 			break;
 		case k:
-			(bs->k) &= bb;
-			(bs->black) &= bb;
+			(bs->board_state.k) &= bb;
+			(bs->board_state.black) &= bb;
 			break;
 		case Q:
-			(bs->q) &= bb;
-			(bs->white) &= bb;
+			(bs->board_state.q) &= bb;
+			(bs->board_state.white) &= bb;
 			break;
 		case q:
-			(bs->q) &= bb;
-			(bs->black) &= bb;
+			(bs->board_state.q) &= bb;
+			(bs->board_state.black) &= bb;
 			break;
 		case B:
-			(bs->b) &= bb;
-			(bs->white) &= bb;
+			(bs->board_state.b) &= bb;
+			(bs->board_state.white) &= bb;
 			break;
 		case b:
-			(bs->b) &= bb;
-			(bs->black) &= bb;
+			(bs->board_state.b) &= bb;
+			(bs->board_state.black) &= bb;
 			break;
 		case N:
-			(bs->n) &= bb;
-			(bs->white) &= bb;
+			(bs->board_state.n) &= bb;
+			(bs->board_state.white) &= bb;
 			break;
 		case n:
-			(bs->n) &= bb;
-			(bs->black) &= bb;
+			(bs->board_state.n) &= bb;
+			(bs->board_state.black) &= bb;
 			break;
 		case R:
-			(bs->r) &= bb;
-			(bs->white) &= bb;
+			(bs->board_state.r) &= bb;
+			(bs->board_state.white) &= bb;
 			break;
 		case r:
-			(bs->r) &= bb;
-			(bs->black) &= bb;
+			(bs->board_state.r) &= bb;
+			(bs->board_state.black) &= bb;
 			break;
 		case P:
-			(bs->p) &= bb;
-			(bs->white) &= bb;
+			(bs->board_state.p) &= bb;
+			(bs->board_state.white) &= bb;
 			break;
 		case p:
-			(bs->p) &= bb;
-			(bs->black) &= bb;
+			(bs->board_state.p) &= bb;
+			(bs->board_state.black) &= bb;
 			break;
 		case EP:
-			(bs->enpassant) = no_enpassant;
+			(bs->board_state.enpassant) = no_enpassant;
 			break;
 		case ep:
-			(bs->enpassant) = no_enpassant;
+			(bs->board_state.enpassant) = no_enpassant;
 			break;
 		case no:
 			{}
@@ -768,84 +752,84 @@ inline piece unplace_piece(boardstate *bs, brdidx square_index){
 	return(pc);
 }
 
-inline void place_piece(boardstate *bs, brdidx square_index, piece pc){
+inline void place_piece(GameState *bs, brdidx square_index, piece pc){
 	if(pc != no){
 		unplace_piece(bs, square_index);
 		unsafe_place_piece(bs, square_index, pc);
 	}
 }
 
-inline bitboard piece_bitboard_from_piece(boardstate *bs, piece pc){
+inline bitboard piece_bitboard_from_piece(GameState *bs, piece pc){
 	switch(pc){
 		case K:
-			return(bs->k);
+			return(bs->board_state.k);
 		case k:
-			return(bs->k);
+			return(bs->board_state.k);
 		case Q:
-			return(bs->q);
+			return(bs->board_state.q);
 		case q:
-			return(bs->q);
+			return(bs->board_state.q);
 		case B:
-			return(bs->b);
+			return(bs->board_state.b);
 		case b:
-			return(bs->b);
+			return(bs->board_state.b);
 		case N:
-			return(bs->n);
+			return(bs->board_state.n);
 		case n:
-			return(bs->n);
+			return(bs->board_state.n);
 		case R:
-			return(bs->r);
+			return(bs->board_state.r);
 		case r:
-			return(bs->r);
+			return(bs->board_state.r);
 		case P:
-			return(bs->p);
+			return(bs->board_state.p);
 		case p:
-			return(bs->p);
+			return(bs->board_state.p);
 		case EP:
-			return(bitboard_from_square_index(bs->enpassant));
+			return(bitboard_from_square_index(bs->board_state.enpassant));
 		case ep:
-			return(bitboard_from_square_index(bs->enpassant));
+			return(bitboard_from_square_index(bs->board_state.enpassant));
 		case no:
 			return(empty);
 	}
 }
 
-inline bitboard color_bitboard_from_piece(boardstate *bs, piece pc){
+inline bitboard color_bitboard_from_piece(GameState *bs, piece pc){
 	switch(pc){
 		case K:
-			return(bs->white);
+			return(bs->board_state.white);
 		case k:
-			return(bs->black);
+			return(bs->board_state.black);
 		case Q:
-			return(bs->white);
+			return(bs->board_state.white);
 		case q:
-			return(bs->black);
+			return(bs->board_state.black);
 		case B:
-			return(bs->white);
+			return(bs->board_state.white);
 		case b:
-			return(bs->black);
+			return(bs->board_state.black);
 		case N:
-			return(bs->white);
+			return(bs->board_state.white);
 		case n:
-			return(bs->black);
+			return(bs->board_state.black);
 		case R:
-			return(bs->white);
+			return(bs->board_state.white);
 		case r:
-			return(bs->black);
+			return(bs->board_state.black);
 		case P:
-			return(bs->white);
+			return(bs->board_state.white);
 		case p:
-			return(bs->black);
+			return(bs->board_state.black);
 		case EP:
-			return(bs->white);
+			return(bs->board_state.white);
 		case ep:
-			return(bs->black);
+			return(bs->board_state.black);
 		case no:
 			return(empty);
 	}
 }
 
-inline bitboard bitboard_from_piece(boardstate *bs, piece pc){
+inline bitboard bitboard_from_piece(GameState *bs, piece pc){
 	return(piece_bitboard_from_piece(bs, pc) & color_bitboard_from_piece(bs, pc));
 }
 
@@ -878,25 +862,26 @@ typedef struct {
 	bool lost_opponent_castle_king;
 	bool lost_opponent_castle_queen;
 	brdidx enpassant;
-	int previous_halfmove_clock;
+	unsigned int previous_halfmove_clock;
+	unsigned int previous_threefold_repetition_clock;
 	brdidx from_square;
 	brdidx to_square;
 	piece promoted_from;
 } moverecord;
 
-inline void set_hash(boardstate *bs, zobrist_int value){
+inline void set_hash(GameState *bs, zobrist_int value){
 	bs->hash = value;
 }
 
-inline zobrist_int get_hash(boardstate *bs){
+inline zobrist_int get_hash(GameState *bs){
 	return bs->hash;
 }
 
-inline brdidx get_enpassant(boardstate *bs){
-	return(bs->enpassant);
+inline brdidx get_enpassant(GameState *bs){
+	return(bs->board_state.enpassant);
 }
 
-inline bitboard get_enpassant_bitboard(boardstate *bs){
+inline bitboard get_enpassant_bitboard(GameState *bs){
 	brdidx enpassant = get_enpassant(bs);
 	if(enpassant != no_enpassant){
 		return(bitboard_from_square_index(enpassant));
@@ -905,14 +890,14 @@ inline bitboard get_enpassant_bitboard(boardstate *bs){
 	}
 }
 
-inline void set_enpassant(boardstate *bs, uint8_t pos){
+inline void set_enpassant(GameState *bs, uint8_t pos){
 	// Should be called after flip_turn
-	if(bs->enpassant != no_enpassant){
-		(bs->piece_map)[bs->enpassant] = no;
+	if(bs->board_state.enpassant != no_enpassant){
+		(bs->piece_map)[bs->board_state.enpassant] = no;
 	}
-	bs->enpassant = pos;
-	if(bs->enpassant != no_enpassant){
-		if(bs->whites_turn){
+	bs->board_state.enpassant = pos;
+	if(bs->board_state.enpassant != no_enpassant){
+		if(bs->board_state.whites_turn){
 			(bs->piece_map)[pos] = ep;
 		}else{
 			(bs->piece_map)[pos] = EP;
@@ -920,136 +905,138 @@ inline void set_enpassant(boardstate *bs, uint8_t pos){
 	}
 };
 
-inline unsigned int get_halfmove_clock(boardstate *bs){
+inline unsigned int get_halfmove_clock(GameState *bs){
 	return(bs->halfmove_clock);
 };
 
-inline void set_halfmove_clock(boardstate *bs, unsigned int n){
+inline void set_halfmove_clock(GameState *bs, unsigned int n){
 	(bs->halfmove_clock) = n;
 };
 
-inline unsigned int get_fullmove_counter(boardstate *bs){
+inline unsigned int get_fullmove_counter(GameState *bs){
 	return(bs->fullmove_counter);
 };
 
-inline void set_fullmove_counter(boardstate *bs, unsigned int n){
+inline void set_fullmove_counter(GameState *bs, unsigned int n){
 	bs->fullmove_counter = n;
 };
 
-inline bool get_white_castle_king(boardstate *bs){
-	return(bs->white_castle_king);
+inline bool get_white_castle_king(GameState *bs){
+	return(bs->board_state.white_castle_king);
 };
 
-inline void set_white_castle_king(boardstate *bs){
-	bs->white_castle_king = true;
+inline void set_white_castle_king(GameState *bs){
+	bs->board_state.white_castle_king = true;
 };
 
-inline void unset_white_castle_king(boardstate *bs){
-	bs->white_castle_king = false;
+inline void unset_white_castle_king(GameState *bs){
+	bs->board_state.white_castle_king = false;
 };
 
-inline bool get_white_castle_queen(boardstate *bs){
-	return(bs->white_castle_queen);
+inline bool get_white_castle_queen(GameState *bs){
+	return(bs->board_state.white_castle_queen);
 };
 
-inline void set_white_castle_queen(boardstate *bs){
-	bs->white_castle_queen = true;
+inline void set_white_castle_queen(GameState *bs){
+	bs->board_state.white_castle_queen = true;
 };
 
-inline void unset_white_castle_queen(boardstate *bs){
-	bs->white_castle_queen = false;
+inline void unset_white_castle_queen(GameState *bs){
+	bs->board_state.white_castle_queen = false;
 };
 
-inline bool get_black_castle_king(boardstate *bs){
-	return(bs->black_castle_king);
+inline bool get_black_castle_king(GameState *bs){
+	return(bs->board_state.black_castle_king);
 };
 
-inline void set_black_castle_king(boardstate *bs){
-	bs->black_castle_king = true;
+inline void set_black_castle_king(GameState *bs){
+	bs->board_state.black_castle_king = true;
 };
 
-inline void unset_black_castle_king(boardstate *bs){
-	bs->black_castle_king = false;
+inline void unset_black_castle_king(GameState *bs){
+	bs->board_state.black_castle_king = false;
 };
 
-inline bool get_black_castle_queen(boardstate *bs){
-	return(bs->black_castle_queen);
+inline bool get_black_castle_queen(GameState *bs){
+	return(bs->board_state.black_castle_queen);
 };
 
-inline void set_black_castle_queen(boardstate *bs){
-	bs->black_castle_queen = true;
+inline void set_black_castle_queen(GameState *bs){
+	bs->board_state.black_castle_queen = true;
 };
 
-inline void unset_black_castle_queen(boardstate *bs){
-	(bs->black_castle_queen) = false;
+inline void unset_black_castle_queen(GameState *bs){
+	(bs->board_state.black_castle_queen) = false;
 };
 
-inline void flip_turn(boardstate *bs){
-	(bs->whites_turn) = !(bs->whites_turn);
+inline void flip_turn(GameState *bs){
+	(bs->board_state.whites_turn) = !(bs->board_state.whites_turn);
 }
 
-inline bool get_whites_turn(boardstate *bs){
-	return(bs->whites_turn);
+inline bool get_whites_turn(GameState *bs){
+	return(bs->board_state.whites_turn);
 };
 
-inline void set_whites_turn(boardstate *bs){
-	(bs->whites_turn) = true;
+inline void set_whites_turn(GameState *bs){
+	(bs->board_state.whites_turn) = true;
 };
 
-inline void unset_whites_turn(boardstate *bs){
-	(bs->whites_turn) = false;
+inline void unset_whites_turn(GameState *bs){
+	(bs->board_state.whites_turn) = false;
 };
 
-inline bool get_blacks_turn(boardstate *bs){
+inline bool get_blacks_turn(GameState *bs){
 	return(!get_whites_turn(bs));
 };
 
-inline void set_blacks_turn(boardstate *bs){
+inline void set_blacks_turn(GameState *bs){
 	unset_whites_turn(bs);
 };
 
-inline void unset_blacks_turn(boardstate *bs){
+inline void unset_blacks_turn(GameState *bs){
 	set_whites_turn(bs);
 };
 
-inline bitboard get_current_movers_bitboard(boardstate *bs){
+inline bitboard get_current_movers_bitboard(GameState *bs){
 	if(get_whites_turn(bs)){
-		return(bs->white);
+		return(bs->board_state.white);
 	}else{
-		return(bs->black);
+		return(bs->board_state.black);
 	}
 }
 
-inline bitboard get_opposing_movers_bitboard(boardstate *bs){
+inline bitboard get_opposing_movers_bitboard(GameState *bs){
 	if(get_whites_turn(bs)){
-		return(bs->black);
+		return(bs->board_state.black);
 	}else{
-		return(bs->white);
+		return(bs->board_state.white);
 	}
 }
 
-inline void increment_fullmove_counter(boardstate *bs){
+/*
+inline void increment_fullmove_counter(GameState *bs){
 	(bs->fullmove_counter)++;
 }
 
-inline void decrement_fullmove_counter(boardstate *bs){
+inline void decrement_fullmove_counter(GameState *bs){
 	(bs->fullmove_counter)--;
 }
 
-inline void increment_halfmove_clock(boardstate *bs){
+inline void increment_halfmove_clock(GameState *bs){
 	(bs->halfmove_clock)++;
 }
 
-inline void reset_halfmove_clock(boardstate *bs){
+inline void reset_halfmove_clock(GameState *bs){
 	(bs->halfmove_clock) = 0;
 }
+*/
 
 class Zobrist {
 	public:
 		Zobrist();
-		zobrist_int hash(boardstate *brd) const;
-		zobrist_int hash(smallboardstate brd) const;
-		zobrist_int update(zobrist_int previous, boardstate *brd, moverecord *mv) const;
+		zobrist_int hash(GameState *brd) const;
+		zobrist_int hash(BoardState brd) const;
+		zobrist_int update(zobrist_int previous, GameState *brd, moverecord *mv) const;
 	private:
 		zobrist_int zobrist_table[8][8][14];
 		zobrist_int zobrist_white_castle_king;
@@ -1061,13 +1048,13 @@ class Zobrist {
 
 extern const Zobrist zobrist;
 
-inline void unmake_move(boardstate *brd, moverecord *mv){
+inline void unmake_move(GameState *brd, moverecord *mv){
 	EASY_FUNCTION(profiler::colors::Green);
 	
 	// downdate position count
-	std::tuple<zobrist_int, smallboardstate> key;
-	key = std::make_tuple(brd->hash, smallify(brd));
-	((*(brd->position_count))[key])--;
+//	std::tuple<zobrist_int, BoardState> key;
+//	key = std::make_tuple(brd->hash, smallify(brd));
+//	((*(brd->position_count))[key])--;
 	
 	
 	// downdate zobrist hash value
@@ -1085,10 +1072,12 @@ inline void unmake_move(boardstate *brd, moverecord *mv){
 	}
 	
 	// change halfmove clock back
-	set_halfmove_clock(brd, mv->previous_halfmove_clock);
+	brd->halfmove_clock = mv->previous_halfmove_clock;
+	brd->threefold_repetition_clock = mv->previous_threefold_repetition_clock;
 	
 	// fulllmove counter and castle rights
-	if(brd->whites_turn){
+	(brd->halfmove_counter)--;
+	if(brd->board_state.whites_turn){
 		if(mv->lost_own_castle_king){
 			set_white_castle_king(brd);
 		}
@@ -1102,7 +1091,7 @@ inline void unmake_move(boardstate *brd, moverecord *mv){
 			set_black_castle_queen(brd);
 		}
 	}else{
-		decrement_fullmove_counter(brd);
+		brd->fullmove_counter--;
 		if(mv->lost_own_castle_king){
 			set_black_castle_king(brd);
 		}
@@ -1152,20 +1141,21 @@ inline void unmake_move(boardstate *brd, moverecord *mv){
 	set_enpassant(brd, mv->enpassant);
 	
 	// set current position count (can only be done at end of unmake)
-	key = std::make_tuple(brd->hash, smallify(brd));
-	brd->current_position_count = (*(brd->position_count))[key];
+//	key = std::make_tuple(brd->hash, smallify(brd));
+//	brd->current_position_count = (*(brd->position_count))[key];
 }
 
 
-inline bitboard checking_rays_intersection(boardstate *brd, const bool pin_check_only){
+inline bitboard checking_rays_intersection(GameState *brd, const bool pin_check_only){
 	// Return the intersection of all rays by which the current mover's king is in check
 	// by sliding pieces.  If no such rays, return the set of all squares (the empty intersection).
 	// If pin_check_only, this is being used to detect an absolute pin and, under the 
 	// assumption that there is no king capture available (which there should never be),
 	// there is at most one possible pinning ray and we can terminate once we find it.
 	
-	bitboard king_board = brd->k & get_current_movers_bitboard(brd);
-	bitboard propagator = ~(brd->white | brd->black);
+	BoardState bs = brd->board_state;
+	bitboard king_board = bs.k & get_current_movers_bitboard(brd);
+	bitboard propagator = ~(bs.white | bs.black);
 	brdidx king_square = greatest_square_index(king_board);
 	brdidx king_rank = square_index_to_rank_index(king_square);
 	//brdidx king_file = square_index_to_file_index(king_square);
@@ -1180,7 +1170,7 @@ inline bitboard checking_rays_intersection(boardstate *brd, const bool pin_check
 	bitboard result = full;
 	
 	// Check for attacking rooks and queens
-	attackers = rook_moves_from_square_index(king_square) & get_opposing_movers_bitboard(brd) & (brd->r | brd->q);
+	attackers = rook_moves_from_square_index(king_square) & get_opposing_movers_bitboard(brd) & (bs.r | bs.q);
 	while(attackers){
 		current_attacker = ls1b(attackers);
 		attackers &= ~current_attacker;
@@ -1234,7 +1224,7 @@ inline bitboard checking_rays_intersection(boardstate *brd, const bool pin_check
 		}
 	}
 	// Check for attacking bishops and queens
-	attackers = bishop_moves_from_square_index(king_square) & get_opposing_movers_bitboard(brd) & (brd->b | brd->q);
+	attackers = bishop_moves_from_square_index(king_square) & get_opposing_movers_bitboard(brd) & (bs.b | bs.q);
 	while(attackers){
 		current_attacker = ls1b(attackers);
 		attackers &= ~current_attacker;
@@ -1289,16 +1279,16 @@ inline bitboard checking_rays_intersection(boardstate *brd, const bool pin_check
 	}
 	
 	// Check for attacking knights
-	attackers = knight_moves_from_square_index(king_square) & get_opposing_movers_bitboard(brd) & (brd->n);
+	attackers = knight_moves_from_square_index(king_square) & get_opposing_movers_bitboard(brd) & (bs.n);
 	if(attackers){
 		result &= attackers;
 	}
 	
 	// Check for attacking pawns
 	if(get_whites_turn(brd)){
-		attackers = black_pawn_inverse_capture_moves_from_square_index(king_square) & get_opposing_movers_bitboard(brd) & (brd->p);
+		attackers = black_pawn_inverse_capture_moves_from_square_index(king_square) & get_opposing_movers_bitboard(brd) & (bs.p);
 	}else{
-		attackers = white_pawn_inverse_capture_moves_from_square_index(king_square) & get_opposing_movers_bitboard(brd) & (brd->p);
+		attackers = white_pawn_inverse_capture_moves_from_square_index(king_square) & get_opposing_movers_bitboard(brd) & (bs.p);
 	}
 	if(attackers){
 		result &= attackers;
@@ -1306,7 +1296,7 @@ inline bitboard checking_rays_intersection(boardstate *brd, const bool pin_check
 	return(result);
 }
 
-inline moverecord make_move(boardstate *brd, move *mv){
+inline moverecord make_move(GameState *brd, move *mv){
 	EASY_FUNCTION(profiler::colors::Green);
 	piece from_piece, to_piece;
 	bool lost_own_castle_king = false;
@@ -1315,7 +1305,7 @@ inline moverecord make_move(boardstate *brd, move *mv){
 	bool lost_opponent_castle_queen = false;
 	from_piece = brd->piece_map[mv->from_square];
 	to_piece = brd->piece_map[mv->to_square];
-	brdidx old_enpassant = brd->enpassant;
+	brdidx old_enpassant = brd->board_state.enpassant;
 	
 	// check for castle loss
 	if(from_piece == K){
@@ -1406,7 +1396,8 @@ inline moverecord make_move(boardstate *brd, move *mv){
 	}
 	//continue regular move stuff
 	place_piece(brd, mv->to_square, from_piece);
-	if(brd->whites_turn){
+	(brd->halfmove_counter)++;
+	if(brd->board_state.whites_turn){
 		if(lost_own_castle_king){
 			unset_white_castle_king(brd);
 		}
@@ -1420,7 +1411,7 @@ inline moverecord make_move(boardstate *brd, move *mv){
 			unset_black_castle_queen(brd);
 		}
 	}else{
-		increment_fullmove_counter(brd);
+		brd->fullmove_counter++;
 		if(lost_own_castle_king){
 			unset_black_castle_king(brd);
 		}
@@ -1434,11 +1425,17 @@ inline moverecord make_move(boardstate *brd, move *mv){
 			unset_white_castle_queen(brd);
 		}
 	}
-	int previous_halfmove_clock = get_halfmove_clock(brd);
+	unsigned int previous_halfmove_clock = brd->halfmove_clock;
+	unsigned int previous_threefold_repetition_clock = brd->threefold_repetition_clock;
 	if((to_piece != no) || (from_piece == p) || (from_piece == P)){
-		reset_halfmove_clock(brd);
+		brd->halfmove_clock = 0;
+		brd->threefold_repetition_clock = 0;
+	}else if(lost_own_castle_king || lost_own_castle_queen ||
+			lost_opponent_castle_king || lost_opponent_castle_queen){
+		brd->threefold_repetition_clock = 0;
 	}else{
-		increment_halfmove_clock(brd);
+		brd->halfmove_clock++;
+		brd->threefold_repetition_clock++;
 	}
 	
 	// check for promotion
@@ -1462,30 +1459,33 @@ inline moverecord make_move(boardstate *brd, move *mv){
 	moverecord record = {to_piece, lost_own_castle_king, lost_own_castle_queen,
 						 lost_opponent_castle_king, lost_opponent_castle_queen,
 						 old_enpassant, previous_halfmove_clock, 
+						 previous_threefold_repetition_clock,
 						 mv->from_square, mv->to_square, from_piece};
 
 	// update zobrist hash value
 	set_hash(brd, zobrist.update(get_hash(brd), brd, &record));
 	
 	// update position count
-	std::tuple<zobrist_int, smallboardstate> key;
-	key = std::make_tuple(brd->hash, smallify(brd));
-	if(brd->position_count->count(key)){
-		((*(brd->position_count))[key])++;
-	}else{
-		(*(brd->position_count))[key] = 1;
-	}
-	brd->current_position_count = (*(brd->position_count))[key];
+//	std::tuple<zobrist_int, BoardState> key;
+//	key = std::make_tuple(brd->hash, smallify(brd));
+//	if(brd->position_count->count(key)){
+//		((*(brd->position_count))[key])++;
+//	}else{
+//		(*(brd->position_count))[key] = 1;
+//	}
+//	brd->current_position_count = (*(brd->position_count))[key];
+	brd->record[brd->halfmove_counter] = brd->board_state;
 	return(record);
 }
 
-inline bitboard attackers_from_square_index(boardstate *brd, brdidx s){
+inline bitboard attackers_from_square_index(GameState *brd, brdidx s){
+	BoardState bs = brd->board_state;
 	bitboard result = empty;
-	bitboard rooks_and_queens = brd->r | brd->q;
-	bitboard bishops_and_queens = brd->b | brd->q;
+	bitboard rooks_and_queens = bs.r | bs.q;
+	bitboard bishops_and_queens = bs.b | bs.q;
 	
 	bitboard tmp;
-	bitboard unoccupied = ~(brd->white | brd->black);
+	bitboard unoccupied = ~(bs.white | bs.black);
 	bitboard source = bitboard_from_square_index(s);
 	tmp = slide_east(source, unoccupied);
 	tmp |= step_east(tmp) & rooks_and_queens;
@@ -1511,18 +1511,18 @@ inline bitboard attackers_from_square_index(boardstate *brd, brdidx s){
 	tmp = slide_southeast(source, unoccupied);
 	tmp |= step_southeast(tmp) & bishops_and_queens;
 	result |= tmp;
-	result |= black_pawn_inverse_capture_moves_from_square_index(s) & (brd->black & brd->p);
-	result |= white_pawn_inverse_capture_moves_from_square_index(s) & (brd->white & brd->p);
-	result |= knight_moves_from_square_index(s) & brd->n;
-	result |= king_moves_from_square_index(s) & brd->k;
+	result |= black_pawn_inverse_capture_moves_from_square_index(s) & (bs.black & bs.p);
+	result |= white_pawn_inverse_capture_moves_from_square_index(s) & (bs.white & bs.p);
+	result |= knight_moves_from_square_index(s) & bs.n;
+	result |= king_moves_from_square_index(s) & bs.k;
 	result ^= source;
 	return(result);
 }
 
-inline bool own_check(boardstate *brd){
+inline bool own_check(GameState *brd){
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
-	brdidx king_square = greatest_square_index(own & brd->k);
+	brdidx king_square = greatest_square_index(own & brd->board_state.k);
 	bitboard attackers = attackers_from_square_index(brd, king_square) & opponent;
 	if(attackers){
 		return(true);
@@ -1531,10 +1531,10 @@ inline bool own_check(boardstate *brd){
 	}
 }
 
-inline bool opponent_check(boardstate *brd){
+inline bool opponent_check(GameState *brd){
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
-	brdidx king_square = greatest_square_index(opponent & brd->k);
+	brdidx king_square = greatest_square_index(opponent & brd->board_state.k);
 	bitboard attackers = attackers_from_square_index(brd, king_square) & own;
 	if(attackers){
 		return(true);
@@ -1543,11 +1543,12 @@ inline bool opponent_check(boardstate *brd){
 	}
 }
 
-inline void king_captures(boardstate *brd, std::vector<move> &moves){
+inline int king_captures(GameState *brd, move *moves){
 	EASY_FUNCTION(profiler::colors::Purple);
+	int num_moves = 0;
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
-	brdidx king_square = greatest_square_index(brd->k & own); // there is only one king
+	brdidx king_square = greatest_square_index(brd->board_state.k & own); // there is only one king
 	bitboard king_targets = king_moves_from_square_index(king_square);
 	piece own_king;
 	if(get_whites_turn(brd)){
@@ -1573,18 +1574,21 @@ inline void king_captures(boardstate *brd, std::vector<move> &moves){
 			mv.from_square = king_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push_back(mv);
+			moves[num_moves] = mv;
+			num_moves++;
 		}
 		
 	}
-		
+	return num_moves;
 }
 
 
-inline void all_king_moves(boardstate *brd, std::vector<move> &moves){
+inline int all_king_moves(GameState *brd, move *moves){
+	int num_moves = 0;
+	BoardState bs = brd->board_state;
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
-	brdidx king_square = greatest_square_index(brd->k & own); // there is only one king
+	brdidx king_square = greatest_square_index(bs.k & own); // there is only one king
 	bitboard king_targets = king_moves_from_square_index(king_square) & (~own);
 	bitboard attackers;
 	move mv;
@@ -1592,7 +1596,7 @@ inline void all_king_moves(boardstate *brd, std::vector<move> &moves){
 	// Castling
 	if(get_whites_turn(brd)){
 		if(get_white_castle_king(brd)){
-			if((brd->white & brd->r & castle_king_rook) && !((own | opponent) & white_castle_king_open)){
+			if((bs.white & bs.r & castle_king_rook) && !((own | opponent) & white_castle_king_open)){
 				attackers = attackers_from_square_index(brd, 4) & opponent;
 				attackers |= attackers_from_square_index(brd, 5) & opponent;
 				attackers |= attackers_from_square_index(brd, 6) & opponent;
@@ -1601,12 +1605,13 @@ inline void all_king_moves(boardstate *brd, std::vector<move> &moves){
 					mv.from_square = king_square;
 					mv.to_square = king_square + 2;
 					mv.promotion = no;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 				}
 			}
 		}
 		if(get_white_castle_queen(brd)){
-			if((brd->white & brd->r & castle_queen_rook) && !((own | opponent) & white_castle_queen_open)){
+			if((bs.white & bs.r & castle_queen_rook) && !((own | opponent) & white_castle_queen_open)){
 				attackers = attackers_from_square_index(brd, 2) & opponent;
 				attackers |= attackers_from_square_index(brd, 3) & opponent;
 				attackers |= attackers_from_square_index(brd, 4) & opponent;
@@ -1615,13 +1620,14 @@ inline void all_king_moves(boardstate *brd, std::vector<move> &moves){
 					mv.from_square = king_square;
 					mv.to_square = king_square - 2;
 					mv.promotion = no;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 				}
 			}
 		}
 	}else{
 		if(get_black_castle_king(brd)){
-			if((brd->black & brd->r & castle_king_rook) && !((own | opponent) & black_castle_king_open)){
+			if((bs.black & bs.r & castle_king_rook) && !((own | opponent) & black_castle_king_open)){
 				attackers = attackers_from_square_index(brd, 60) & opponent;
 				attackers |= attackers_from_square_index(brd, 61) & opponent;
 				attackers |= attackers_from_square_index(brd, 62) & opponent;
@@ -1630,12 +1636,13 @@ inline void all_king_moves(boardstate *brd, std::vector<move> &moves){
 					mv.from_square = king_square;
 					mv.to_square = king_square + 2;
 					mv.promotion = no;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 				}
 			}
 		}
 		if(get_black_castle_queen(brd)){
-			if((brd->black & brd->r & castle_queen_rook) && !((own | opponent) & black_castle_queen_open)){
+			if((bs.black & bs.r & castle_queen_rook) && !((own | opponent) & black_castle_queen_open)){
 				attackers = attackers_from_square_index(brd, 58) & opponent;
 				attackers |= attackers_from_square_index(brd, 59) & opponent;
 				attackers |= attackers_from_square_index(brd, 60) & opponent;
@@ -1644,7 +1651,8 @@ inline void all_king_moves(boardstate *brd, std::vector<move> &moves){
 					mv.from_square = king_square;
 					mv.to_square = king_square - 2;
 					mv.promotion = no;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 				}
 			}
 		}
@@ -1676,17 +1684,20 @@ inline void all_king_moves(boardstate *brd, std::vector<move> &moves){
 			mv.from_square = king_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push_back(mv);
+			moves[num_moves] = mv;
+			num_moves++;
 		}
 		
 	}
-		
+	return num_moves;
 }
 
-inline void quiet_king_moves(boardstate *brd, std::vector<move> &moves){
+inline int quiet_king_moves(GameState *brd, move *moves){
+	int num_moves = 0;
+	BoardState bs = brd->board_state;
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
-	brdidx king_square = greatest_square_index(brd->k & own); // there is only one king
+	brdidx king_square = greatest_square_index(bs.k & own); // there is only one king
 	bitboard king_targets = king_moves_from_square_index(king_square);
 	bitboard attackers;
 	move mv;
@@ -1694,7 +1705,7 @@ inline void quiet_king_moves(boardstate *brd, std::vector<move> &moves){
 	// Castling
 	if(get_whites_turn(brd)){
 		if(get_white_castle_king(brd)){
-			if((brd->white & brd->r & castle_king_rook) && !((own | opponent) & white_castle_king_open)){
+			if((bs.white & bs.r & castle_king_rook) && !((own | opponent) & white_castle_king_open)){
 				attackers = attackers_from_square_index(brd, 4) & opponent;
 				attackers |= attackers_from_square_index(brd, 5) & opponent;
 				attackers |= attackers_from_square_index(brd, 6) & opponent;
@@ -1703,12 +1714,13 @@ inline void quiet_king_moves(boardstate *brd, std::vector<move> &moves){
 					mv.from_square = king_square;
 					mv.to_square = king_square + 2;
 					mv.promotion = no;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 				}
 			}
 		}
 		if(get_white_castle_queen(brd)){
-			if((brd->white & brd->r & castle_queen_rook) && !((own | opponent) & white_castle_queen_open)){
+			if((bs.white & bs.r & castle_queen_rook) && !((own | opponent) & white_castle_queen_open)){
 				attackers = attackers_from_square_index(brd, 2) & opponent;
 				attackers |= attackers_from_square_index(brd, 3) & opponent;
 				attackers |= attackers_from_square_index(brd, 4) & opponent;
@@ -1717,13 +1729,14 @@ inline void quiet_king_moves(boardstate *brd, std::vector<move> &moves){
 					mv.from_square = king_square;
 					mv.to_square = king_square - 2;
 					mv.promotion = no;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 				}
 			}
 		}
 	}else{
 		if(get_black_castle_king(brd)){
-			if((brd->black & brd->r & castle_king_rook) && !((own | opponent) & black_castle_king_open)){
+			if((bs.black & bs.r & castle_king_rook) && !((own | opponent) & black_castle_king_open)){
 				attackers = attackers_from_square_index(brd, 60) & opponent;
 				attackers |= attackers_from_square_index(brd, 61) & opponent;
 				attackers |= attackers_from_square_index(brd, 62) & opponent;
@@ -1732,13 +1745,14 @@ inline void quiet_king_moves(boardstate *brd, std::vector<move> &moves){
 					mv.from_square = king_square;
 					mv.to_square = king_square + 2;
 					mv.promotion = no;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 				}
 			}
 		}
 		if(get_black_castle_queen(brd)){
 			
-			if((brd->black & brd->r & castle_queen_rook) && !((own | opponent) & black_castle_queen_open)){
+			if((bs.black & bs.r & castle_queen_rook) && !((own | opponent) & black_castle_queen_open)){
 				attackers = attackers_from_square_index(brd, 58) & opponent;
 				attackers |= attackers_from_square_index(brd, 59) & opponent;
 				attackers |= attackers_from_square_index(brd, 60) & opponent;
@@ -1747,7 +1761,8 @@ inline void quiet_king_moves(boardstate *brd, std::vector<move> &moves){
 					mv.from_square = king_square;
 					mv.to_square = king_square - 2;
 					mv.promotion = no;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 				}
 			}
 		}
@@ -1776,15 +1791,19 @@ inline void quiet_king_moves(boardstate *brd, std::vector<move> &moves){
 			mv.from_square = king_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push_back(mv);
+			moves[num_moves] = mv;
+			num_moves++;
 		}
 		
 	}
+	return num_moves;
 		
 }
 
-inline void knight_captures(boardstate *brd, std::vector<move> &moves){
+inline int knight_captures(GameState *brd, move *moves){
 	EASY_FUNCTION(profiler::colors::Purple);
+	int num_moves = 0;
+	BoardState bs = brd->board_state;
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	
@@ -1792,7 +1811,7 @@ inline void knight_captures(boardstate *brd, std::vector<move> &moves){
 	brdidx source_square, target_square;
 	move mv;
 	
-	bitboard knights = own & (brd->n);
+	bitboard knights = own & (bs.n);
 	while(knights){
 		current_source = ls1b(knights);
 		knights ^= current_source;
@@ -1829,19 +1848,22 @@ inline void knight_captures(boardstate *brd, std::vector<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push_back(mv);
+			moves[num_moves] = mv;
+			num_moves++;
 		}
 	}
+	return num_moves;
 }
 
-inline void all_knight_moves(boardstate *brd, std::vector<move> &moves){
+inline int all_knight_moves(GameState *brd, move *moves){
+	int num_moves = 0;
+	BoardState bs = brd->board_state;
 	bitboard own = get_current_movers_bitboard(brd);
-	
 	bitboard targets, current_source, current_target, propagator;
 	brdidx source_square, target_square;
 	move mv;
 	
-	bitboard knights = own & (brd->n);
+	bitboard knights = own & (bs.n);
 	while(knights){
 		current_source = ls1b(knights);
 		knights ^= current_source;
@@ -1878,12 +1900,16 @@ inline void all_knight_moves(boardstate *brd, std::vector<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push_back(mv);
+			moves[num_moves] = mv;
+			num_moves++;
 		}
 	}
+	return num_moves;
 }
 
-inline void quiet_knight_moves(boardstate *brd, std::vector<move> &moves){
+inline int quiet_knight_moves(GameState *brd, move *moves){
+	int num_moves = 0;
+	BoardState bs = brd->board_state;
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
@@ -1892,7 +1918,7 @@ inline void quiet_knight_moves(boardstate *brd, std::vector<move> &moves){
 	brdidx source_square, target_square;
 	move mv;
 	
-	bitboard knights = own & (brd->n);
+	bitboard knights = own & (bs.n);
 	while(knights){
 		current_source = ls1b(knights);
 		knights ^= current_source;
@@ -1929,13 +1955,17 @@ inline void quiet_knight_moves(boardstate *brd, std::vector<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push_back(mv);
+			moves[num_moves] = mv;
+			num_moves++;
 		}
 	}
+	return num_moves;
 }
 
-inline void pawn_captures(boardstate *brd, std::vector<move> &moves){
+inline int pawn_captures(GameState *brd, move *moves){
 	EASY_FUNCTION(profiler::colors::Purple);
+	int num_moves = 0;
+	BoardState bs = brd->board_state;
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard potential_targets = opponent | get_enpassant_bitboard(brd);
@@ -1953,7 +1983,7 @@ inline void pawn_captures(boardstate *brd, std::vector<move> &moves){
 		end_rank = 0;
 	}
 	
-	bitboard pawns = own & (brd->p);
+	bitboard pawns = own & (bs.p);
 	while(pawns){
 		current_source = ls1b(pawns);
 		pawns ^= current_source;
@@ -1962,7 +1992,7 @@ inline void pawn_captures(boardstate *brd, std::vector<move> &moves){
 		// propagator takes care of pinning
 		unplace_piece(brd, source_square);
 		pinboard = checking_rays_intersection(brd, false);
-		if(brd->enpassant != no_enpassant){
+		if(bs.enpassant != no_enpassant){
 			pinboard |= get_enpassant_bitboard(brd);
 		}
 		if(get_whites_turn(brd)){
@@ -1989,49 +2019,57 @@ inline void pawn_captures(boardstate *brd, std::vector<move> &moves){
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = R;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = N;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = B;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = Q;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 				}else{
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = r;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = n;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = b;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = q;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 				}
 			}else if(target_piece == ep || target_piece == EP){
 				// check whether the en passant capture puts the king in check
@@ -2041,7 +2079,8 @@ inline void pawn_captures(boardstate *brd, std::vector<move> &moves){
 				mv.promotion = no;
 				rec = make_move(brd, &mv);
 				if(!opponent_check(brd)){
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 				}
 				unmake_move(brd, &rec);
 			}else{
@@ -2049,14 +2088,18 @@ inline void pawn_captures(boardstate *brd, std::vector<move> &moves){
 				mv.from_square = source_square;
 				mv.to_square = target_square;
 				mv.promotion = no;
-				moves.push_back(mv);
+				moves[num_moves] = mv;
+				num_moves++;
 			}
 			
 		}
 	}
+	return num_moves;
 }
 
-inline void all_pawn_moves(boardstate *brd, std::vector<move> &moves){
+inline int all_pawn_moves(GameState *brd, move *moves){
+	int num_moves = 0;
+	BoardState bs = brd->board_state;
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
@@ -2077,7 +2120,7 @@ inline void all_pawn_moves(boardstate *brd, std::vector<move> &moves){
 		end_rank = 0;
 	}
 	
-	bitboard pawns = own & (brd->p);
+	bitboard pawns = own & (bs.p);
 	while(pawns){
 		current_source = ls1b(pawns);
 		pawns ^= current_source;
@@ -2086,7 +2129,7 @@ inline void all_pawn_moves(boardstate *brd, std::vector<move> &moves){
 		// take care of pinning
 		pc = unplace_piece(brd, source_square);
 		pinboard = checking_rays_intersection(brd, false);
-		if(brd->enpassant != no_enpassant){
+		if(bs.enpassant != no_enpassant){
 			pinboard |= get_enpassant_bitboard(brd);
 		}
 		unsafe_place_piece(brd, source_square, pc);
@@ -2116,49 +2159,57 @@ inline void all_pawn_moves(boardstate *brd, std::vector<move> &moves){
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = R;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = N;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = B;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = Q;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 				}else{
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = r;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = n;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = b;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = q;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 				}
 			}else if(target_piece == ep || target_piece == EP){
 				// check whether the en passant capture puts the king in check
@@ -2168,7 +2219,8 @@ inline void all_pawn_moves(boardstate *brd, std::vector<move> &moves){
 				mv.promotion = no;
 				rec = make_move(brd, &mv);
 				if(!opponent_check(brd)){
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 				}
 				unmake_move(brd, &rec);
 			}else{
@@ -2176,14 +2228,17 @@ inline void all_pawn_moves(boardstate *brd, std::vector<move> &moves){
 				mv.from_square = source_square;
 				mv.to_square = target_square;
 				mv.promotion = no;
-				moves.push_back(mv);
+				moves[num_moves] = mv;
+				num_moves++;
 			}
 			
 		}
 	}
+	return num_moves;
 }
 
-inline void quiet_pawn_moves(boardstate *brd, std::vector<move> &moves){
+inline int quiet_pawn_moves(GameState *brd, move *moves){
+	int num_moves = 0;
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
@@ -2198,7 +2253,7 @@ inline void quiet_pawn_moves(boardstate *brd, std::vector<move> &moves){
 		end_rank = 1;
 	}
 	
-	bitboard pawns = own & (brd->p);
+	bitboard pawns = own & (brd->board_state.p);
 	while(pawns){
 		current_source = ls1b(pawns);
 		pawns ^= current_source;
@@ -2238,82 +2293,95 @@ inline void quiet_pawn_moves(boardstate *brd, std::vector<move> &moves){
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = P;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = R;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = N;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = B;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = Q;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 				}else{
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = p;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = r;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = n;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = b;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 					
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
 					mv.promotion = q;
-					moves.push_back(mv);
+					moves[num_moves] = mv;
+					num_moves++;
 				}
 			}else{
 				mv = move();
 				mv.from_square = source_square;
 				mv.to_square = target_square;
 				mv.promotion = no;
-				moves.push_back(mv);
+				moves[num_moves] = mv;
+				num_moves++;
 			}
 			
 		}
 	}
+	return num_moves;
 }
 
-inline void bishop_captures(boardstate *brd, std::vector<move> &moves){
+inline int bishop_captures(GameState *brd, move *moves){
+	int num_moves = 0;
 	EASY_FUNCTION(profiler::colors::Purple);
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
 	bitboard pinboard;
 	bitboard bishops;
-	bishops = own & brd->b;
+	bishops = own & brd->board_state.b;
 	bitboard targets;
 	bitboard current_target, current_source;
 	brdidx target_square, source_square;
@@ -2357,18 +2425,21 @@ inline void bishop_captures(boardstate *brd, std::vector<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push_back(mv);
+			moves[num_moves] = mv;
+			num_moves++;
 		}
 	}
+	return num_moves;
 }
 
-inline void all_bishop_moves(boardstate *brd, std::vector<move> &moves){
+inline int all_bishop_moves(GameState *brd, move *moves){
+	int num_moves = 0;
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
 	bitboard pinboard;
 	bitboard bishops;
-	bishops = own & brd->b;
+	bishops = own & brd->board_state.b;
 	bitboard targets;
 	bitboard current_target, current_source;
 	brdidx target_square, source_square;
@@ -2410,19 +2481,22 @@ inline void all_bishop_moves(boardstate *brd, std::vector<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push_back(mv);
+			moves[num_moves] = mv;
+			num_moves++;
 		}
 	}
+	return num_moves;
 }
 
 
-inline void quiet_bishop_moves(boardstate *brd, std::vector<move> &moves){
+inline int quiet_bishop_moves(GameState *brd, move *moves){
+	int num_moves = 0;
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
 	bitboard propagator;
 	bitboard bishops;
-	bishops = own & brd->b;
+	bishops = own & brd->board_state.b;
 	bitboard targets;
 	bitboard current_target, current_source;
 	brdidx target_square, source_square;
@@ -2458,19 +2532,22 @@ inline void quiet_bishop_moves(boardstate *brd, std::vector<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push_back(mv);
+			moves[num_moves] = mv;
+			num_moves++;
 		}
 	}
+	return num_moves;
 }
 
-inline void rook_captures(boardstate *brd, std::vector<move> &moves){
+inline int rook_captures(GameState *brd, move *moves){
 	EASY_FUNCTION(profiler::colors::Purple);
+	int num_moves = 0;
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
 	bitboard pinboard;
 	bitboard rooks;
-	rooks = own & brd->r;
+	rooks = own & brd->board_state.r;
 	bitboard targets;
 	bitboard current_target, current_source;
 	brdidx target_square, source_square;
@@ -2514,18 +2591,21 @@ inline void rook_captures(boardstate *brd, std::vector<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push_back(mv);
+			moves[num_moves] = mv;
+			num_moves++;
 		}
 	}
+	return num_moves;
 }
 
-inline void all_rook_moves(boardstate *brd, std::vector<move> &moves){
+inline int all_rook_moves(GameState *brd, move *moves){
+	int num_moves = 0;
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
 	bitboard pinboard;
 	bitboard rooks;
-	rooks = own & brd->r;
+	rooks = own & brd->board_state.r;
 	bitboard targets;
 	bitboard current_target, current_source;
 	brdidx target_square, source_square;
@@ -2569,19 +2649,22 @@ inline void all_rook_moves(boardstate *brd, std::vector<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push_back(mv);
+			moves[num_moves] = mv;
+			num_moves++;
 		}
 	}
+	return num_moves;
 }
 
 
-inline void quiet_rook_moves(boardstate *brd, std::vector<move> &moves){
+inline int quiet_rook_moves(GameState *brd, move *moves){
+	int num_moves = 0;
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
 	bitboard propagator;
 	bitboard rooks;
-	rooks = own & brd->r;
+	rooks = own & brd->board_state.r;
 	bitboard targets;
 	bitboard current_target, current_source;
 	brdidx target_square, source_square;
@@ -2617,19 +2700,22 @@ inline void quiet_rook_moves(boardstate *brd, std::vector<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push_back(mv);
+			moves[num_moves] = mv;
+			num_moves++;
 		}
 	}
+	return num_moves;
 }
 
-inline void queen_captures(boardstate *brd, std::vector<move> &moves){
+inline int queen_captures(GameState *brd, move *moves){
 	EASY_FUNCTION(profiler::colors::Purple);
+	int num_moves = 0;
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
 	bitboard pinboard;
 	bitboard queens;
-	queens = own & brd->q;
+	queens = own & brd->board_state.q;
 	bitboard targets;
 	bitboard current_target, current_source;
 	brdidx target_square, source_square;
@@ -2685,18 +2771,21 @@ inline void queen_captures(boardstate *brd, std::vector<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push_back(mv);
+			moves[num_moves] = mv;
+			num_moves++;
 		}
 	}
+	return num_moves;
 }
 
-inline void all_queen_moves(boardstate *brd, std::vector<move> &moves){
+inline int all_queen_moves(GameState *brd, move *moves){
+	int num_moves = 0;
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
 	bitboard pinboard;
 	bitboard queens;
-	queens = own & brd->q;
+	queens = own & brd->board_state.q;
 	bitboard targets;
 	bitboard current_target, current_source;
 	brdidx target_square, source_square;
@@ -2752,20 +2841,23 @@ inline void all_queen_moves(boardstate *brd, std::vector<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push_back(mv);
+			moves[num_moves] = mv;
+			num_moves += 1;
 		}
 	}
+	return num_moves;
 }
 
 
-inline void quiet_queen_moves(boardstate *brd, std::vector<move> &moves){
-	bitboard unoccupied = ~(brd->white | brd->black);
+inline int quiet_queen_moves(GameState *brd, move *moves){
+	int num_moves = 0;
+	bitboard unoccupied = ~(brd->board_state.white | brd->board_state.black);
 	bitboard propagator;
 	bitboard queens;
 	if(get_whites_turn(brd)){
-		queens = brd->white & brd->q;
+		queens = brd->board_state.white & brd->board_state.q;
 	}else{
-		queens = brd->black & brd->q;
+		queens = brd->board_state.black & brd->board_state.q;
 	}
 	bitboard targets;
 	bitboard current_target, current_source;
@@ -2806,41 +2898,49 @@ inline void quiet_queen_moves(boardstate *brd, std::vector<move> &moves){
 			mv.from_square = source_square;
 			mv.to_square = target_square;
 			mv.promotion = no;
-			moves.push_back(mv);
+			moves[num_moves] = mv;
+			num_moves++;
 		}
 	}
+	return num_moves;
 }
 
-inline void all_captures(boardstate *brd, std::vector<move> &moves){
+inline int all_captures(GameState *brd, move *moves){
 	EASY_FUNCTION(profiler::colors::Blue);
-	king_captures(brd, moves);
-	queen_captures(brd, moves);
-	bishop_captures(brd, moves);
-	rook_captures(brd, moves);
-	pawn_captures(brd, moves);
-	knight_captures(brd, moves);
+	int num_moves = 0;
+	num_moves += king_captures(brd, moves);
+	num_moves += queen_captures(brd, moves);
+	num_moves += bishop_captures(brd, moves);
+	num_moves += rook_captures(brd, moves);
+	num_moves += pawn_captures(brd, moves);
+	num_moves += knight_captures(brd, moves);
+	return num_moves;
 }
 
-inline void all_moves(boardstate *brd, std::vector<move> &moves){
+inline int all_moves(GameState *brd, move *moves){
 	EASY_FUNCTION(profiler::colors::Red);
-	all_king_moves(brd, moves);
-	all_queen_moves(brd, moves);
-	all_bishop_moves(brd, moves);
-	all_rook_moves(brd, moves);
-	all_pawn_moves(brd, moves);
-	all_knight_moves(brd, moves);
+	int num_moves = 0;
+	num_moves += all_king_moves(brd, moves);
+	num_moves += all_queen_moves(brd, moves);
+	num_moves += all_bishop_moves(brd, moves);
+	num_moves += all_rook_moves(brd, moves);
+	num_moves += all_pawn_moves(brd, moves);
+	num_moves += all_knight_moves(brd, moves);
+	return num_moves;
 }
 
-inline void all_quiet_moves(boardstate *brd, std::vector<move> &moves){
-	quiet_king_moves(brd, moves);
-	quiet_queen_moves(brd, moves);
-	quiet_bishop_moves(brd, moves);
-	quiet_rook_moves(brd, moves);
-	quiet_pawn_moves(brd, moves);
-	quiet_knight_moves(brd, moves);
+inline int all_quiet_moves(GameState *brd, move *moves){
+	int num_moves = 0;
+	num_moves += quiet_king_moves(brd, moves);
+	num_moves += quiet_queen_moves(brd, moves);
+	num_moves += quiet_bishop_moves(brd, moves);
+	num_moves += quiet_rook_moves(brd, moves);
+	num_moves += quiet_pawn_moves(brd, moves);
+	num_moves += quiet_knight_moves(brd, moves);
+	return num_moves;
 }
 
-unsigned long long perft(boardstate *brd, int depth);
+unsigned long long perft(GameState *brd, int depth);
 
 inline int piece_to_zobrist_index(piece pc){
 	switch(pc){
@@ -2899,7 +2999,7 @@ typedef struct {
 	double strength;
 	negamax_result value;
 	move best_move;
-	smallboardstate brd;
+	BoardState brd;
 } transposition_entry;
 
 inline bool operator==(const transposition_entry& lhs, const transposition_entry& rhs){
@@ -2915,10 +3015,10 @@ class TranspositionTable {
 	public:
 		TranspositionTable(unsigned long int size);
 		~TranspositionTable();
-		void setitem(boardstate *brd, transposition_entry &entry);
-		unsigned long int getindex(boardstate *brd);
-		bool exists(boardstate *brd);
-		transposition_entry getitem(boardstate *brd);
+		void setitem(GameState *brd, transposition_entry &entry);
+		unsigned long int getindex(GameState *brd);
+		bool exists(GameState *brd);
+		transposition_entry getitem(GameState *brd);
 	private:
 		unsigned long int size;
 		// Should be size x 2 array
@@ -2929,14 +3029,6 @@ class TranspositionTable {
 
 extern const transposition_entry empty_transposition_entry;
 
-typedef struct {
-	boardstate *brd;
-	move *best_move;
-	bool *stop;
-	double thresh;
-	TranspositionTable *tt;
-	bool quiesce;
-} searcharg;
 
 class MoveHistoryTable {
 	public:
@@ -2948,10 +3040,28 @@ class MoveHistoryTable {
 		std::tuple<double, double> data[64][64];
 };
 
-move movesearch(boardstate *brd, double time_limit, int *depth);
-move movesearch_threshold(boardstate *brd, double threshold, TranspositionTable *tt, bool quiesce);
-move movesearch_time(boardstate *brd, double time_limit, double *thresh,
-					TranspositionTable *tt, bool quiesce);
+class MoveSearchMemory {
+	public:
+		TranspositionTable *tt;
+		//MoveHistoryTable *hh;
+		move move_buffer[100][100];
+		MoveSearchMemory(unsigned long int tt_size);
+		~MoveSearchMemory();
+};
+
+typedef struct {
+	GameState *brd;
+	move *best_move;
+	bool *stop;
+	double thresh;
+	MoveSearchMemory *msm;
+	bool quiesce;
+} searcharg;
+
+move movesearch(GameState *brd, double time_limit, int *depth);
+move movesearch_threshold(GameState *brd, double threshold, MoveSearchMemory *msm, bool quiesce);
+move movesearch_time(GameState *brd, double time_limit, double *thresh,
+					MoveSearchMemory *msm, bool quiesce);
 
 
 
