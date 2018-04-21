@@ -1597,6 +1597,26 @@ transposition_entry TranspositionTable::getitem(GameState *brd){
 	return empty_transposition_entry;
 }
 
+
+void BoardState::extract_features(BoardFeatures *features){
+	bitboards_to_array(this->p & this->white, this->p & this->black, features->pawn);
+	bitboards_to_array(this->n & this->white, this->n & this->black, features->knight);
+	bitboards_to_array(this->r & this->white, this->r & this->black, features->rook);
+	bitboards_to_array(this->b & this->white, this->b & this->black, features->bishop);
+	bitboards_to_array(this->q & this->white, this->q & this->black, features->queen);
+	bitboards_to_array(this->k & this->white, this->k & this->black, features->king);
+	bitboards_to_array(this->white, this->black, features->all);
+	bitboards_to_array(bitboard_from_square_index(this->enpassant) & this->white, 
+				bitboard_from_square_index(this->enpassant) & this->black, features->all);
+	bitboards_to_array((this->q | this->b) & this->white, (this->q | this->b) & this->black, features->queen_and_bishop);
+	bitboards_to_array((this->q | this->r) & this->white, (this->q | this->r) & this->black, features->queen_and_rook);
+	features->turn[0] = this->whites_turn?1:-1;
+	features->castle_rights[0] = this->white_castle_king?1:0;
+	features->castle_rights[1] = this->white_castle_queen?1:0;
+	features->castle_rights[2] = this->black_castle_king?-1:0;
+	features->castle_rights[3] = this->black_castle_queen?-1:0;
+}
+
 MoveHistoryTable::MoveHistoryTable(){
 	for(int i=0;i<64;i++){
 		for(int j=0;j<64;j++){
@@ -1655,5 +1675,21 @@ MoveSearchMemory::~MoveSearchMemory(){
 		delete this->hh[i];
 	}
 //	delete this->hh;
+}
+
+BoardFeatures::BoardFeatures(double *pawn, double *knight, double *rook, double *bishop,
+					double *queen, double *king, double *en_passant, double *all,
+					double *queen_and_bishop, double *turn, double *castle_rights){
+	this->pawn = pawn;
+	this->knight = knight;
+	this->rook = rook;
+	this->bishop = bishop;
+	this->queen = queen;
+	this->king = king;
+	this->en_passant = en_passant;
+	this->all = all;
+	this->queen_and_bishop = queen_and_bishop;
+	this->turn = turn;
+	this->castle_rights = castle_rights;
 }
 									

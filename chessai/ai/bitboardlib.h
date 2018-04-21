@@ -513,6 +513,37 @@ inline bitboard bishop_moves_from_square_index(brdidx s){
 
 typedef enum {no=0,K,Q,B,N,R,P,EP,k,q,b,n,r,p,ep} piece;
 
+struct BoardFeatures{
+	double *pawn;//[64];
+	double *knight;//[64];
+	double *rook;//[64];
+	double *bishop;//[64];
+	double *queen;//[64];
+	double *king;//[64];
+	double *en_passant;//[64];
+	double *all;//[64];
+	double *queen_and_bishop;//[64];
+	double *queen_and_rook;//[64];
+	double *turn;//[1];
+	double *castle_rights;//[4];
+	BoardFeatures() = default;
+	BoardFeatures(double *pawn, double *knight, double *rook, double *bishop,
+				double *queen, double *king, double *en_passant, double *all,
+				double *queen_and_bishop, double *turn, double *castle_rights);
+};
+
+inline void bitboards_to_array(bitboard white, bitboard black, double *arr){
+	for(int i=0;i<64;i++){
+		if(white & places[i]){
+			arr[i] = 1;
+		}else if(black & places[i]){
+			arr[i] = -1;
+		}else{
+			arr[i] = 0;
+		}
+	}
+}
+
 // Just the parts needed to have same legal moves (ignoring clock)
 struct BoardState{
 	bitboard k;
@@ -529,6 +560,7 @@ struct BoardState{
 	bool white_castle_queen;
 	bool black_castle_king;
 	bool black_castle_queen;
+	void extract_features(BoardFeatures *features);
 };
 
 /*
@@ -545,6 +577,7 @@ struct record_entry {
 	zobrist_int key;
 	BoardState board_state;
 };
+
 
 struct GameState{
 	BoardState board_state;

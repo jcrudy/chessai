@@ -3,6 +3,7 @@ import versioneer
 from setuptools import find_packages, Extension
 import sys
 import os
+import numpy as np
 
 # Determine whether to use Cython
 if '--cythonize' in sys.argv:
@@ -56,7 +57,8 @@ ext_modules = [Extension('chessai.ai.bitboard',
                           ],
                          include_dirs = [os.path.join(#'chessai', 
                                                       'easy_profiler-1.3.0',
-                                                      'easy_profiler_core', 'include')
+                                                      'easy_profiler_core', 'include'),
+                                         np.get_include()
                                          ],
                          libraries = ['easy_profiler'],
                          library_dirs = [os.path.join('easy_profiler-1.3.0', 'bin')],

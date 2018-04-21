@@ -6,6 +6,8 @@ from toolz import partition
 from operator import methodcaller
 from libcpp.vector cimport vector
 import time
+cimport numpy as np
+import numpy as np
 
 cdef extern from "stdbool.h":
     ctypedef char bool
@@ -49,6 +51,7 @@ cdef extern from "bitboardlib.h":
         bool white_castle_queen
         bool black_castle_king
         bool black_castle_queen
+        void extract_features(BoardFeatures *features)
     
     ctypedef struct record_entry:
         zobrist_int key
@@ -176,6 +179,23 @@ cdef extern from "bitboardlib.h":
     cdef move movesearch_threshold(GameState *brd, double threshold, MoveSearchMemory *msm, bool quiesce)
     cdef move movesearch_time(GameState *brd, double time_limit, double *thresh,
                     MoveSearchMemory *msm, bool quiesce)
+    ctypedef struct BoardFeatures:
+        double *pawn#[64]
+        double *knight#[64]
+        double *rook#[64]
+        double *bishop#[64]
+        double *queen#[64]
+        double *king#[64]
+        double *en_passant#[64]
+        double *all#[64]
+        double *queen_and_bishop#[64]
+        double *queen_and_rook#[64]
+        double *turn#[1]
+        double *castle_rights#[4]
+        BoardFeatures(double *pawn, double *knight, double *rook, double *bishop,
+                double *queen, double *king, double *en_passant, double *all,
+                double *queen_and_bishop, double *turn, double *castle_rights)
+    
 cpdef bitboard_to_str(bitboard bb):
     cdef int i
     result = ''
@@ -547,6 +567,39 @@ cdef class BitBoardState:
             return True
         else:
             return False
+        
+    def extract_features(BitBoardState self):
+        cdef np.ndarray[double, ndim=1, mode="c"] pawn = np.empty(shape=64)
+        cdef np.ndarray[double, ndim=1, mode="c"] knight = np.empty(shape=64)  # @DuplicatedSignature
+        cdef np.ndarray[double, ndim=1, mode="c"] rook = np.empty(shape=64)  # @DuplicatedSignature
+        cdef np.ndarray[double, ndim=1, mode="c"] bishop = np.empty(shape=64)  # @DuplicatedSignature
+        cdef np.ndarray[double, ndim=1, mode="c"] queen = np.empty(shape=64)  # @DuplicatedSignature
+        cdef np.ndarray[double, ndim=1, mode="c"] king = np.empty(shape=64)  # @DuplicatedSignature
+        cdef np.ndarray[double, ndim=1, mode="c"] en_passant = np.empty(shape=64)  # @DuplicatedSignature
+        cdef np.ndarray[double, ndim=1, mode="c"] all = np.empty(shape=64)  # @DuplicatedSignature
+        cdef np.ndarray[double, ndim=1, mode="c"] queen_and_bishop = np.empty(shape=64)  # @DuplicatedSignature
+        cdef np.ndarray[double, ndim=1, mode="c"] queen_and_rook = np.empty(shape=64)  # @DuplicatedSignature
+        cdef np.ndarray[double, ndim=1, mode="c"] turn = np.empty(shape=1)  # @DuplicatedSignature
+        cdef np.ndarray[double, ndim=1, mode="c"] castle_rights = np.empty(shape=4)  # @DuplicatedSignature
+        cdef BoardFeatures features
+        features.pawn = &pawn[0]
+        features.knight = &knight[0]
+        features.rook = &rook[0]
+        features.bishop = &bishop[0]
+        features.queen = &queen[0]
+        features.king = &king[0]
+        features.en_passant = &en_passant[0]
+        features.all = &all[0]
+        features.queen_and_bishop = &queen_and_bishop[0]
+        features.queen_and_rook = &queen_and_rook[0]
+        features.turn = &turn[0]
+        features.castle_rights = &castle_rights[0]
+        self.bs.board_state.extract_features(&features)
+        return dict(pawn=pawn, knight=knight, rook=rook, bishop=bishop, 
+                    queen=queen, king=king, en_passant=en_passant, 
+                    all=all, queen_and_bishop=queen_and_bishop, 
+                    queen_and_rook=queen_and_rook, turn=turn, 
+                    castle_rights=castle_rights)
     
     cpdef checkmate(BitBoardState self):
         return self.check() and not self.all_moves()
