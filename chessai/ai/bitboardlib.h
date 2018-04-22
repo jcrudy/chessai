@@ -3107,7 +3107,7 @@ class TranspositionTable {
 class MoveSearchMemory {
 	public:
 		TranspositionTable *tt;
-		MoveHistoryTable *hh[50];
+		MoveHistoryTable *hh[2][50];
 		move move_buffer[100][300];
 //		MoveHistoryTable *quiescence_orderer;
 		MoveSearchMemory(unsigned long int tt_size);

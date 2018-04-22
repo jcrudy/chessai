@@ -1,6 +1,6 @@
 # distutils: language=c++
 from libc.stdint cimport uint64_t, uint8_t
-from cpython.object cimport Py_EQ
+from cpython.object cimport Py_EQ, Py_NE
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 from toolz import partition
 from operator import methodcaller
@@ -210,12 +210,17 @@ cdef class BitBoard:
     cdef bitboard bb
 
     def __richcmp__(BitBoard self, BitBoard other, int op):
-        if op != Py_EQ:
+        if not isinstance(other, BitBoard):
             return NotImplemented()
-        if self.bb == other.bb:
-            return True
+        if op == Py_EQ:
+            if self.bb == other.bb:
+                return True
+            else:
+                return False
+        elif op == Py_NE:
+            return not (self == other)
         else:
-            return False
+            return NotImplemented
 
     @classmethod
     def from_square_index(cls, int idx):
@@ -428,15 +433,20 @@ cdef class Move:
         return not self.nomove()
     
     def __richcmp__(Move self, other, op):
-        if (op != Py_EQ) or not isinstance(other, Move):
+        if not isinstance(other, Move):
             return NotImplemented
         cdef Move other_ = other
-        if (self.mv.from_square == other_.mv.from_square and 
-            self.mv.to_square == other_.mv.to_square and 
-            self.mv.promotion == other_.mv.promotion):
-            return True
+        if op == Py_EQ:
+            if (self.mv.from_square == other_.mv.from_square and 
+                self.mv.to_square == other_.mv.to_square and 
+                self.mv.promotion == other_.mv.promotion):
+                return True
+            else:
+                return False
+        elif op == Py_NE:
+            return not (self == other)
         else:
-            return False
+            return NotImplemented
     
     def __hash__(Move self):
         return hash((self.from_square, self.to_square, self.promotion))
@@ -514,13 +524,19 @@ cdef class MoveRecord:
 cdef class ZobristHash:
     cdef readonly zobrist_int value
     def __richcmp__(ZobristHash self, other, int op):
-        if not isinstance(other, ZobristHash) or op != Py_EQ:
+        if not isinstance(other, ZobristHash):
             return NotImplemented
         cdef ZobristHash other_ = other
-        if self.value == other_.value:
-            return True
+        if op == Py_EQ:
+            if self.value == other_.value:
+                return True
+            else:
+                return False
+        elif not (op == Py_NE):
+            return not (self == other)
         else:
-            return False
+            return NotImplemented
+            
 
     cpdef ZobristHash update(ZobristHash self, BitBoardState brd, MoveRecord mv):
         cdef ZobristHash result = ZobristHash()
@@ -626,15 +642,20 @@ cdef class BitBoardState:
                 return False
     
     def __richcmp__(BitBoardState self, other, int op):
-        if not isinstance(other, BitBoardState) or op != Py_EQ:
+        if not isinstance(other, BitBoardState):
             return NotImplemented
         cdef BitBoardState other_ = other
-        if not (self.bs == other_.bs):
-            return False
-        for i in range(64):
-            if self.bs.piece_map[i] != other_.bs.piece_map[i]:
+        if op == Py_EQ:
+            if not (self.bs == other_.bs):
                 return False
-        return True
+            for i in range(64):
+                if self.bs.piece_map[i] != other_.bs.piece_map[i]:
+                    return False
+            return True
+        elif op == Py_NE:
+            return not (self == other)
+        else:
+            return NotImplemented
     
 #     cpdef tuple movesearch(BitBoardState self, double time_limit):
 #         cdef int depth = 0;

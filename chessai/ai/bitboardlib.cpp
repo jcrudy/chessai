@@ -272,7 +272,9 @@ negamax_result negamax(GameState *brd, double prob, double threshold, double alp
 	}
 	
 	TranspositionTable *tt = msm->tt;
-	MoveHistoryTable *hh = msm->hh[depth];
+	int side = brd->board_state.whites_turn?0:1;
+	MoveHistoryTable *hh = msm->hh[side][depth / 2];
+	MoveHistoryTable *hh_to_write = msm->hh[side][depth / 2];
 	
 	// This will store the moves
 	move *moves = msm->move_buffer[depth];
@@ -389,7 +391,7 @@ negamax_result negamax(GameState *brd, double prob, double threshold, double alp
 		
 		// Reconcile what we've learned
 		if(!result.upper_bound){
-			hh->setitem(mv, value, prob);
+			hh_to_write->setitem(mv, value, prob);
 		}
 		if(value > beta || (*stop)){
 			result.value = value;
@@ -1664,7 +1666,8 @@ MoveSearchMemory::MoveSearchMemory(unsigned long int tt_size){
 		this->tt = NULL;
 	}
 	for(int i=0;i<50;i++){
-		this->hh[i] = new MoveHistoryTable();
+		this->hh[0][i] = new MoveHistoryTable();
+		this->hh[1][i] = new MoveHistoryTable();
 	}
 //	this->quiescence_orderer = new MoveHistoryTable();
 }
@@ -1672,7 +1675,8 @@ MoveSearchMemory::MoveSearchMemory(unsigned long int tt_size){
 MoveSearchMemory::~MoveSearchMemory(){
 	delete this->tt;
 	for(int i=0; i<50; i++){
-		delete this->hh[i];
+		delete this->hh[0][i];
+		delete this->hh[1][i];
 	}
 //	delete this->hh;
 }
