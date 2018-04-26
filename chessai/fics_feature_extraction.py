@@ -60,6 +60,7 @@ def append_data(data, addition):
         data[k].append(addition[k])
 
 if __name__ == '__main__':
+    raise
     t0 = time.time()
     results = defaultdict(list)
     
@@ -94,7 +95,7 @@ if __name__ == '__main__':
                             board.unmake_move(rec)
                         board.make_move(move)
                     games += 1
-                    if games % 100 == 0:
+                    if games % 10 == 0:
                         write_data(outfile, results)
                         
                         results = defaultdict(list)

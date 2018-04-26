@@ -76,8 +76,11 @@ if __name__ == '__main__':
 #     castle_rights_selected = HDF5Matrix(training_data_filename, 'castle_rights_selected', **args)
 #     turn_selected = HDF5Matrix(training_data_filename, 'turn_selected', **args)
 #     white = HDF5Matrix(training_data_filename, 'white', **args)
-    
-    training_args = dict(start=1000000)
+    from tensorflow.python.client import device_lib
+    print(device_lib.list_local_devices())
+    import tensorflow as tf
+    sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
+    training_args = dict(start=1000000, end=20000000)
     training_data_x = [
                      HDF5Matrix(training_data_filename, 'pieces', **training_args),
                      HDF5Matrix(training_data_filename, 'castle_rights', **training_args),
@@ -106,6 +109,7 @@ if __name__ == '__main__':
     history = training_model.fit(training_data_x,
                                  training_data_y,
                                  epochs=10,
+                                 batch_size=32768,
                                  shuffle='batch',
                                  validation_data=(validation_data_x, validation_data_y)
                           )

@@ -7,7 +7,6 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
-#include "easy/profiler.h"
 #include <boost/multiprecision/cpp_int.hpp>
 
 typedef uint64_t bitboard;
@@ -1089,7 +1088,6 @@ class Zobrist {
 extern const Zobrist zobrist;
 
 inline void unmake_move(GameState *brd, moverecord *mv){
-	EASY_FUNCTION(profiler::colors::Green);
 	
 	// downdate position count
 //	std::tuple<zobrist_int, BoardState> key;
@@ -1337,7 +1335,6 @@ inline bitboard checking_rays_intersection(GameState *brd, const bool pin_check_
 }
 
 inline moverecord make_move(GameState *brd, move *mv){
-	EASY_FUNCTION(profiler::colors::Green);
 	piece from_piece, to_piece;
 	bool lost_own_castle_king = false;
 	bool lost_own_castle_queen = false;
@@ -1585,7 +1582,6 @@ inline bool opponent_check(GameState *brd){
 }
 
 inline int king_captures(GameState *brd, move *moves){
-	EASY_FUNCTION(profiler::colors::Purple);
 	int num_moves = 0;
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
@@ -1842,7 +1838,6 @@ inline int quiet_king_moves(GameState *brd, move *moves){
 }
 
 inline int knight_captures(GameState *brd, move *moves){
-	EASY_FUNCTION(profiler::colors::Purple);
 	int num_moves = 0;
 	BoardState bs = brd->board_state;
 	bitboard own = get_current_movers_bitboard(brd);
@@ -2004,7 +1999,6 @@ inline int quiet_knight_moves(GameState *brd, move *moves){
 }
 
 inline int pawn_captures(GameState *brd, move *moves){
-	EASY_FUNCTION(profiler::colors::Purple);
 	int num_moves = 0;
 	BoardState bs = brd->board_state;
 	bitboard own = get_current_movers_bitboard(brd);
@@ -2416,7 +2410,6 @@ inline int quiet_pawn_moves(GameState *brd, move *moves){
 
 inline int bishop_captures(GameState *brd, move *moves){
 	int num_moves = 0;
-	EASY_FUNCTION(profiler::colors::Purple);
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
 	bitboard unoccupied = ~(own | opponent);
@@ -2581,7 +2574,6 @@ inline int quiet_bishop_moves(GameState *brd, move *moves){
 }
 
 inline int rook_captures(GameState *brd, move *moves){
-	EASY_FUNCTION(profiler::colors::Purple);
 	int num_moves = 0;
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
@@ -2749,7 +2741,6 @@ inline int quiet_rook_moves(GameState *brd, move *moves){
 }
 
 inline int queen_captures(GameState *brd, move *moves){
-	EASY_FUNCTION(profiler::colors::Purple);
 	int num_moves = 0;
 	bitboard own = get_current_movers_bitboard(brd);
 	bitboard opponent = get_opposing_movers_bitboard(brd);
@@ -2947,7 +2938,6 @@ inline int quiet_queen_moves(GameState *brd, move *moves){
 }
 
 inline int all_captures(GameState *brd, move *moves){
-	EASY_FUNCTION(profiler::colors::Blue);
 	int num_moves = 0;
 	num_moves += king_captures(brd, moves + num_moves);
 	num_moves += queen_captures(brd, moves + num_moves);
@@ -2959,7 +2949,6 @@ inline int all_captures(GameState *brd, move *moves){
 }
 
 inline int all_moves(GameState *brd, move *moves){
-	EASY_FUNCTION(profiler::colors::Red);
 	int num_moves = 0;
 	num_moves += all_king_moves(brd, moves + num_moves);
 	num_moves += all_queen_moves(brd, moves + num_moves);

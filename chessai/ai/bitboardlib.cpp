@@ -469,8 +469,6 @@ void iterative_negamax(void *varg){
 }
 
 move movesearch_threshold(GameState *brd, double threshold, MoveSearchMemory *msm, bool quiesce){
-	EASY_PROFILER_ENABLE;
-	EASY_BLOCK("movesearch_threshold");
 	move best_move = nomove;
 	bool blank = true;
 	bool stop = false;
@@ -479,9 +477,7 @@ move movesearch_threshold(GameState *brd, double threshold, MoveSearchMemory *ms
 	//MoveHistoryTable *hh = new MoveHistoryTable();
 	negamax(brd, 1.0, threshold, -1000000.0, 
 				1000000.0, &best_move, &stop, msm, depth, &node_count, quiesce);
-	EASY_END_BLOCK;
 	printf("Visited %llu nodes.\n", node_count);
-	profiler::dumpBlocksToFile("test_profile.prof");
 	return(best_move);
 }
 

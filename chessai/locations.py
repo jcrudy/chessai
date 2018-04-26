@@ -1,4 +1,4 @@
 import os
-
-data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
-model_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models')
+base = os.path.join('/media','root','data')
+data_dir = os.path.join(base, 'data')
+model_dir = os.path.join(base, 'models')
