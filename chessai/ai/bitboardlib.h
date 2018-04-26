@@ -514,30 +514,43 @@ inline bitboard bishop_moves_from_square_index(brdidx s){
 typedef enum {no=0,K,Q,B,N,R,P,EP,k,q,b,n,r,p,ep} piece;
 
 struct BoardFeatures{
-	double *pawn;//[64];
-	double *knight;//[64];
-	double *rook;//[64];
-	double *bishop;//[64];
-	double *queen;//[64];
-	double *king;//[64];
-	double *en_passant;//[64];
-	double *all;//[64];
-	double *queen_and_bishop;//[64];
-	double *queen_and_rook;//[64];
+	double *white_pawn;//[64];
+	double *black_pawn;//[64];
+	double *white_knight;//[64];
+	double *black_knight;//[64];
+	double *white_rook;//[64];
+	double *black_rook;//[64];
+	double *white_bishop;//[64];
+	double *black_bishop;//[64];
+	double *white_queen;//[64];
+	double *black_queen;//[64];
+	double *white_king;//[64];
+	double *black_king;//[64];
+	double *white_en_passant;//[64];
+	double *black_en_passant;//[64];
+	double *white_all;//[64];
+	double *black_all;//[64];
+	double *white_queen_and_bishop;//[64];
+	double *black_queen_and_bishop;//[64];
+	double *white_queen_and_rook;//[64];
+	double *black_queen_and_rook;//[64];
 	double *turn;//[1];
 	double *castle_rights;//[4];
 	BoardFeatures() = default;
-	BoardFeatures(double *pawn, double *knight, double *rook, double *bishop,
-				double *queen, double *king, double *en_passant, double *all,
-				double *queen_and_bishop, double *turn, double *castle_rights);
+//	BoardFeatures(double *white_pawn, double *black_pawn, double *white_knight, 
+//				double *black_knight, double *white_rook, double *black_rook, 
+//				double *white_bishop, double *black_bishop, double *white_queen, 
+//				double *black_queen, double *white_king, double *black_king, 
+//				double *white_en_passant, double *black_en_passant, double *white_all,
+//				double *black_all, double *white_queen_and_bishop, double *black_queen_and_bishop, 
+//				double *white_queen_and_rook, double *black_queen_and_rook,
+//				double *turn, double *castle_rights);
 };
 
-inline void bitboards_to_array(bitboard white, bitboard black, double *arr){
+inline void bitboard_to_array(bitboard bb, double *arr){
 	for(int i=0;i<64;i++){
-		if(white & places[i]){
+		if(bb & bitboard_from_square_index(i)){
 			arr[i] = 1;
-		}else if(black & places[i]){
-			arr[i] = -1;
 		}else{
 			arr[i] = 0;
 		}

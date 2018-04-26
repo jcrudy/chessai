@@ -180,21 +180,28 @@ cdef extern from "bitboardlib.h":
     cdef move movesearch_time(GameState *brd, double time_limit, double *thresh,
                     MoveSearchMemory *msm, bool quiesce)
     ctypedef struct BoardFeatures:
-        double *pawn#[64]
-        double *knight#[64]
-        double *rook#[64]
-        double *bishop#[64]
-        double *queen#[64]
-        double *king#[64]
-        double *en_passant#[64]
-        double *all#[64]
-        double *queen_and_bishop#[64]
-        double *queen_and_rook#[64]
-        double *turn#[1]
-        double *castle_rights#[4]
-        BoardFeatures(double *pawn, double *knight, double *rook, double *bishop,
-                double *queen, double *king, double *en_passant, double *all,
-                double *queen_and_bishop, double *turn, double *castle_rights)
+        double *white_pawn
+        double *black_pawn
+        double *white_knight
+        double *black_knight
+        double *white_rook
+        double *black_rook
+        double *white_bishop
+        double *black_bishop
+        double *white_queen
+        double *black_queen
+        double *white_king
+        double *black_king
+        double *white_en_passant
+        double *black_en_passant
+        double *white_all
+        double *black_all
+        double *white_queen_and_bishop
+        double *black_queen_and_bishop
+        double *white_queen_and_rook
+        double *black_queen_and_rook
+        double *turn
+        double *castle_rights
     
 cpdef bitboard_to_str(bitboard bb):
     cdef int i
@@ -585,37 +592,43 @@ cdef class BitBoardState:
             return False
         
     def extract_features(BitBoardState self):
-        cdef np.ndarray[double, ndim=1, mode="c"] pawn = np.empty(shape=64)
-        cdef np.ndarray[double, ndim=1, mode="c"] knight = np.empty(shape=64)  # @DuplicatedSignature
-        cdef np.ndarray[double, ndim=1, mode="c"] rook = np.empty(shape=64)  # @DuplicatedSignature
-        cdef np.ndarray[double, ndim=1, mode="c"] bishop = np.empty(shape=64)  # @DuplicatedSignature
-        cdef np.ndarray[double, ndim=1, mode="c"] queen = np.empty(shape=64)  # @DuplicatedSignature
-        cdef np.ndarray[double, ndim=1, mode="c"] king = np.empty(shape=64)  # @DuplicatedSignature
-        cdef np.ndarray[double, ndim=1, mode="c"] en_passant = np.empty(shape=64)  # @DuplicatedSignature
-        cdef np.ndarray[double, ndim=1, mode="c"] all = np.empty(shape=64)  # @DuplicatedSignature
-        cdef np.ndarray[double, ndim=1, mode="c"] queen_and_bishop = np.empty(shape=64)  # @DuplicatedSignature
-        cdef np.ndarray[double, ndim=1, mode="c"] queen_and_rook = np.empty(shape=64)  # @DuplicatedSignature
-        cdef np.ndarray[double, ndim=1, mode="c"] turn = np.empty(shape=1)  # @DuplicatedSignature
-        cdef np.ndarray[double, ndim=1, mode="c"] castle_rights = np.empty(shape=4)  # @DuplicatedSignature
+        cdef np.ndarray[double, ndim=3, mode="c"] pieces = np.empty(shape=(20,8,8), order='C')
+#         cdef np.ndarray[double, ndim=3, mode="c"] knight = np.empty(shape=(8,8,2), order='C')  # @DuplicatedSignature
+#         cdef np.ndarray[double, ndim=3, mode="c"] rook = np.empty(shape=(8,8,2), order='C')  # @DuplicatedSignature
+#         cdef np.ndarray[double, ndim=3, mode="c"] bishop = np.empty(shape=(8,8,2), order='C')  # @DuplicatedSignature
+#         cdef np.ndarray[double, ndim=3, mode="c"] queen = np.empty(shape=(8,8,2), order='C')  # @DuplicatedSignature
+#         cdef np.ndarray[double, ndim=3, mode="c"] king = np.empty(shape=(8,8,2), order='C')  # @DuplicatedSignature
+#         cdef np.ndarray[double, ndim=3, mode="c"] en_passant = np.empty(shape=(8,8,2), order='C')  # @DuplicatedSignature
+#         cdef np.ndarray[double, ndim=3, mode="c"] all = np.empty(shape=(8,8,2), order='C')  # @DuplicatedSignature
+#         cdef np.ndarray[double, ndim=3, mode="c"] queen_and_bishop = np.empty(shape=(8,8,2), order='C')  # @DuplicatedSignature
+#         cdef np.ndarray[double, ndim=3, mode="c"] queen_and_rook = np.empty(shape=(8,8,2), order='C')  # @DuplicatedSignature
+        cdef np.ndarray[double, ndim=1, mode="c"] turn = np.empty(shape=1, order='C')  # @DuplicatedSignature
+        cdef np.ndarray[double, ndim=1, mode="c"] castle_rights = np.empty(shape=4, order='C')  # @DuplicatedSignature
         cdef BoardFeatures features
-        features.pawn = &pawn[0]
-        features.knight = &knight[0]
-        features.rook = &rook[0]
-        features.bishop = &bishop[0]
-        features.queen = &queen[0]
-        features.king = &king[0]
-        features.en_passant = &en_passant[0]
-        features.all = &all[0]
-        features.queen_and_bishop = &queen_and_bishop[0]
-        features.queen_and_rook = &queen_and_rook[0]
+        features.white_pawn = &pieces[0,0,0]
+        features.black_pawn = &pieces[1,0,0]
+        features.white_knight = &pieces[2,0,0]
+        features.black_knight = &pieces[3,0,0]
+        features.white_rook = &pieces[4,0,0]
+        features.black_rook = &pieces[5,0,0]
+        features.white_bishop = &pieces[6,0,0]
+        features.black_bishop = &pieces[7,0,0]
+        features.white_queen = &pieces[8,0,0]
+        features.black_queen = &pieces[9,0,0]
+        features.white_king = &pieces[10,0,0]
+        features.black_king = &pieces[11,0,0]
+        features.white_en_passant = &pieces[12,0,0]
+        features.black_en_passant = &pieces[13,0,0]
+        features.white_all = &pieces[14,0,0]
+        features.black_all = &pieces[15,0,0]
+        features.white_queen_and_bishop = &pieces[16,0,0]
+        features.black_queen_and_bishop = &pieces[17,0,0]
+        features.white_queen_and_rook = &pieces[18,0,0]
+        features.black_queen_and_rook = &pieces[19,0,0]
         features.turn = &turn[0]
         features.castle_rights = &castle_rights[0]
         self.bs.board_state.extract_features(&features)
-        return dict(pawn=pawn, knight=knight, rook=rook, bishop=bishop, 
-                    queen=queen, king=king, en_passant=en_passant, 
-                    all=all, queen_and_bishop=queen_and_bishop, 
-                    queen_and_rook=queen_and_rook, turn=turn, 
-                    castle_rights=castle_rights)
+        return dict(pieces=pieces, turn=turn, castle_rights=castle_rights)
     
     cpdef checkmate(BitBoardState self):
         return self.check() and not self.all_moves()

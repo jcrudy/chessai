@@ -1601,17 +1601,26 @@ transposition_entry TranspositionTable::getitem(GameState *brd){
 
 
 void BoardState::extract_features(BoardFeatures *features){
-	bitboards_to_array(this->p & this->white, this->p & this->black, features->pawn);
-	bitboards_to_array(this->n & this->white, this->n & this->black, features->knight);
-	bitboards_to_array(this->r & this->white, this->r & this->black, features->rook);
-	bitboards_to_array(this->b & this->white, this->b & this->black, features->bishop);
-	bitboards_to_array(this->q & this->white, this->q & this->black, features->queen);
-	bitboards_to_array(this->k & this->white, this->k & this->black, features->king);
-	bitboards_to_array(this->white, this->black, features->all);
-	bitboards_to_array(bitboard_from_square_index(this->enpassant) & this->white, 
-				bitboard_from_square_index(this->enpassant) & this->black, features->all);
-	bitboards_to_array((this->q | this->b) & this->white, (this->q | this->b) & this->black, features->queen_and_bishop);
-	bitboards_to_array((this->q | this->r) & this->white, (this->q | this->r) & this->black, features->queen_and_rook);
+	bitboard_to_array(this->p & this->white, features->white_pawn);
+	bitboard_to_array(this->p & this->black, features->black_pawn);
+	bitboard_to_array(this->r & this->white, features->white_rook);
+	bitboard_to_array(this->r & this->black, features->black_rook);
+	bitboard_to_array(this->b & this->white, features->white_bishop);
+	bitboard_to_array(this->b & this->black, features->black_bishop);
+	bitboard_to_array(this->n & this->white, features->white_knight);
+	bitboard_to_array(this->n & this->black, features->black_knight);
+	bitboard_to_array(this->q & this->white, features->white_queen);
+	bitboard_to_array(this->q & this->black, features->black_queen);
+	bitboard_to_array(this->k & this->white, features->white_king);
+	bitboard_to_array(this->k & this->black, features->black_king);
+	bitboard_to_array(this->white, features->white_all);
+	bitboard_to_array(this->black, features->black_all);
+	bitboard_to_array(bitboard_from_square_index(this->enpassant) & this->white, features->white_en_passant);
+	bitboard_to_array(bitboard_from_square_index(this->enpassant) & this->black, features->black_en_passant);
+	bitboard_to_array((this->q | this->b) & this->white, features->white_queen_and_bishop);
+	bitboard_to_array((this->q | this->b) & this->black, features->black_queen_and_bishop);
+	bitboard_to_array((this->q | this->r) & this->white, features->white_queen_and_rook);
+	bitboard_to_array((this->q | this->r) & this->black, features->black_queen_and_rook);
 	features->turn[0] = this->whites_turn?1:-1;
 	features->castle_rights[0] = this->white_castle_king?1:0;
 	features->castle_rights[1] = this->white_castle_queen?1:0;
@@ -1681,6 +1690,7 @@ MoveSearchMemory::~MoveSearchMemory(){
 //	delete this->hh;
 }
 
+/*
 BoardFeatures::BoardFeatures(double *pawn, double *knight, double *rook, double *bishop,
 					double *queen, double *king, double *en_passant, double *all,
 					double *queen_and_bishop, double *turn, double *castle_rights){
@@ -1696,4 +1706,4 @@ BoardFeatures::BoardFeatures(double *pawn, double *knight, double *rook, double 
 	this->turn = turn;
 	this->castle_rights = castle_rights;
 }
-									
+*/								

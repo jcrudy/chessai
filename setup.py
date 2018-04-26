@@ -64,7 +64,9 @@ ext_modules = [Extension('chessai.ai.bitboard',
                          library_dirs = [os.path.join('easy_profiler-1.3.0', 'bin')],
                          extra_compile_args=['-std=c++14', '-stdlib=libc++'],
                          **ext_args
-                         )]
+                         ),
+               Extension('chessai.sparse_data', [os.path.join('chessai', 'sparse_data.%s' % ext)],
+                         include_dirs = [np.get_include()],)]
 
 setup(name='chessai',
       version=versioneer.get_version(),
