@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <vector>
 #include <string>
-#include <unordered_map>
 #include <boost/multiprecision/cpp_int.hpp>
 
 typedef uint64_t bitboard;

@@ -6,6 +6,9 @@ from keras.utils.io_utils import HDF5Matrix
 import matplotlib.pyplot as plt
 from chessai.locations import model_dir
 import os
+from keras.models import load_model
+from keras.callbacks import ModelCheckpoint, EarlyStopping
+import pickle
 
 def plot_history(history):
     loss_list = [s for s in history.history.keys() if 'loss' in s and 'val' not in s]
@@ -50,11 +53,10 @@ prediction_model = create_prediction_model(conv_model)
 training_model = create_supervised_training_model(prediction_model)
 
 training_data_filename = fics_feature_extraction.outfilename
-number = 1
-training_model_filename = os.path.join(model_dir, 'training_model_%d.keras' % number)
-prediction_model_filename = os.path.join(model_dir, 'prediction_model_%d.keras' % number)
-conv_model_filename = os.path.join(model_dir, 'conv_model_%d.keras' % number)
-
+training_model_filename = os.path.join(model_dir, 'training_model.keras')
+prediction_model_filename = os.path.join(model_dir, 'prediction_model.keras')
+conv_model_filename = os.path.join(model_dir, 'conv_model.keras')
+history_filename = os.path.join(model_dir, 'fit_history.pkl')
 def loss(y_true, y_pred):
     # The network predicts the value function from white's perspective
     # at all times.
@@ -68,6 +70,32 @@ def loss(y_true, y_pred):
     return keras.backend.sum(keras.backend.sigmoid(y_true * y_pred))
 
 if __name__ == '__main__':
+    import keras.losses
+    keras.losses.loss = loss
+    if os.path.exists(conv_model_filename):
+        print("Loading existing conv_model")
+        conv_model = load_model(conv_model_filename)
+    else:
+        print("Creating new conv_model")
+        conv_model = create_conv_model()
+    if os.path.exists(prediction_model_filename):
+        print("Loading existing prediction model")
+        prediction_model = load_model(prediction_model_filename)
+    else:
+        print("Creating new prediction model")
+        prediction_model = create_prediction_model(conv_model)
+    if os.path.exists(training_model_filename):
+        print("Loading existing training model")
+        training_model = load_model(training_model_filename)
+    else:
+        print("Creating new training model")
+        training_model = create_supervised_training_model(prediction_model)
+    if os.path.exists(history_filename):
+        with open(history_filename, 'r') as history_file:
+            i, j, histories = pickle.load(history_file)
+    else:
+        histories = []
+    
 #     args = dict()
 #     pieces = HDF5Matrix(training_data_filename, 'pieces', **args)
 #     castle_rights = HDF5Matrix(training_data_filename, 'castle_rights', **args)
@@ -80,18 +108,6 @@ if __name__ == '__main__':
     print(device_lib.list_local_devices())
     import tensorflow as tf
     sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
-    training_args = dict(start=1000000, end=20000000)
-    training_data_x = [
-                     HDF5Matrix(training_data_filename, 'pieces', **training_args),
-                     HDF5Matrix(training_data_filename, 'castle_rights', **training_args),
-                     HDF5Matrix(training_data_filename, 'turn', **training_args),
-                     HDF5Matrix(training_data_filename, 'pieces_selected', **training_args),
-                     HDF5Matrix(training_data_filename, 'castle_rights_selected', **training_args),
-                     HDF5Matrix(training_data_filename, 'turn_selected', **training_args),
-                     ]
-    training_data_y = [
-                       HDF5Matrix(training_data_filename, 'white', **training_args),
-                       ]
     validation_args = dict(start=0, end=1000000)
     validation_data_x = [
                        HDF5Matrix(training_data_filename, 'pieces', **validation_args),
@@ -104,19 +120,45 @@ if __name__ == '__main__':
     validation_data_y = [
                          HDF5Matrix(training_data_filename, 'white', **validation_args),
                          ]
-    
+
     training_model.compile(optimizer='adadelta', loss=loss)
-    history = training_model.fit(training_data_x,
-                                 training_data_y,
-                                 epochs=10,
-                                 batch_size=32768,
-                                 shuffle='batch',
-                                 validation_data=(validation_data_x, validation_data_y)
-                          )
-    training_model.save(training_model_filename)
-    prediction_model.save(prediction_model_filename)
-    conv_model.save(conv_model_filename)
-    plot_history(history)
+    n_samples = HDF5Matrix(training_data_filename, 'white').shape[0]
+    print 'There are %d rows of data total.' % n_samples
+    while True:
+        print('Beginning epoch %d' % j)
+        training_args = dict(start=1000000 + i * 1000000, end=1000000 + (i + 1) * 1000000)
+        training_data_x = [
+                         HDF5Matrix(training_data_filename, 'pieces', **training_args),
+                         HDF5Matrix(training_data_filename, 'castle_rights', **training_args),
+                         HDF5Matrix(training_data_filename, 'turn', **training_args),
+                         HDF5Matrix(training_data_filename, 'pieces_selected', **training_args),
+                         HDF5Matrix(training_data_filename, 'castle_rights_selected', **training_args),
+                         HDF5Matrix(training_data_filename, 'turn_selected', **training_args),
+                         ]
+        training_data_y = [
+                           HDF5Matrix(training_data_filename, 'white', **training_args),
+                           ]
+        
+        history = training_model.fit(training_data_x,
+                                     training_data_y,
+                                     epochs=1,
+                                     batch_size=32768,
+                                     shuffle='batch',
+                                     validation_data=(validation_data_x, validation_data_y)
+                              )
+        histories.append(history)
+        
+        training_model.save(training_model_filename % j)
+        prediction_model.save(prediction_model_filename % j)
+        conv_model.save(conv_model_filename % j)
+        with open(history_filename, 'w') as history_file:
+            pickle.dump((i, j, histories), history_file)
+        print('Completed epoch %d' % j)
+        print('History:', history)
+        i += 1
+        j += 1
+        if 1000000 + (i + 1) * 1000000 > n_samples:
+            i = 0
     
 
 # for i in range(100):

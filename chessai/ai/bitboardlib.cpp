@@ -1,6 +1,6 @@
 #include "bitboardlib.h"
 #include <stdio.h>
-#include <tinythread.h>
+#include "tinythread.h"
 #include <unistd.h>
 
 using namespace tthread;
