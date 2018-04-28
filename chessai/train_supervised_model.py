@@ -8,7 +8,7 @@ from chessai.locations import model_dir
 import os
 from keras.models import load_model
 from keras.callbacks import ModelCheckpoint, EarlyStopping
-import pickle
+import dill
 
 def plot_history(history):
     loss_list = [s for s in history.history.keys() if 'loss' in s and 'val' not in s]
@@ -92,9 +92,11 @@ if __name__ == '__main__':
         training_model = create_supervised_training_model(prediction_model)
     if os.path.exists(history_filename):
         with open(history_filename, 'r') as history_file:
-            i, j, histories = pickle.load(history_file)
+            i, j, losses = dill.load(history_file)
     else:
-        histories = []
+        i = 0
+        j = 0
+        losses = []
     
 #     args = dict()
 #     pieces = HDF5Matrix(training_data_filename, 'pieces', **args)
@@ -126,7 +128,10 @@ if __name__ == '__main__':
     print 'There are %d rows of data total.' % n_samples
     while True:
         print('Beginning epoch %d' % j)
-        training_args = dict(start=1000000 + i * 1000000, end=1000000 + (i + 1) * 1000000)
+        lower = 1000000 + i * 1000000
+        upper = 1000000 + (i + 1) * 1000000
+        print('Fitting on rows %d to %d' % (lower, upper))
+        training_args = dict(start=lower, end=upper)
         training_data_x = [
                          HDF5Matrix(training_data_filename, 'pieces', **training_args),
                          HDF5Matrix(training_data_filename, 'castle_rights', **training_args),
@@ -144,17 +149,24 @@ if __name__ == '__main__':
                                      epochs=1,
                                      batch_size=32768,
                                      shuffle='batch',
-                                     validation_data=(validation_data_x, validation_data_y)
                               )
-        histories.append(history)
+        print('Fitting completed for epoch %d.  Saving progress...' % j)
         
-        training_model.save(training_model_filename % j)
-        prediction_model.save(prediction_model_filename % j)
-        conv_model.save(conv_model_filename % j)
+        training_model.save(training_model_filename)
+        prediction_model.save(prediction_model_filename)
+        conv_model.save(conv_model_filename)
+        print('Computing loss on validation set.')
+        loss_ = training_model.evaluate(
+                                        validation_data_x, 
+                                        validation_data_y, 
+                                        batch_size=32768
+                                        )
+        losses.append(loss_)
+        print('Validation loss: %f' % loss_)
         with open(history_filename, 'w') as history_file:
-            pickle.dump((i, j, histories), history_file)
+            dill.dump((i, j, losses), history_file)
         print('Completed epoch %d' % j)
-        print('History:', history)
+        
         i += 1
         j += 1
         if 1000000 + (i + 1) * 1000000 > n_samples:
