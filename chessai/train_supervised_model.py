@@ -69,10 +69,9 @@ def loss(y_true, y_pred):
 #     output = y_pred[0]
 #     selected_output = y_pred[1]
     return keras.backend.sum(keras.backend.sigmoid(y_true * y_pred))
-
+import keras.losses
+keras.losses.loss = loss
 if __name__ == '__main__':
-    import keras.losses
-    keras.losses.loss = loss
     if os.path.exists(conv_model_filename):
         print("Loading existing conv_model")
         conv_model = load_model(conv_model_filename)
