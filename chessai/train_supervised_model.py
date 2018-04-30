@@ -9,6 +9,7 @@ import os
 from keras.models import load_model
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 import dill
+import random
 
 def plot_history(history):
     loss_list = [s for s in history.history.keys() if 'loss' in s and 'val' not in s]
@@ -92,9 +93,8 @@ if __name__ == '__main__':
         training_model = create_supervised_training_model(prediction_model)
     if os.path.exists(history_filename):
         with open(history_filename, 'r') as history_file:
-            i, j, losses = dill.load(history_file)
+            j, losses = dill.load(history_file)
     else:
-        i = 0
         j = 0
         losses = []
     
@@ -126,10 +126,24 @@ if __name__ == '__main__':
     training_model.compile(optimizer='adadelta', loss=loss)
     n_samples = HDF5Matrix(training_data_filename, 'white').shape[0]
     print 'There are %d rows of data total.' % n_samples
+    bounds = []
+    step = 10000000
+    lower = 1000000
+    upper = step + lower
+    while True:
+        if upper > n_samples:
+            if lower >= n_samples:
+                break
+            bounds.append((lower, n_samples))
+            break
+        else:
+            bounds.append((lower, upper))
+        lower = upper
+        upper += step
+    
     while True:
         print('Beginning epoch %d' % j)
-        lower = 1000000 + i * 1000000
-        upper = 1000000 + (i + 1) * 1000000
+        lower, upper = random.choice(bounds)
         print('Fitting on rows %d to %d' % (lower, upper))
         training_args = dict(start=lower, end=upper)
         training_data_x = [
@@ -164,13 +178,10 @@ if __name__ == '__main__':
         losses.append(loss_)
         print('Validation loss: %f' % loss_)
         with open(history_filename, 'w') as history_file:
-            dill.dump((i, j, losses), history_file)
+            dill.dump((j, losses), history_file)
         print('Completed epoch %d' % j)
         
-        i += 1
         j += 1
-        if 1000000 + (i + 1) * 1000000 > n_samples:
-            i = 0
     
 
 # for i in range(100):
