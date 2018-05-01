@@ -99,3 +99,6 @@ ENV/
 *.prof
 
 **/*.h5
+
+chessai/model.png
+chessai/models
