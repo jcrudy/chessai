@@ -18,11 +18,11 @@ def create_prediction_model(conv_model):
     turn = Input(shape=(1,))
     castle_rights = Input(shape=(4,))
     return Model(inputs = conv_model.inputs + [castle_rights, turn],
-                 outputs = Dense(1, activation='linear')((Dense(1000, activation='relu')(Dense(1000, activation='relu')(concatenate([Flatten()(conv_model.outputs[0]), 
+                 outputs = Dense(1, activation='linear')(Dense(100, activation='relu')(Dense(100, activation='relu')(Dense(100, activation='relu')(Dense(100, activation='relu')(concatenate([Flatten()(conv_model.outputs[0]), 
                                                                                              Flatten()(conv_model.outputs[1]), 
                                                                                              Flatten()(conv_model.inputs),
                                                                                              castle_rights,
-                                                                                             turn])))))
+                                                                                             turn]))))))
                  )
 
 def create_supervised_training_model(prediction_model):

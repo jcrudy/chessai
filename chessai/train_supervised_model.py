@@ -126,7 +126,7 @@ if __name__ == '__main__':
     n_samples = HDF5Matrix(training_data_filename, 'white').shape[0]
     print 'There are %d rows of data total.' % n_samples
     bounds = []
-    step = 10000000
+    step = 1000000
     lower = 1000000
     upper = step + lower
     while True:
