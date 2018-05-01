@@ -1,0 +1,3 @@
+[submodule "keras_compressor"]
+	path = keras_compressor
+	url = git@github.com:jcrudy/keras_compressor.git

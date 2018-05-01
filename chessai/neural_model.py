@@ -3,7 +3,7 @@ from keras.engine.training import Model
 from toolz.curried import keymap, valmap
 from toolz.dicttoolz import merge
 from keras.layers.convolutional import Conv2DTranspose
-from keras.layers.merge import subtract
+from keras.layers.merge import subtract, multiply
 
 def create_conv_model():
     pieces = Input(shape=(20,8,8))
@@ -38,6 +38,19 @@ def create_supervised_training_model(prediction_model):
     
     return Model(inputs=[pieces, castle_rights, turn, pieces_selected, castle_rights_selected, turn_selected],
                  outputs=[subtract([output, selected_output])])
+
+def prediction_model_from_training_model(training_model):
+    output = training_model.output_layers[0].input[0]
+    inputs = training_model.input[:3]
+    return Model(inputs=inputs, outputs=output)
+
+
+def validation_model_from_training_model(training_model):
+    output = training_model.output_layers[0].input[0]
+    white = Input(shape=(1,))
+    inputs = training_model.input[:3] + [white]
+    return Model(inputs=inputs, outputs=(multiply([output, white])))
+
 
 if __name__ == '__main__':
     print create_conv_model()
