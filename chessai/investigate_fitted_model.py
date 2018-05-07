@@ -16,7 +16,7 @@ from chessai.neural_model import prediction_model_from_training_model,\
     validation_model_from_training_model
 
 # Load the network
-current_dir = os.path.join(model_dir, '2018_05_01')
+current_dir = os.path.join(model_dir, '2018_04_30')
 training_model_filename = os.path.join(current_dir, 'training_model.keras')
 training_model_plot_filename = os.path.join(current_dir, 'training_model_plot.png')
 history_filename = os.path.join(current_dir, 'fit_history.pkl')
