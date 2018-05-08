@@ -875,6 +875,7 @@ typedef struct {
 	brdidx from_square;
 	brdidx to_square;
 	piece promotion;
+	int sort_score;
 } move;
 
 extern const move nomove;
@@ -885,12 +886,22 @@ inline void printmove(move mv){
 }
 
 inline bool operator==(const move& lhs, const move& rhs){
+	// Note that sort_score is not considered for equality
 	if(lhs.from_square == rhs.from_square && lhs.to_square == rhs.to_square &&
 		lhs.promotion == rhs.promotion){
 		return true;
 	} else {
 		return false;
 	}
+}
+
+inline bool operator<(const move& lhs, const move& rhs){
+	// Only consider sort_score.  Used for move ordering.  Higher scores
+	// go first.
+	if(lhs.sort_score > rhs.sort_score){
+		return true;
+	}
+	return false;
 }
 
 typedef struct {
@@ -3009,9 +3020,9 @@ inline int piece_to_search_order(piece pc){
 	// Start with low attacking high
 	switch(pc){
 		case K:
-			return(0);
+			return(6);
 		case k:
-			return(0);
+			return(6);
 		case Q:
 			return(5);
 		case q:
@@ -3036,6 +3047,8 @@ inline int piece_to_search_order(piece pc){
 			return(1);
 		case ep:
 			return(1);
+		case no:
+			return(0);
 	}
 }
 
