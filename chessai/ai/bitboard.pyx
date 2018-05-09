@@ -175,7 +175,25 @@ cdef extern from "bitboardlib.h":
         double *black_queen_and_rook
         double *turn
         double *castle_rights
-    
+
+cdef extern from "movesearch.h":
+    cdef cppclass MoveTable[ElementType]:
+        MoveTable(int num_best)
+        bool compare(move &lhs, move &rhs)
+        void add(move &mv, ElementType amount)
+        void set(move &mv, ElementType amount)
+        int rank(move &mv)
+        ElementType get(move &mv)
+        void reset(ElementType amount)
+        void increment(ElementType amount)
+        int num_best
+                                           
+#     cdef cppclass SearchMemory:
+#         SearchMemory(int num_killers, int num_moves)
+#         TranspositionTable tt
+#         HistoryTable hh
+#         KillerTable killers
+
 cpdef bitboard_to_str(bitboard bb):
     cdef int i
     result = ''
