@@ -147,38 +147,11 @@ cdef extern from "bitboardlib.h":
         zobrist_int hash(GameState *brd)
         zobrist_int update(zobrist_int previous, GameState *brd, moverecord *mv)
     cdef Zobrist zobrist
-    ctypedef struct transposition_entry:
-        zobrist_int key
-        double prob
-        double value
-        double alpha
-        double beta
-        move best_move
-        BoardState brd
-    cdef cppclass TranspositionTable:
-        TranspositionTable(unsigned long int size)
-        void setitem(GameState *brd, transposition_entry &entry)
-        unsigned long int getindex(GameState *brd)
-        bool exists(GameState *brd)
-        transposition_entry getitem(GameState *brd)
 #     cdef cppclass MoveHistoryTable:
 #         MoveHistoryTable();
 #         bool compare_moves(move &lhs, move &rhs);
 #         void setitem(move mv, double value, double strength);
 #         std::tuple<double, double> getitem(move mv);
-    cdef cppclass MoveHistoryTable:
-        MoveHistoryTable()
-        bool compare_moves(move &lhs, move &rhs)
-        void setitem(move mv, double value, double strength)
-    cdef cppclass MoveSearchMemory:
-        TranspositionTable *tt
-        #MoveHistoryTable **hh
-        move move_buffer[1000][100]
-        MoveSearchMemory(unsigned long int tt_size)
-    cdef move movesearch(GameState *brd, double time_limit, int *depth)
-    cdef move movesearch_threshold(GameState *brd, double threshold, MoveSearchMemory *msm, bool quiesce)
-    cdef move movesearch_time(GameState *brd, double time_limit, double *thresh,
-                    MoveSearchMemory *msm, bool quiesce)
     ctypedef struct BoardFeatures:
         double *white_pawn
         double *black_pawn
@@ -550,37 +523,37 @@ cdef class ZobristHash:
         result.value = zobrist.update(self.value, &(brd.bs), &(mv.rec))
         return result
 
-cdef class TimePlayer:
-    cdef MoveSearchMemory *msm
-    cdef readonly double time_per_move
-    cdef readonly bool quiesce
-    def __init__(TimePlayer self, unsigned long int size, double time_per_move, bool quiesce):
-        self.msm = new MoveSearchMemory(size)
-        self.time_per_move = time_per_move
-        self.quiesce = quiesce
-    
-    cpdef Move movesearch(TimePlayer self, BitBoardState board):
-        cdef double thresh
-        cdef move mv = movesearch_time(&(board.bs), self.time_per_move, &thresh, self.msm, self.quiesce)
-        cdef Move result = Move()  # @DuplicatedSignature
-        result.mv = mv
-        print('Reached threshold %f' % thresh)
-        return result
-
-cdef class ThresholdPlayer:
-    cdef MoveSearchMemory *msm
-    cdef readonly double threshold
-    cdef readonly bool quiesce
-    def __init__(ThresholdPlayer self, unsigned long int size, double threshold, bool quiesce):
-        self.msm = new MoveSearchMemory(size)
-        self.threshold = threshold
-        self.quiesce = quiesce
-    
-    cpdef Move movesearch(ThresholdPlayer self, BitBoardState board):
-        cdef move mv = movesearch_threshold(&(board.bs), self.threshold, self.msm, self.quiesce)
-        cdef Move result = Move()  # @DuplicatedSignature
-        result.mv = mv
-        return result
+# cdef class TimePlayer:
+#     cdef MoveSearchMemory *msm
+#     cdef readonly double time_per_move
+#     cdef readonly bool quiesce
+#     def __init__(TimePlayer self, unsigned long int size, double time_per_move, bool quiesce):
+#         self.msm = new MoveSearchMemory(size)
+#         self.time_per_move = time_per_move
+#         self.quiesce = quiesce
+#     
+#     cpdef Move movesearch(TimePlayer self, BitBoardState board):
+#         cdef double thresh
+#         cdef move mv = movesearch_time(&(board.bs), self.time_per_move, &thresh, self.msm, self.quiesce)
+#         cdef Move result = Move()  # @DuplicatedSignature
+#         result.mv = mv
+#         print('Reached threshold %f' % thresh)
+#         return result
+# 
+# cdef class ThresholdPlayer:
+#     cdef MoveSearchMemory *msm
+#     cdef readonly double threshold
+#     cdef readonly bool quiesce
+#     def __init__(ThresholdPlayer self, unsigned long int size, double threshold, bool quiesce):
+#         self.msm = new MoveSearchMemory(size)
+#         self.threshold = threshold
+#         self.quiesce = quiesce
+#     
+#     cpdef Move movesearch(ThresholdPlayer self, BitBoardState board):
+#         cdef move mv = movesearch_threshold(&(board.bs), self.threshold, self.msm, self.quiesce)
+#         cdef Move result = Move()  # @DuplicatedSignature
+#         result.mv = mv
+#         return result
 
 cdef class BitBoardState:
     cdef GameState bs

@@ -1,3 +1,8 @@
+#ifndef ZOBRIST_H
+#define ZOBRIST_H
+
+#include "bitboardlib.h"
+#include <boost/multiprecision/cpp_int.hpp>
 
 typedef uint64_t zobrist_int;
 
@@ -17,3 +22,5 @@ class Zobrist {
 };
 
 extern const Zobrist zobrist;
+
+#endif

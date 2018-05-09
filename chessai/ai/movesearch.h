@@ -1,6 +1,5 @@
 #ifndef MOVESEARCH_H_
 #define MOVESEARCH_H_
-#include "zobrist.h"
 #include "bitboardlib.h"
 
 template <int num_best, typename ElementType>
@@ -14,7 +13,7 @@ class MoveTable{
 		void add(move &mv, ElementType amount){
 			elements[mv.from_square][mv.to_square] += amount;
 			ElementType current = elements[mv.from_square][mv.to_square];
-			for(i=0;i<num_best;i++){
+			for(int i=0;i<num_best;i++){
 				if(current > best_scores[i]){
 					for(int j=0;j<i;j++){
 						best_scores[j] = best_scores[j+1];
@@ -28,7 +27,7 @@ class MoveTable{
 		void set(move &mv, ElementType amount){
 			elements[mv.from_square][mv.to_square] = amount;
 			ElementType current = elements[mv.from_square][mv.to_square];
-			for(i=0;i<num_best;i++){
+			for(int i=0;i<num_best;i++){
 				if(current > best_scores[i]){
 					for(int j=0;j<i;j++){
 						best_scores[j] = best_scores[j+1];
@@ -44,7 +43,7 @@ class MoveTable{
 			for(int i=0;i<num_best;i++){
 				if(mv == best_moves[i]){
 					rank = i;
-					break
+					break;
 				}
 			}
 			return rank;
@@ -55,7 +54,7 @@ class MoveTable{
 		void reset(ElementType amount){
 			for(int i=0;i<64;i++){
 				for(int j=0;j<64;j++){
-					elements[i][j] = value;
+					elements[i][j] = amount;
 				}
 			}
 			for(int i=0;i<num_best;i++){
@@ -76,7 +75,7 @@ class MoveTable{
 		ElementType elements[64][64];
 		ElementType best_scores[num_best];
 		move best_moves[num_best];
-}
+};
 
 struct AlphaBetaValue{
 	bool fail_low;
@@ -87,33 +86,77 @@ struct AlphaBetaValue{
 	int ply;
 	float value;
 	move best_move;
+	AlphaBetaValue(){
+		fail_low = false;
+		fail_high = false;
+		checkmate = false;
+		draw = false;
+		checkmate_maximize = false;
+		ply = 0;
+		value = 0;
+	}
+	bool operator==(const AlphaBetaValue &other) const{
+		if(fail_low == other.fail_low && fail_high == other.fail_high &&
+			checkmate == other.checkmate && draw == other.draw &&
+			checkmate_maximize == other.checkmate_maximize &&
+			ply == other.ply && value == other.value && best_move == other.best_move){
+			return true;
+		}else{
+			return false;
+		}
+	}
 };
 
+const AlphaBetaValue empty_alpha_beta_value = AlphaBetaValue();
 
 struct TranspositionEntry{
 	zobrist_int key;
 	int depth;
 	AlphaBetaValue value;
 	BoardState brd;
+	TranspositionEntry(){
+		this->key = 0;
+		this->depth = 0;
+		this->value = empty_alpha_beta_value;
+		this->brd = empty_board_state;
+	}
 	TranspositionEntry(GameState &game, AlphaBetaValue &value, int &depth){
 		this->key = game.hash;
 		this->depth = depth;
 		this->value = value;
 		this->brd = game.board_state;
 	}
+	bool operator==(const TranspositionEntry &other) const{
+		if(key == other.key && depth == other.depth
+			&& value == other.value && brd == other.brd){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	bool operator!=(const TranspositionEntry &other) const{
+		return !((*this) == other);
+	}
 };
 
-const TranspositionEntry null_te = (TranspositionEntry) 0;
+const TranspositionEntry null_te = TranspositionEntry();
 
 class TranspositionTable {
 	public:
 		TranspositionTable(size_t size){
 			this->size = size;
+			this->data = new TranspositionEntry[size][2];
+			for(unsigned long int i=0;i<size;i++){
+				for(int j=0;j<2;j++){
+					this->data[i][j] = null_te;
+				}
+			}
 		}
-		~TranspositionTable();
+		~TranspositionTable(){
+			delete[] this->data;
+		}
 		void setitem(GameState &game, TranspositionEntry &entry){
-			size_t index = entry.key % size;
-			maximize = entry.brd.whites_turn;
+			bool maximize = game.board_state.whites_turn;
 			size_t index = getindex(game);
 			TranspositionEntry old = data[index][0];
 			if(old == null_te){
@@ -121,24 +164,24 @@ class TranspositionTable {
 				data[index][0] = entry;
 				return;
 			}else if(old.key == entry.key && old.brd == entry.brd &&
-					 (old.depth < entry.depth || (entry.depth == old.depth && (old.fail_low || old.fail_high)))){
+					 (old.depth < entry.depth || (entry.depth == old.depth && (old.value.fail_low || old.value.fail_high)))){
 				// The same position but scored to greater depth
 				data[index][0] = entry;
 				return;
 			}
 			if(maximize){
-				if(old.fail_low && !entry.fail_low){
+				if(old.value.fail_low && !entry.value.fail_low){
 					data[index][0] = entry;
 					return;
-				}else if(old.value < entry.value){
+				}else if(old.value.value < entry.value.value){
 					data[index][0] = entry;
 					return;
 				}
 			}else{
-				if(old.fail_high && !entry.fail_high){
+				if(old.value.fail_high && !entry.value.fail_high){
 					data[index][0] = entry;
 					return;
-				}else if(old.value > entry.value){
+				}else if(old.value.value > entry.value.value){
 					data[index][0] = entry;
 					return;
 				}
@@ -149,7 +192,7 @@ class TranspositionTable {
 			// depth or width
 			old = data[index][1];
 			if(old.key == entry.key && old.brd == entry.brd &&
-			   (old.depth > entry.depth || (entry.depth == old.depth && (entry.fail_low || entry.fail_high)))){
+			   (old.depth > entry.depth || (entry.depth == old.depth && (entry.value.fail_low || entry.value.fail_high)))){
 				// Do not replace
 			}else{
 				data[index][1] = entry;
@@ -172,57 +215,67 @@ class TranspositionTable {
 			return null_te;
 		}
 	private:
-		const size_t size;
-		TranspositionEntry data[size][2];//Stores best and most recent
+		size_t size;
+		TranspositionEntry (*data)[2];//Stores best and most recent
 
 };
 
 struct SimpleEvaluation{
-	static const float aspiration = 50;
-	static const float mate = 200000;
-	static const float draw = 0;
-	static float evaluate(gamestate &brd){
+	static const float mate;
+	static const float draw;
+	static const float evaluate(GameState &brd){
 		float white_score, black_score;
 		white_score = 0;
 		black_score = 0;
-		white_score += 100 * population_count(brd->board_state.white & brd->board_state.p);
-		white_score += 320 * population_count(brd->board_state.white & brd->board_state.n);
-		white_score += 330 * population_count(brd->board_state.white & brd->board_state.b);
-		white_score += 500 * population_count(brd->board_state.white & brd->board_state.r);
-		white_score += 900 * population_count(brd->board_state.white & brd->board_state.q);
-		//white_score += 200000 * population_count(brd->board_state.white & brd->board_state.k);
+		white_score += 100 * population_count(brd.board_state.white & brd.board_state.p);
+		white_score += 320 * population_count(brd.board_state.white & brd.board_state.n);
+		white_score += 330 * population_count(brd.board_state.white & brd.board_state.b);
+		white_score += 500 * population_count(brd.board_state.white & brd.board_state.r);
+		white_score += 900 * population_count(brd.board_state.white & brd.board_state.q);
+		//white_score += 200000 * population_count(brd.board_state.white & brd.board_state.k);
 
-		white_score += 1 * population_count(brd->board_state.white & center4);
-		white_score += 1 * population_count(brd->board_state.white & center16);
-		white_score += 5 * population_count(brd->board_state.white & brd->board_state.p & rank_7);
-		white_score += 4 * population_count(brd->board_state.white & brd->board_state.p & rank_6);
-		white_score += 3 * population_count(brd->board_state.white & brd->board_state.p & rank_5);
+		white_score += 1 * population_count(brd.board_state.white & center4);
+		white_score += 1 * population_count(brd.board_state.white & center16);
+		white_score += 5 * population_count(brd.board_state.white & brd.board_state.p & rank_7);
+		white_score += 4 * population_count(brd.board_state.white & brd.board_state.p & rank_6);
+		white_score += 3 * population_count(brd.board_state.white & brd.board_state.p & rank_5);
 
-		black_score += 100 * population_count(brd->board_state.black & brd->board_state.p);
-		black_score += 320 * population_count(brd->board_state.black & brd->board_state.n);
-		black_score += 330 * population_count(brd->board_state.black & brd->board_state.b);
-		black_score += 500 * population_count(brd->board_state.black & brd->board_state.r);
-		black_score += 900 * population_count(brd->board_state.black & brd->board_state.q);
-		//black_score += 200000 * population_count(brd->board_state.black & brd->board_state.k);
+		black_score += 100 * population_count(brd.board_state.black & brd.board_state.p);
+		black_score += 320 * population_count(brd.board_state.black & brd.board_state.n);
+		black_score += 330 * population_count(brd.board_state.black & brd.board_state.b);
+		black_score += 500 * population_count(brd.board_state.black & brd.board_state.r);
+		black_score += 900 * population_count(brd.board_state.black & brd.board_state.q);
+		//black_score += 200000 * population_count(brd.board_state.black & brd.board_state.k);
 
-		black_score += 1 * 100 * population_count(brd->board_state.black & center4);
-		black_score += 1 * 100 * population_count(brd->board_state.black & center16);
-		black_score += 5 * population_count(brd->board_state.black & brd->board_state.p & rank_1);
-		black_score += 4 * population_count(brd->board_state.black & brd->board_state.p & rank_2);
-		black_score += 3 * population_count(brd->board_state.black & brd->board_state.p & rank_3);
+		black_score += 1 * 100 * population_count(brd.board_state.black & center4);
+		black_score += 1 * 100 * population_count(brd.board_state.black & center16);
+		black_score += 5 * population_count(brd.board_state.black & brd.board_state.p & rank_1);
+		black_score += 4 * population_count(brd.board_state.black & brd.board_state.p & rank_2);
+		black_score += 3 * population_count(brd.board_state.black & brd.board_state.p & rank_3);
 
 		return white_score - black_score;
 
 	}
 
-}
+};
+const float SimpleEvaluation::mate = 200000;
+const float SimpleEvaluation::draw = 0;
 
 template <int num_killers>
 class KillerTable{
-	static const num_ply = 2000;
+	static const int num_ply;
+	int highest_ply_seen;
 	MoveTable<num_killers, int> killers[num_ply];
+	KillerTable(){
+		highest_ply_seen = 0;
+	}
 	void record_cutoff(GameState &game, move &mv){
-		int index = game.halfmove_counter % num_ply;
+		int ply = game.halfmove_counter;
+		if(ply > highest_ply_seen){
+			clear(game);
+			highest_ply_seen = ply;
+		}
+		int index = ply % num_ply;
 		MoveTable<num_killers, int> table = killers[index];
 		table.add(mv, 1);
 	}
@@ -233,15 +286,18 @@ class KillerTable{
 		if(rank == -1){
 			return 0;
 		}
-		return num_history - rank;
+		return num_killers - rank;
 	}
-	void clear(GameState &game){
+	void clear(int ply){
 		// Clear the table for the ply below this one
-		int index = (game.halfmove_counter % num_ply) - 1;
+		int index = ply % num_ply;
 		MoveTable<num_killers, int> table = killers[index];
 		table.reset(0);
 	}
 };
+
+template<int num_killers>
+const int KillerTable<num_killers>::num_ply = 200;
 
 template <int num_history>
 class HistoryTable{
@@ -274,7 +330,7 @@ class HistoryTable{
 template <int num_killers, int num_history>
 struct SearchMemory{
 	TranspositionTable tt;
-	HistoryTable hh;
+	HistoryTable<num_history> hh;
 	KillerTable<num_killers> killers;
 };
 
@@ -287,7 +343,7 @@ struct SearchMemory{
 //	int sort_score;
 //};
 
-template <class Evaluation>
+template <class Evaluation, int num_killers, int num_history>
 class MoveManager{
 	// Responsible for move ordering
 	public:
@@ -299,7 +355,7 @@ class MoveManager{
 		void generate_noisy(GameState &game, int depth){
 			num_moves = all_captures(game, buffer[depth % maxply]);
 		}
-		void order_all(GameState &game, SearchMemory &memory, int depth){
+		void order_all(GameState &game, SearchMemory<num_killers, num_history> &memory, int depth){
 			// Determine best move from transposition table
 			TranspositionEntry entry = memory.tt.getitem(game);
 			move best_move = nomove;
@@ -310,12 +366,12 @@ class MoveManager{
 			// Score all moves based on where they will be in the order
 			move current_buffer[maxmove] = buffer[depth % maxply];
 			int capture_count = 0;
-			int capture_target;
+			move capture_target;
 			move mv;
 			int killer_score;
 			int history_score;
 			int capture_score;
-			for(i=0;i<num_moves;i++){
+			for(int i=0;i<num_moves;i++){
 				mv = current_buffer[i];
 				mv.sort_score = 0;
 				if(mv == best_move){
@@ -353,7 +409,7 @@ class MoveManager{
 			pv_end = num_moves;
 
 		}
-		void order_noisy(GameState &game, SearchMemory &memory) = order_all;
+//		void order_noisy(GameState &game, SearchMemory<num_killers, num_history> &memory) = order_all;
 		moverecord make(GameState &game, move &mv){
 			return make_move(&game, &mv)
 		}
@@ -375,8 +431,8 @@ class MoveManager{
 };
 
 
-template<struct Evaluation>
-AlphaBetaValue alphabeta(GameState &game, MoveManager &manager, SearchMemory &memory, float alpha, float beta, int depth){
+template<struct Evaluation, int num_killers, int num_history>
+AlphaBetaValue alphabeta(GameState &game, MoveManager &manager, SearchMemory<num_killers, num_history> &memory, float alpha, float beta, int depth){
 	// Not using negamax.  All scores will be from the perspective of white.  That is,
 	// white seeks to maximize and black seeks to minimize.
 
@@ -621,7 +677,7 @@ AlphaBetaValue quiesce(GameState &game, MoveManager &manager, SearchMemory &memo
 		manager.order_all(game, memory);
 	}else{
 		manager.generate_noisy(game, memory);
-		manager.order_noisy(game, memory);
+		manager.order_all(game, memory); // TODO: Use order_noisy
 	}
 
 	// Recurse

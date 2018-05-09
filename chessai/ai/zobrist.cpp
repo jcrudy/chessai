@@ -1,3 +1,5 @@
+#include "zobrist.h"
+
 zobrist_int Zobrist::update(zobrist_int previous, GameState *brd, moverecord *mv) const{
 	// Call after move has been made or before it is unmade
 	zobrist_int result = previous;

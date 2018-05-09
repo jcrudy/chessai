@@ -106,6 +106,9 @@ extern const bitboard white_castle_queen_open;
 extern const bitboard black_castle_queen_open;
 extern const bitboard castle_queen_rook;
 
+extern const bitboard center4;
+extern const bitboard center16;
+
 extern const bitboard diag_0;
 extern const bitboard diag_1;
 extern const bitboard diag_2;
@@ -557,6 +560,22 @@ inline void bitboard_to_array(bitboard bb, double *arr){
 
 // Just the parts needed to have same legal moves (ignoring clock)
 struct BoardState{
+	BoardState(){
+		k = empty;
+		q = empty;
+		b = empty;
+		n = empty;
+		r = empty;
+		p = empty;
+		white = empty;
+		black = empty;
+		enpassant = empty;
+		whites_turn = false;
+		white_castle_king = false;
+		white_castle_queen = false;
+		black_castle_king = false;
+		black_castle_queen = false;
+	}
 	bitboard k;
 	bitboard q;
 	bitboard b;
@@ -571,8 +590,11 @@ struct BoardState{
 	bool white_castle_queen;
 	bool black_castle_king;
 	bool black_castle_queen;
+	bool empty;
 	void extract_features(BoardFeatures *features);
 };
+
+extern const BoardState empty_board_state;
 
 /*
 struct PositionCountHasher {
@@ -3101,66 +3123,5 @@ inline bool operator==(const transposition_entry& lhs, const transposition_entry
 		return false;
 	}
 }
-
-class TranspositionTable {
-	public:
-		TranspositionTable(unsigned long int size);
-		~TranspositionTable();
-		void setitem(GameState *brd, transposition_entry &entry);
-		unsigned long int getindex(GameState *brd);
-		bool exists(GameState *brd);
-		transposition_entry getitem(GameState *brd);
-	private:
-		unsigned long int size;
-		// Should be size x 2 array
-		// Of each pair, the first is the newest
-		// and the second is the best
-		transposition_entry (*data)[2];
-};
-
-class MoveSearchMemory {
-	public:
-		TranspositionTable *tt;
-		MoveHistoryTable *hh[2][50];
-		move move_buffer[100][300];
-//		MoveHistoryTable *quiescence_orderer;
-		MoveSearchMemory(unsigned long int tt_size);
-		~MoveSearchMemory();
-};
-
-typedef struct {
-	GameState *brd;
-	move *best_move;
-	bool *stop;
-	double thresh;
-	MoveSearchMemory *msm;
-	bool quiesce;
-} searcharg;
-
-move movesearch(GameState *brd, double time_limit, int *depth);
-move movesearch_threshold(GameState *brd, double threshold, MoveSearchMemory *msm, bool quiesce);
-move movesearch_time(GameState *brd, double time_limit, double *thresh,
-					MoveSearchMemory *msm, bool quiesce);
-
-
-
-/*
-class SortableMove {
-	public:
-		OrderedMove(move mv, negamax_result result, double parent_eval);
-		inline bool operator<(const SortableMove &lhs, const SortableMove &rhs) const;
-		
-	private:
-		move mv;
-		negamax_result result;
-		double parent_eval;
-		double abs_diff;
-		
-}
-
-inline bool SortableMove::operator<(const OrderedMove &lhs, const OrderedMove &rhs) const{
-	return std::tie(lhs.result.value.value, lhs.abs_diff) < std::tie(rhs.result.value.value, rhs.abs_diff);
-}
-*/
 
 #endif
