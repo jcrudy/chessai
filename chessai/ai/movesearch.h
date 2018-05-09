@@ -3,7 +3,7 @@
 #include "zobrist.h"
 #include "bitboardlib.h"
 
-template <typename ElementType>
+template <int num_best, typename ElementType>
 class MoveTable{
 	public:
 		bool compare(move &lhs, move &rhs){
@@ -13,9 +13,41 @@ class MoveTable{
 		}
 		void add(move &mv, ElementType amount){
 			elements[mv.from_square][mv.to_square] += amount;
+			ElementType current = elements[mv.from_square][mv.to_square];
+			for(i=0;i<num_best;i++){
+				if(current > best_scores[i]){
+					for(int j=0;j<i;j++){
+						best_scores[j] = best_scores[j+1];
+						best_moves[j] = best_moves[j+1];
+					}
+					best_moves[i] = mv;
+					best_scores[i] = current;
+				}
+			}
 		}
 		void set(move &mv, ElementType amount){
 			elements[mv.from_square][mv.to_square] = amount;
+			ElementType current = elements[mv.from_square][mv.to_square];
+			for(i=0;i<num_best;i++){
+				if(current > best_scores[i]){
+					for(int j=0;j<i;j++){
+						best_scores[j] = best_scores[j+1];
+						best_moves[j] = best_moves[j+1];
+					}
+					best_moves[i] = mv;
+					best_scores[i] = current;
+				}
+			}
+		}
+		int rank(move &mv){
+			int rank = -1;
+			for(int i=0;i<num_best;i++){
+				if(mv == best_moves[i]){
+					rank = i;
+					break
+				}
+			}
+			return rank;
 		}
 		ElementType get(move &mv){
 			return elements[mv.from_square][mv.to_square];
@@ -26,6 +58,9 @@ class MoveTable{
 					elements[i][j] = value;
 				}
 			}
+			for(int i=0;i<num_best;i++){
+				best_scores[i] = amount;
+			}
 		}
 		void increment(ElementType amount){
 			for(int i=0;i<64;i++){
@@ -33,9 +68,14 @@ class MoveTable{
 					elements[i][j] += amount;
 				}
 			}
+			for(int i=0;i<num_best;i++){
+				best_scores[i] += amount;
+			}
 		}
 	private:
 		ElementType elements[64][64];
+		ElementType best_scores[num_best];
+		move best_moves[num_best];
 }
 
 struct AlphaBetaValue{
@@ -177,32 +217,65 @@ struct SimpleEvaluation{
 
 }
 
+template <int num_killers>
 class KillerTable{
 	static const num_ply = 2000;
-	MoveTable<int> killers[num_ply];
+	MoveTable<num_killers, int> killers[num_ply];
 	void record_cutoff(GameState &game, move &mv){
 		int index = game.halfmove_counter % num_ply;
-		MoveTable table = killers[index];
+		MoveTable<num_killers, int> table = killers[index];
 		table.add(mv, 1);
 	}
-	int get(GameState &game, move &mv){
+	int score(GameState &game, move &mv){
 		int index = game.halfmove_counter % num_ply;
-		MoveTable table = killers[index];
-		return table.get(mv);
+		MoveTable<num_killers, int> table = killers[index];
+		int rank = table.rank(mv);
+		if(rank == -1){
+			return 0;
+		}
+		return num_history - rank;
 	}
 	void clear(GameState &game){
 		// Clear the table for the ply below this one
 		int index = (game.halfmove_counter % num_ply) - 1;
-		MoveTable table = killers[index];
+		MoveTable<num_killers, int> table = killers[index];
 		table.reset(0);
 	}
 };
 
-class SearchMemory{
+template <int num_history>
+class HistoryTable{
+	MoveTable<num_history, int> white_history;
+	MoveTable<num_history, int> black_history;
+	void record_cutoff(GameState &game, move &mv){
+		MoveTable<num_history, int> table;
+		if(game.board_state.whites_turn){
+			table = white_history;
+		}else{
+			table = black_history;
+		}
+		table.add(mv, 1);
+	}
+	int score(GameState &game, move &mv){
+		MoveTable<num_history, int> table;
+		if(game.board_state.whites_turn){
+			table = white_history;
+		}else{
+			table = black_history;
+		}
+		int rank = table.rank(mv);
+		if(rank == -1){
+			return 0;
+		}
+		return num_history - rank;
+	}
+};
+
+template <int num_killers, int num_history>
+struct SearchMemory{
 	TranspositionTable tt;
-	MoveTable<int> white_history;
-	MoveTable<int> black_history;
-	KillerTable killers;
+	HistoryTable hh;
+	KillerTable<num_killers> killers;
 };
 
 //struct AnnotatedMove{
@@ -251,7 +324,7 @@ class MoveManager{
 
 				// If there are any killer moves, they will be just below the best move
 				// from the transposition table
-				mv.sort_score += 1000 * memory.killers.get(game, mv);
+				mv.sort_score += 1000 * memory.killers.score(game, mv);
 
 				// Capture score is at most 560
 				// Prefer to capture the biggest piece, then prefer to use the smallest
@@ -263,12 +336,10 @@ class MoveManager{
 
 				// Use history heuristic for any moves that remain
 				if(game.board_state.whites_turn){
-					mv.sort_score += memory.white_history.get(mv);
+					mv.sort_score += memory.hh.score(mv);
 				}else{
-					mv.sort_score += memory.black_history.get(mv);
+					mv.sort_score += memory.hh.score(mv);
 				}
-
-
 
 			}
 
@@ -450,6 +521,8 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager &manager, SearchMemory &me
 		manager.unmake(game, rec);
 		if((maximize && search_result.fail_high) || ((!maximize) &&& search_result.fail_low)){
 			// Cut node.  Yay!
+			memory.hh.record_cutoff(game, mv);
+			memory.killers.record_cutoff(game, mv);
 			memory.tt.setitem(game, TranspositionEntry(game, result, depth));
 			return search_result;
 		}else if(((!maximize) && search_result.fail_high) || (maximize &&& search_result.fail_low)){

@@ -23,27 +23,27 @@ else:
     ext = 'c'
     cmdclass = {'build_ext': build_ext}
 
-if '--profile' in sys.argv:
-    '''
-    First do:
-    export MACOSX_DEPLOYMENT_TARGET=10.9
-    cd easy_profiler-1.3.0
-    cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc -DCMAKE_BUILD_TYPE="Release"
-    Then do:
-    make
-    Then run:
-    python setup.py build_ext --inplace --cythonize --profile
-    '''
-    print('PROFILE!')
-    profile_switch = True
-    del sys.argv[sys.argv.index('--profile')]
-    ext_args = dict(
-                    define_macros = [('BUILD_WITH_EASY_PROFILER', 1),]
-#                                       ('EASY_PROFILER_ENABLE', 1)],
-                    )
-else:
-    profile_switch = False
-    ext_args = dict()
+# if '--profile' in sys.argv:
+#     '''
+#     First do:
+#     export MACOSX_DEPLOYMENT_TARGET=10.9
+#     cd easy_profiler-1.3.0
+#     cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc -DCMAKE_BUILD_TYPE="Release"
+#     Then do:
+#     make
+#     Then run:
+#     python setup.py build_ext --inplace --cythonize --profile
+#     '''
+#     print('PROFILE!')
+#     profile_switch = True
+#     del sys.argv[sys.argv.index('--profile')]
+#     ext_args = dict(
+#                     define_macros = [('BUILD_WITH_EASY_PROFILER', 1),]
+# #                                       ('EASY_PROFILER_ENABLE', 1)],
+#                     )
+# else:
+#     profile_switch = False
+#     ext_args = dict()
 
 
 ext_modules = [Extension('chessai.ai.bitboard', 
@@ -53,7 +53,12 @@ ext_modules = [Extension('chessai.ai.bitboard',
                           os.path.join('chessai', 'ai',
                                        'bitboardlib.cpp'),
                           os.path.join('chessai', 'ai',
+                                       'zobrist.cpp'),
+                          os.path.join('chessai', 'ai',
+                                       'movesearch.cpp'),
+                          os.path.join('chessai', 'ai',
                                        'bitboard.%s' % ext),
+                          
                           ],
                          include_dirs = [
 #                                          os.path.join(#'chessai', 
@@ -64,7 +69,7 @@ ext_modules = [Extension('chessai.ai.bitboard',
 #                          libraries = ['easy_profiler'],
 #                          library_dirs = [os.path.join('easy_profiler-1.3.0', 'bin')],
                          extra_compile_args=['-std=c++14'] + (['-stdlib=libc++'] if sys.platform.lower().startswith('darwin') else []),
-                         **ext_args
+#                          **ext_args
                          ),
                Extension('chessai.sparse_data', [os.path.join('chessai', 'sparse_data.%s' % ext)],
                          include_dirs = [np.get_include()],)]
