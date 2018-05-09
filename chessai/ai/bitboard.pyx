@@ -187,7 +187,78 @@ cdef extern from "movesearch.h":
         void reset(ElementType amount)
         void increment(ElementType amount)
         int num_best
-                                           
+    
+    cdef cppclass AlphaBetaValue:
+        bool fail_low
+        bool fail_high
+        bool checkmate
+        bool draw
+        bool checkmate_maximize
+        int ply
+        float value
+        move best_move
+        AlphaBetaValue()
+    
+    cdef cppclass TranspositionEntry:
+        zobrist_int key
+        int depth
+        AlphaBetaValue value
+        BoardState brd
+        TranspositionEntry()
+    
+    cdef cppclass TranspositionTable:
+        void initialize(size_t size)
+        TranspositionTable(size_t size)
+        void setitem(GameState &game, const TranspositionEntry &entry)
+        TranspositionEntry getitem(GameState &game)
+        unsigned long int getindex(GameState &game)
+        size_t size
+        TranspositionEntry (*data)[2]
+        
+    cdef cppclass SimpleEvaluation:
+        pass
+    
+    cdef cppclass KillerTable:
+        int highest_ply_seen
+        MoveTable[int] *killers
+        int num_killers
+        void initialize(int num_killers)
+        KillerTable(int num_killers)
+        void record_cutoff(GameState &game, move &mv)
+        int score(GameState &game, move &mv)
+        void clear(int ply)
+    
+    cdef cppclass HistoryTable:
+        MoveTable[int] white_history
+        MoveTable[int] black_history
+        int num_history
+        void initialize(int num_history)
+        HistoryTable(int num_history)
+        void record_cutoff(GameState &game, move &mv)
+        int score(GameState &game, move &mv)
+        
+    cdef cppclass SearchMemory:
+        SearchMemory(size_t tt_size, int num_killers, int num_history)
+        TranspositionTable tt
+        KillerTable killers
+        HistoryTable hh
+
+    cdef cppclass MoveManager:
+        void generate_all(GameState &game, int depth)
+        void generate_noisy(GameState &game, int depth)
+        void order_all(GameState &game, SearchMemory &memory, int depth)
+        moverecord make(GameState &game, move &mv)
+        void unmake(GameState &game, moverecord &rec)
+        move *get_moves(int depth)
+        int full_begin
+        int full_end
+        int pv_begin
+        int pv_end
+        int num_moves
+    
+    cdef AlphaBetaValue quiesce[Evaluation](GameState &game, MoveManager &manager, SearchMemory &memory, float alpha, float beta, int depth)
+    cdef AlphaBetaValue alphabeta[Evaluation](GameState &game, MoveManager &manager, SearchMemory &memory, float alpha, float beta, int depth)
+    
 #     cdef cppclass SearchMemory:
 #         SearchMemory(int num_killers, int num_moves)
 #         TranspositionTable tt
