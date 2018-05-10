@@ -219,9 +219,6 @@ cdef extern from "movesearch.h":
         pass
     
     cdef cppclass KillerTable:
-        int highest_ply_seen
-        MoveTable[int] *killers
-        int num_killers
         void initialize(int num_killers)
         KillerTable(int num_killers)
         void record_cutoff(GameState &game, move &mv)
@@ -229,24 +226,23 @@ cdef extern from "movesearch.h":
         void clear(int ply)
     
     cdef cppclass HistoryTable:
-        MoveTable[int] white_history
-        MoveTable[int] black_history
-        int num_history
         void initialize(int num_history)
         HistoryTable(int num_history)
         void record_cutoff(GameState &game, move &mv)
         int score(GameState &game, move &mv)
         
     cdef cppclass SearchMemory:
+        SearchMemory()
         SearchMemory(size_t tt_size, int num_killers, int num_history)
         TranspositionTable tt
         KillerTable killers
         HistoryTable hh
 
     cdef cppclass MoveManager:
+        MoveManager()
         void generate_all(GameState &game, int depth)
         void generate_noisy(GameState &game, int depth)
-        void order_all(GameState &game, SearchMemory &memory, int depth)
+        void order_all(GameState &game, SearchMemory *memory, int depth)
         moverecord make(GameState &game, move &mv)
         void unmake(GameState &game, moverecord &rec)
         move *get_moves(int depth)
@@ -256,8 +252,8 @@ cdef extern from "movesearch.h":
         int pv_end
         int num_moves
     
-    cdef AlphaBetaValue quiesce[Evaluation](GameState &game, MoveManager &manager, SearchMemory &memory, float alpha, float beta, int depth)
-    cdef AlphaBetaValue alphabeta[Evaluation](GameState &game, MoveManager &manager, SearchMemory &memory, float alpha, float beta, int depth)
+    cdef AlphaBetaValue quiesce[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, float alpha, float beta, int depth)
+    cdef AlphaBetaValue alphabeta[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, float alpha, float beta, int depth)
     
 #     cdef cppclass SearchMemory:
 #         SearchMemory(int num_killers, int num_moves)
@@ -612,6 +608,23 @@ cdef class ZobristHash:
         result.value = zobrist.update(self.value, &(brd.bs), &(mv.rec))
         return result
 
+cdef class Player:
+    cdef SearchMemory *memory
+    cdef MoveManager *manager
+    def __init__(Player self, size_t tt_size, int num_killers, int num_history):
+        print('A')
+        self.memory = new SearchMemory(tt_size, num_killers, num_history)
+        print('B')
+        self.manager = new MoveManager()
+        print('C')
+    
+    cpdef Move movesearch(Player self, BitBoardState board):
+        cdef AlphaBetaValue search_result
+        search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000., 1000000., 60)
+        cdef Move result = Move()
+        result.mv = search_result.best_move
+        return result
+    
 # cdef class TimePlayer:
 #     cdef MoveSearchMemory *msm
 #     cdef readonly double time_per_move

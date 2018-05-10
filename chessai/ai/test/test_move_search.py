@@ -1,6 +1,6 @@
 import time
 from nose.tools import assert_almost_equal, assert_greater_equal
-from chessai.ai.bitboard import BitBoardState, ThresholdPlayer, TimePlayer
+from chessai.ai.bitboard import BitBoardState, Player
 
 # def test_movesearch_depth():
 #     starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
@@ -18,19 +18,28 @@ def test_movesearch():
     board = BitBoardState.from_fen(starting_fen)
 #     white = ThresholdPlayer(5000000, 1e-6)
 #     black = ThresholdPlayer(5000000, 1e-9)
-    white = TimePlayer(5000000, 6, False)
-    black = TimePlayer(5000000, 6, True)
+
+    print 1
+    white = Player(5000000, 3, 3)
+    print 2
+    black = Player(5000000, 3, 3)
+    print 3
     print('\n')
     print(board.to_grid())
+    print 4
     while(True):
         t0 = time.time()
+        print 5
         move = white.movesearch(board)
+        print 6
+        print(move)
         t1 = time.time()
         print('%s: Search took %fs.' % (board.to_fen(), t1-t0))
         if move:
             board.make_move(move)
         print('#'*10)
         print(board.to_grid())
+        break
 #         break
         if board.checkmate():
             print 'White wins!'

@@ -6,19 +6,23 @@ template <typename ElementType>
 class MoveTable{
 	public:
 		MoveTable(){
-			this->num_best = 0;
+			this->initialize(0);
 		}
 		void initialize(int num_best){
 			this->num_best = num_best;
-			best_scores = new ElementType[num_best];
-			best_moves = new move[num_best];
+			if(num_best>0){
+				best_scores = new ElementType[num_best]();
+				best_moves = new move[num_best]();
+			}
 		}
 		MoveTable(int num_best) : MoveTable(){
 			this->initialize(num_best);
 		}
 		~MoveTable(){
-			delete[] best_scores;
-			delete[] best_moves;
+			if(num_best>0){
+				delete[] best_scores;
+				delete[] best_moves;
+			}
 		}
 		bool compare(move &lhs, move &rhs){
 			// The higher the move's score, the lower the move (in search order)
@@ -163,7 +167,9 @@ class TranspositionTable {
 			initialize(size);
 		}
 		~TranspositionTable(){
-			delete[] this->data;
+			if(size>0){
+				delete[] this->data;
+			}
 		}
 		void setitem(GameState &game, const TranspositionEntry &entry);
 		TranspositionEntry getitem(GameState &game);
@@ -219,24 +225,23 @@ struct SimpleEvaluation{
 
 class KillerTable{
 	public:
-		static const int num_ply;
-		int highest_ply_seen;
-		MoveTable<int> *killers;
-		int num_killers;
 		KillerTable(){
 			highest_ply_seen = 0;
 		}
 		void initialize(int num_killers){
-			killers = new MoveTable<int>[num_ply];
+			killers = new MoveTable<int>*[num_ply];
 			this->num_killers = num_killers;
 			for(int i=0;i<num_ply;i++){
-				killers[i].initialize(num_killers);
+				killers[i] = new MoveTable<int>(num_killers);
 			}
 		}
 		KillerTable(int num_killers) : KillerTable(){
 			initialize(num_killers);
 		}
 		~KillerTable(){
+			for(int i=0;i<num_ply;i++){
+				delete killers[i];
+			}
 			delete[] killers;
 		}
 		void record_cutoff(GameState &game, move &mv){
@@ -246,13 +251,13 @@ class KillerTable{
 				highest_ply_seen = ply;
 			}
 			int index = ply % num_ply;
-			MoveTable<int> table = killers[index];
-			table.add(mv, 1);
+			MoveTable<int> *table = killers[index];
+			table->add(mv, 1);
 		}
 		int score(GameState &game, move &mv){
 			int index = game.halfmove_counter % num_ply;
-			MoveTable<int> table = killers[index];
-			int rank = table.rank(mv);
+			MoveTable<int> *table = killers[index];
+			int rank = table->rank(mv);
 			if(rank == -1){
 				return 0;
 			}
@@ -261,59 +266,82 @@ class KillerTable{
 		void clear(int ply){
 			// Clear the table for the ply
 			int index = ply % num_ply;
-			MoveTable<int> table = killers[index];
-			table.reset(0);
+			MoveTable<int> *table = killers[index];
+			table->reset(0);
 		}
+	private:
+		static const int num_ply;
+		int highest_ply_seen;
+		MoveTable<int> **killers;
+		int num_killers;
 };
 
 class HistoryTable{
 	public:
-		MoveTable<int> white_history;
-		MoveTable<int> black_history;
-		int num_history;
-		HistoryTable(){}
+		HistoryTable(){
+			initialize(0);
+		}
 		void initialize(int num_history){
 			this->num_history = num_history;
-			white_history = MoveTable<int>(num_history);
-			black_history = MoveTable<int>(num_history);
+			if(num_history>0){
+				white_history = new MoveTable<int>(num_history);
+				black_history = new MoveTable<int>(num_history);
+			}
 		}
 		HistoryTable(int num_history) : HistoryTable() {
 			initialize(num_history);
 		}
+		~HistoryTable(){
+			if(num_history>0){
+				delete white_history;
+				delete black_history;
+			}
+		}
 		void record_cutoff(GameState &game, move &mv){
-			MoveTable<int> table;
+			MoveTable<int> *table;
 			if(game.board_state.whites_turn){
 				table = white_history;
 			}else{
 				table = black_history;
 			}
-			table.add(mv, 1);
+			table->add(mv, 1);
 		}
 		int score(GameState &game, move &mv){
-			MoveTable<int> table;
+			MoveTable<int> *table;
 			if(game.board_state.whites_turn){
 				table = white_history;
 			}else{
 				table = black_history;
 			}
-			int rank = table.rank(mv);
+			int rank = table->rank(mv);
 			if(rank == -1){
 				return 0;
 			}
 			return num_history - rank;
 		}
+	private:
+		MoveTable<int> *white_history;
+		MoveTable<int> *black_history;
+		int num_history;
 };
 
 class SearchMemory{
 	public:
-		SearchMemory(size_t tt_size, int num_killers, int num_history){
-			tt = TranspositionTable(tt_size);
-			killers = KillerTable(num_killers);
-			hh = HistoryTable(num_history);
+		SearchMemory(){
 		}
-		TranspositionTable tt;
-		KillerTable killers;
-		HistoryTable hh;
+		~SearchMemory(){
+			delete tt;
+			delete killers;
+			delete hh;
+		}
+		SearchMemory(size_t tt_size, int num_killers, int num_history){
+			tt = new TranspositionTable(tt_size);
+			killers = new KillerTable(num_killers);
+			hh = new HistoryTable(num_history);
+		}
+		TranspositionTable *tt;
+		KillerTable *killers;
+		HistoryTable *hh;
 };
 
 //struct AnnotatedMove{
@@ -328,15 +356,16 @@ class SearchMemory{
 class MoveManager{
 	// Responsible for move ordering
 	public:
+		MoveManager(){}
 		void generate_all(GameState &game, int depth){
 			num_moves = all_moves(&game, buffer[depth % maxply]);
 		}
 		void generate_noisy(GameState &game, int depth){
 			num_moves = all_captures(&game, buffer[depth % maxply]);
 		}
-		void order_all(GameState &game, SearchMemory &memory, int depth){
+		void order_all(GameState &game, SearchMemory *memory, int depth){
 			// Determine best move from transposition table
-			TranspositionEntry entry = memory.tt.getitem(game);
+			TranspositionEntry entry = memory->tt->getitem(game);
 			move best_move = nomove;
 			if(entry != null_te){
 				best_move = entry.value.best_move;
@@ -350,6 +379,7 @@ class MoveManager{
 			int killer_score;
 			int history_score;
 			int capture_score;
+			int tmp;
 			for(int i=0;i<num_moves;i++){
 				mv = current_buffer[i];
 				mv.sort_score = 0;
@@ -359,7 +389,8 @@ class MoveManager{
 
 				// If there are any killer moves, they will be just below the best move
 				// from the transposition table
-				mv.sort_score += 1000 * memory.killers.score(game, mv);
+				tmp = 1000 * (memory->killers->score(game, mv));
+				mv.sort_score += tmp;
 
 				// Capture score is at most 560
 				// Prefer to capture the biggest piece, then prefer to use the smallest
@@ -371,11 +402,10 @@ class MoveManager{
 
 				// Use history heuristic for any moves that remain
 				if(game.board_state.whites_turn){
-					mv.sort_score += memory.hh.score(game, mv);
+					mv.sort_score += memory->hh->score(game, mv);
 				}else{
-					mv.sort_score += memory.hh.score(game, mv);
+					mv.sort_score += memory->hh->score(game, mv);
 				}
-
 			}
 
 			// Sort moves based on sort_score.  Highest to lowest.
@@ -416,7 +446,7 @@ class MoveManager{
 
 
 template<class Evaluation>
-AlphaBetaValue quiesce(GameState &game, MoveManager &manager, SearchMemory &memory, float alpha, float beta, int depth){
+AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, float alpha, float beta, int depth){
 	// Note that the caller has already ensured that this is not a terminal node
 	// The main difference between quiesce and alphabeta is that we stop searching early if the
 	// current evaluation ever gets too good.  We're only looking for obvious reasons not to do the move.
@@ -454,22 +484,22 @@ AlphaBetaValue quiesce(GameState &game, MoveManager &manager, SearchMemory &memo
 	// Generate and order moves
 	bool in_check = own_check(&game);// TODO: The caller may have already evaluated this.
 	if(in_check){
-		manager.generate_all(game, depth);
-		manager.order_all(game, memory, depth);
+		manager->generate_all(game, depth);
+		manager->order_all(game, memory, depth);
 	}else{
-		manager.generate_noisy(game, depth);
-		manager.order_all(game, memory, depth); // TODO: Use order_noisy
+		manager->generate_noisy(game, depth);
+		manager->order_all(game, memory, depth); // TODO: Use order_noisy
 	}
 
 	// Recurse
 	AlphaBetaValue search_result;
 	move mv;
 	moverecord rec;
-	move *moves = manager.get_moves(depth);
-	for(int i=manager.full_begin;i<manager.pv_end;i++){
+	move *moves = manager->get_moves(depth);
+	for(int i=manager->full_begin;i<manager->pv_end;i++){
 		mv = moves[i];
-		rec = manager.make(game, mv);
-		if(i < manager.pv_begin){
+		rec = manager->make(game, mv);
+		if(i < manager->pv_begin){
 			// Search full depth right away
 			search_result = quiesce<Evaluation>(game, manager, memory, alpha, beta, depth-1);
 		}else{
@@ -488,10 +518,10 @@ AlphaBetaValue quiesce(GameState &game, MoveManager &manager, SearchMemory &memo
 				}
 			}
 		}
-		manager.unmake(game, rec);
+		manager->unmake(game, rec);
 		if((maximize && search_result.fail_high) || ((!maximize) && search_result.fail_low)){
 			// Cut node.  Yay!
-			memory.tt.setitem(game, TranspositionEntry(game, result, depth));
+			memory->tt->setitem(game, TranspositionEntry(game, result, depth));
 			return search_result;
 		}else if(((!maximize) && search_result.fail_high) || (maximize && search_result.fail_low)){
 			// Potential all node. Ugh.
@@ -518,7 +548,7 @@ AlphaBetaValue quiesce(GameState &game, MoveManager &manager, SearchMemory &memo
 	}
 
 	// Update transposition table and return.
-	memory.tt.setitem(game, TranspositionEntry(game, result, depth));
+	memory->tt->setitem(game, TranspositionEntry(game, result, depth));
 	return result;
 
 }
@@ -526,7 +556,7 @@ AlphaBetaValue quiesce(GameState &game, MoveManager &manager, SearchMemory &memo
 
 
 template<class Evaluation>
-AlphaBetaValue alphabeta(GameState &game, MoveManager &manager, SearchMemory &memory, float alpha, float beta, int depth){
+AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, float alpha, float beta, int depth){
 	// Not using negamax.  All scores will be from the perspective of white.  That is,
 	// white seeks to maximize and black seeks to minimize.
 
@@ -540,7 +570,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager &manager, SearchMemory &me
 	bool did_guess = false;
 
 	// Check transposition table.  Can update alpha or beta or simply return.
-	TranspositionEntry entry = memory.tt.getitem(game);
+	TranspositionEntry entry = memory->tt->getitem(game);
 	if(entry != null_te && (entry.depth >= depth || (entry.value.checkmate && entry.depth >= 0))){
 		// The transposition entry is valid at this depth
 
@@ -578,10 +608,10 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager &manager, SearchMemory &me
 	}
 
 	// Generate moves
-	manager.generate_all(game, depth);
+	manager->generate_all(game, depth);
 
 	// Check for checkmates and draws
-	if(manager.num_moves == 0){
+	if(manager->num_moves == 0){
 		if(own_check(&game)){
 			// Checkmate.  We lose.
 			result.value = maximize?(-(Evaluation::mate)):(Evaluation::mate);
@@ -607,7 +637,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager &manager, SearchMemory &me
 			result.value = beta;
 		}
 		result.best_move = nomove;
-		memory.tt.setitem(game, TranspositionEntry(game, result, depth));
+		memory->tt->setitem(game, TranspositionEntry(game, result, depth));
 		return result;
 	}
 
@@ -616,12 +646,12 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager &manager, SearchMemory &me
 	if(depth <= 0){
 		stand_pat = Evaluation::evaluate(game);
 		result = quiesce<Evaluation>(game, manager, memory, alpha, beta, stand_pat);
-		memory.tt.setitem(game, TranspositionEntry(game, result, depth));
+		memory->tt->setitem(game, TranspositionEntry(game, result, depth));
 		return result;
 	}
 
 	// Order moves
-	manager.order_all(game, memory, depth);
+	manager->order_all(game, memory, depth);
 
 	// Do any internal iterative deepening or other scouting steps, and
 	// possibly reorder
@@ -629,7 +659,6 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager &manager, SearchMemory &me
 	// Iterate over full moves
 	move mv;
 	AlphaBetaValue search_result;
-
 	// Begin by assuming an all node
 	if(maximize){
 		result.fail_low = true;
@@ -651,12 +680,12 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager &manager, SearchMemory &me
 		result.best_move = nomove;
 	}
 
-	move *moves = manager.get_moves(depth);
+	move *moves = manager->get_moves(depth);
 	moverecord rec;
-	for(int i=manager.full_begin;i<manager.pv_end;i++){
+	for(int i=manager->full_begin;i<manager->pv_end;i++){
 		mv = moves[i];
-		rec = manager.make(game, mv);
-		if(i < manager.pv_begin){
+		rec = manager->make(game, mv);
+		if(i < manager->pv_begin){
 			// Search full depth right away
 			search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1);
 		}else{
@@ -675,12 +704,12 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager &manager, SearchMemory &me
 				}
 			}
 		}
-		manager.unmake(game, rec);
+		manager->unmake(game, rec);
 		if((maximize && search_result.fail_high) || ((!maximize) && search_result.fail_low)){
 			// Cut node.  Yay!
-			memory.hh.record_cutoff(game, mv);
-			memory.killers.record_cutoff(game, mv);
-			memory.tt.setitem(game, TranspositionEntry(game, result, depth));
+			memory->hh->record_cutoff(game, mv);
+			memory->killers->record_cutoff(game, mv);
+			memory->tt->setitem(game, TranspositionEntry(game, result, depth));
 			return search_result;
 		}else if(((!maximize) && search_result.fail_high) || (maximize && search_result.fail_low)){
 			// Potential all node. Ugh.
@@ -689,6 +718,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager &manager, SearchMemory &me
 			// It's a potential PV node!
 			if((maximize && (search_result.value >= result.value)) || ((!maximize) && (search_result.value <= result.value))){
 				result = search_result;
+				result.best_move = mv;
 				if(search_result.checkmate){
 					// Prefer sooner checkmates if we win, later if we lose
 					if((result.ply > search_result.ply) && (result.checkmate_maximize != maximize)){
@@ -704,13 +734,11 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager &manager, SearchMemory &me
 				}
 			}
 		}
-
-
 	}
 
 	// We checked everything.  Either it's an all node or a pv node.
 	// Update transposition table and return.
-	memory.tt.setitem(game, TranspositionEntry(game, result, depth));
+	memory->tt->setitem(game, TranspositionEntry(game, result, depth));
 	return result;
 
 }
