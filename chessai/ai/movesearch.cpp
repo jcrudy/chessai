@@ -4,6 +4,7 @@ const AlphaBetaValue empty_alpha_beta_value = AlphaBetaValue();
 const TranspositionEntry null_te = TranspositionEntry();
 const float SimpleEvaluation::mate = 200000;
 const float SimpleEvaluation::draw = 0;
+const float SimpleEvaluation::delta = 1000;
 const int KillerTable::num_ply = 200;
 
 void TranspositionTable::initialize(size_t size){

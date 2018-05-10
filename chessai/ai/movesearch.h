@@ -182,6 +182,7 @@ extern const TranspositionEntry null_te;
 struct SimpleEvaluation{
 	static const float mate;
 	static const float draw;
+	static const float delta;
 	static const float evaluate(GameState &brd){
 		float white_score, black_score;
 		white_score = 0;
@@ -493,23 +494,33 @@ AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memo
 		if(result.value > beta){
 			result.value = beta;
 			result.fail_high = true;
+//			printf("Q A %d\n", depth);
 			return result;
 		}else if(result.value > alpha){
 			alpha = result.value;
+		}else if(result.value < alpha - Evaluation::delta){
+			result.value = alpha;
+			result.fail_low = true;
+			return result;
 		}
 	}else{
 		if(result.value < alpha){
 			result.value = alpha;
 			result.fail_low = true;
+//			printf("Q A %d\n", depth);
 			return result;
 		}else if(result.value < beta){
 			beta = result.value;
+		}else if(result.value > beta + Evaluation::delta){
+			result.value = beta;
+			result.fail_high = true;
+			return result;
 		}
 	}
 
 	// Generate and order moves
 	bool in_check = own_check(&game);// TODO: The caller may have already evaluated this.
-	if(in_check){
+	if(in_check && depth > -2){
 		manager->generate_all(game, depth);
 		manager->order_all(game, memory, depth);
 	}else{
@@ -548,11 +559,11 @@ AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memo
 		if((maximize && search_result.fail_high) || ((!maximize) && search_result.fail_low)){
 			// Cut node.  Yay!
 			memory->tt->setitem(game, TranspositionEntry(game, result, depth));
+//			printf("Q B %d\n", depth);
 			return search_result;
 		}else if(((!maximize) && search_result.fail_high) || (maximize && search_result.fail_low)){
 			// Potential all node. Ugh.
-		}
-		else{
+		}else{
 			// It's a potential PV node!
 			if((maximize && (search_result.value >= result.value)) || ((!maximize) && (search_result.value <= result.value))){
 				result = search_result;
@@ -560,8 +571,10 @@ AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memo
 					// Prefer sooner checkmates if we win, later if we lose
 					if((result.ply > search_result.ply) && (result.checkmate_maximize != maximize)){
 						result = search_result;
+						result.best_move = mv;
 					}else if((result.ply < search_result.ply) && (result.checkmate_maximize == maximize)){
 						result = search_result;
+						result.best_move = mv;
 					}
 				}
 				if(maximize){
@@ -575,6 +588,7 @@ AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memo
 
 	// Update transposition table and return.
 	memory->tt->setitem(game, TranspositionEntry(game, result, depth));
+//	printf("Q C %d\n", depth);
 	return result;
 
 }
