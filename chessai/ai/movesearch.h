@@ -24,11 +24,6 @@ class MoveTable{
 				delete[] best_moves;
 			}
 		}
-		bool compare(move &lhs, move &rhs){
-			// The higher the move's score, the lower the move (in search order)
-			return (get(lhs) < get(rhs));
-
-		}
 		void add(move &mv, ElementType amount){
 			elements[mv.from_square][mv.to_square] += amount;
 			ElementType current = elements[mv.from_square][mv.to_square];
@@ -357,11 +352,20 @@ class MoveManager{
 	// Responsible for move ordering
 	public:
 		MoveManager(){}
+		int getindex(int depth){
+			int index = depth % maxply;
+			if(index < 0){
+				index += maxply;
+			}
+			return index;
+		}
 		void generate_all(GameState &game, int depth){
-			_num_moves[depth % maxply] = all_moves(&game, buffer[depth % maxply]);
+			int index = getindex(depth);
+			_num_moves[index] = all_moves(&game, buffer[index]);
 		}
 		void generate_noisy(GameState &game, int depth){
-			_num_moves[depth % maxply] = all_captures(&game, buffer[depth % maxply]);
+			int index = getindex(depth);
+			_num_moves[index] = all_captures(&game, buffer[index]);
 		}
 		void order_all(GameState &game, SearchMemory *memory, int depth){
 			// Determine best move from transposition table
@@ -372,7 +376,7 @@ class MoveManager{
 			}
 
 			// Score all moves based on where they will be in the order
-			int index = depth % maxply;
+			int index = getindex(depth);
 			move *current_buffer = buffer[index];
 			int capture_count = 0;
 			piece capture_target;
@@ -427,22 +431,28 @@ class MoveManager{
 			unmake_move(&game, &rec);
 		}
 		move *get_moves(int depth){
-			return buffer[depth % maxply];
+			int index = getindex(depth);
+			return buffer[index];
 		}
 		int full_begin(int depth){
-			return _full_begin[depth % maxply];
+			int index = getindex(depth);
+			return _full_begin[index];
 		}
 		int full_end(int depth){
-			return _full_end[depth % maxply];
+			int index = getindex(depth);
+			return _full_end[index];
 		}
 		int pv_begin(int depth){
-			return _pv_begin[depth % maxply];
+			int index = getindex(depth);
+			return _pv_begin[index];
 		}
 		int pv_end(int depth){
-			return _pv_end[depth % maxply];
+			int index = getindex(depth);
+			return _pv_end[index];
 		}
 		int num_moves(int depth){
-			return _num_moves[depth % maxply];
+			int index = getindex(depth);
+			return _num_moves[index];
 		}
 	private:
 		// No search is likely to exceed 1000 ply, and
@@ -578,11 +588,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 
 	// Check whether maximizing or minimizing
 	bool maximize = game.board_state.whites_turn;
-	if(maximize){
-		printf("Maximizing %d\n", depth);
-	}else{
-		printf("Minimizing %d\n", depth);
-	}
+
 	// Allocate the result
 	AlphaBetaValue result;
 	float value;
@@ -611,7 +617,6 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				result.ply = entry.value.ply;
 				result.value = alpha;
 				result.best_move = nomove;
-				printf("return 1 %d\n", depth);
 				return result;
 			}else if(value > beta){
 				result.fail_low = false;
@@ -621,10 +626,8 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				result.ply = entry.value.ply;
 				result.value = beta;
 				result.best_move = nomove;
-				printf("return 2 %d\n", depth);
 				return result;
 			}else{
-				printf("return 3 %d\n", depth);
 				return entry.value;
 			}
 		}
@@ -661,7 +664,6 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 		}
 		result.best_move = nomove;
 		memory->tt->setitem(game, TranspositionEntry(game, result, depth));
-		printf("return 4 %d\n", depth);
 		return result;
 	}
 
@@ -669,9 +671,8 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	float stand_pat;
 	if(depth <= 0){
 		stand_pat = Evaluation::evaluate(game);
-		result = quiesce<Evaluation>(game, manager, memory, alpha, beta, stand_pat);
+		result = quiesce<Evaluation>(game, manager, memory, alpha, beta, depth - 1);
 		memory->tt->setitem(game, TranspositionEntry(game, result, depth));
-		printf("return 5 %d\n", depth);
 		return result;
 	}
 
@@ -707,12 +708,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 
 	move *moves = manager->get_moves(depth);
 	moverecord rec;
-	printf("manager->full_begin = %d\n", manager->full_begin(depth));
-	printf("manager->full_end = %d\n", manager->full_end(depth));
-	printf("manager->pv_begin = %d\n", manager->pv_begin(depth));
-	printf("manager->pv_end = %d\n", manager->pv_end(depth));
 	for(int i=(manager->full_begin(depth));i<(manager->pv_end(depth));i++){
-		printf("i=%d\n", i);
 		mv = moves[i];
 		rec = manager->make(game, mv);
 		if(i < manager->pv_begin(depth)){
@@ -734,15 +730,12 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				}
 			}
 		}
-		printf("i2=%d\n", i);
 		manager->unmake(game, rec);
 		if((maximize && search_result.fail_high) || ((!maximize) && search_result.fail_low)){
 			// Cut node.  Yay!
 			memory->hh->record_cutoff(game, mv);
 			memory->killers->record_cutoff(game, mv);
 			memory->tt->setitem(game, TranspositionEntry(game, result, depth));
-			printf("cut %d\n", depth);
-			printf("return 6 %d\n", depth);
 			return search_result;
 		}else if(((!maximize) && search_result.fail_high) || (maximize && search_result.fail_low)){
 			// Potential all node. Ugh.
@@ -773,15 +766,12 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				}
 			}
 		}
-		printf("i3=%d\n", i);
-		printf("i3 manager->pv_end = %d\n", manager->pv_end(depth));
 	}
 
 
 	// We checked everything.  Either it's an all node or a pv node.
 	// Update transposition table and return.
 	memory->tt->setitem(game, TranspositionEntry(game, result, depth));
-	printf("return 7 %d\n", depth);
 	return result;
 
 }
