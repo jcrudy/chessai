@@ -612,15 +612,18 @@ cdef class Player:
     cdef SearchMemory *memory
     cdef MoveManager *manager
     def __init__(Player self, size_t tt_size, int num_killers, int num_history):
-        print('A')
         self.memory = new SearchMemory(tt_size, num_killers, num_history)
-        print('B')
         self.manager = new MoveManager()
-        print('C')
     
     cpdef Move movesearch(Player self, BitBoardState board):
         cdef AlphaBetaValue search_result
-        search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000., 1000000., 60)
+        search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000., 1000000., 3)
+        if search_result.fail_low:
+            print('fail_low')
+        elif search_result.fail_high:
+            print('fail_high')
+        else:
+            print('no fail')
         cdef Move result = Move()
         result.mv = search_result.best_move
         return result

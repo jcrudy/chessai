@@ -27,7 +27,8 @@ def test_movesearch():
     print('\n')
     print(board.to_grid())
     print 4
-    while(True):
+#     while(True):
+    for _ in range(3):
         t0 = time.time()
         print 5
         move = white.movesearch(board)
@@ -39,7 +40,6 @@ def test_movesearch():
             board.make_move(move)
         print('#'*10)
         print(board.to_grid())
-        break
 #         break
         if board.checkmate():
             print 'White wins!'

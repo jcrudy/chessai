@@ -358,10 +358,10 @@ class MoveManager{
 	public:
 		MoveManager(){}
 		void generate_all(GameState &game, int depth){
-			num_moves = all_moves(&game, buffer[depth % maxply]);
+			_num_moves[depth % maxply] = all_moves(&game, buffer[depth % maxply]);
 		}
 		void generate_noisy(GameState &game, int depth){
-			num_moves = all_captures(&game, buffer[depth % maxply]);
+			_num_moves[depth % maxply] = all_captures(&game, buffer[depth % maxply]);
 		}
 		void order_all(GameState &game, SearchMemory *memory, int depth){
 			// Determine best move from transposition table
@@ -372,7 +372,8 @@ class MoveManager{
 			}
 
 			// Score all moves based on where they will be in the order
-			move *current_buffer = buffer[depth % maxply];
+			int index = depth % maxply;
+			move *current_buffer = buffer[index];
 			int capture_count = 0;
 			piece capture_target;
 			move mv;
@@ -380,7 +381,7 @@ class MoveManager{
 			int history_score;
 			int capture_score;
 			int tmp;
-			for(int i=0;i<num_moves;i++){
+			for(int i=0;i<_num_moves[index];i++){
 				mv = current_buffer[i];
 				mv.sort_score = 0;
 				if(mv == best_move){
@@ -409,13 +410,13 @@ class MoveManager{
 			}
 
 			// Sort moves based on sort_score.  Highest to lowest.
-			std::sort(current_buffer, current_buffer + num_moves);
+			std::sort(current_buffer, current_buffer + _num_moves[index]);
 
 			// Keep track of this stuff
-			full_begin = 0;
-			full_end = num_moves > 3?3:num_moves; // TODO: Experiment with this.
-			pv_begin = full_end;
-			pv_end = num_moves;
+			_full_begin[index] = 0;
+			_full_end[index] = _num_moves[index] > 3?3:_num_moves[index]; // TODO: Experiment with this.
+			_pv_begin[index] = _full_end[index];
+			_pv_end[index] = _num_moves[index];
 
 		}
 //		void order_noisy(GameState &game, SearchMemory<num_killers, num_history> &memory) = order_all;
@@ -428,17 +429,32 @@ class MoveManager{
 		move *get_moves(int depth){
 			return buffer[depth % maxply];
 		}
-		int full_begin;
-		int full_end;
-		int pv_begin;
-		int pv_end;
-		int num_moves;
+		int full_begin(int depth){
+			return _full_begin[depth % maxply];
+		}
+		int full_end(int depth){
+			return _full_end[depth % maxply];
+		}
+		int pv_begin(int depth){
+			return _pv_begin[depth % maxply];
+		}
+		int pv_end(int depth){
+			return _pv_end[depth % maxply];
+		}
+		int num_moves(int depth){
+			return _num_moves[depth % maxply];
+		}
 	private:
 		// No search is likely to exceed 1000 ply, and
 		// no position has more than 1000 possible moves
 		static const int maxply = 1000;
 		static const int maxmove = 1000;
 		move buffer[maxply][maxmove];
+		int _full_begin[maxply];
+		int _full_end[maxply];
+		int _pv_begin[maxply];
+		int _pv_end[maxply];
+		int _num_moves[maxply];
 
 
 };
@@ -496,10 +512,10 @@ AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memo
 	move mv;
 	moverecord rec;
 	move *moves = manager->get_moves(depth);
-	for(int i=manager->full_begin;i<manager->pv_end;i++){
+	for(int i=manager->full_begin(depth);i<manager->pv_end(depth);i++){
 		mv = moves[i];
 		rec = manager->make(game, mv);
-		if(i < manager->pv_begin){
+		if(i < manager->pv_begin(depth)){
 			// Search full depth right away
 			search_result = quiesce<Evaluation>(game, manager, memory, alpha, beta, depth-1);
 		}else{
@@ -561,8 +577,12 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	// white seeks to maximize and black seeks to minimize.
 
 	// Check whether maximizing or minimizing
-	const bool maximize = game.board_state.whites_turn;
-
+	bool maximize = game.board_state.whites_turn;
+	if(maximize){
+		printf("Maximizing %d\n", depth);
+	}else{
+		printf("Minimizing %d\n", depth);
+	}
 	// Allocate the result
 	AlphaBetaValue result;
 	float value;
@@ -591,6 +611,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				result.ply = entry.value.ply;
 				result.value = alpha;
 				result.best_move = nomove;
+				printf("return 1 %d\n", depth);
 				return result;
 			}else if(value > beta){
 				result.fail_low = false;
@@ -600,8 +621,10 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				result.ply = entry.value.ply;
 				result.value = beta;
 				result.best_move = nomove;
+				printf("return 2 %d\n", depth);
 				return result;
 			}else{
+				printf("return 3 %d\n", depth);
 				return entry.value;
 			}
 		}
@@ -611,7 +634,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	manager->generate_all(game, depth);
 
 	// Check for checkmates and draws
-	if(manager->num_moves == 0){
+	if(manager->num_moves(depth) == 0){
 		if(own_check(&game)){
 			// Checkmate.  We lose.
 			result.value = maximize?(-(Evaluation::mate)):(Evaluation::mate);
@@ -638,6 +661,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 		}
 		result.best_move = nomove;
 		memory->tt->setitem(game, TranspositionEntry(game, result, depth));
+		printf("return 4 %d\n", depth);
 		return result;
 	}
 
@@ -647,6 +671,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 		stand_pat = Evaluation::evaluate(game);
 		result = quiesce<Evaluation>(game, manager, memory, alpha, beta, stand_pat);
 		memory->tt->setitem(game, TranspositionEntry(game, result, depth));
+		printf("return 5 %d\n", depth);
 		return result;
 	}
 
@@ -682,10 +707,15 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 
 	move *moves = manager->get_moves(depth);
 	moverecord rec;
-	for(int i=manager->full_begin;i<manager->pv_end;i++){
+	printf("manager->full_begin = %d\n", manager->full_begin(depth));
+	printf("manager->full_end = %d\n", manager->full_end(depth));
+	printf("manager->pv_begin = %d\n", manager->pv_begin(depth));
+	printf("manager->pv_end = %d\n", manager->pv_end(depth));
+	for(int i=(manager->full_begin(depth));i<(manager->pv_end(depth));i++){
+		printf("i=%d\n", i);
 		mv = moves[i];
 		rec = manager->make(game, mv);
-		if(i < manager->pv_begin){
+		if(i < manager->pv_begin(depth)){
 			// Search full depth right away
 			search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1);
 		}else{
@@ -704,12 +734,15 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				}
 			}
 		}
+		printf("i2=%d\n", i);
 		manager->unmake(game, rec);
 		if((maximize && search_result.fail_high) || ((!maximize) && search_result.fail_low)){
 			// Cut node.  Yay!
 			memory->hh->record_cutoff(game, mv);
 			memory->killers->record_cutoff(game, mv);
 			memory->tt->setitem(game, TranspositionEntry(game, result, depth));
+			printf("cut %d\n", depth);
+			printf("return 6 %d\n", depth);
 			return search_result;
 		}else if(((!maximize) && search_result.fail_high) || (maximize && search_result.fail_low)){
 			// Potential all node. Ugh.
@@ -717,16 +750,22 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 		else{
 			// It's a potential PV node!
 			if((maximize && (search_result.value >= result.value)) || ((!maximize) && (search_result.value <= result.value))){
-				result = search_result;
-				result.best_move = mv;
+
 				if(search_result.checkmate){
 					// Prefer sooner checkmates if we win, later if we lose
 					if((result.ply > search_result.ply) && (result.checkmate_maximize != maximize)){
 						result = search_result;
+						result.best_move = mv;
 					}else if((result.ply < search_result.ply) && (result.checkmate_maximize == maximize)){
 						result = search_result;
+						result.best_move = mv;
 					}
+
+				}else{
+					result = search_result;
+					result.best_move = mv;
 				}
+
 				if(maximize){
 					alpha = result.value;
 				}else{
@@ -734,11 +773,15 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				}
 			}
 		}
+		printf("i3=%d\n", i);
+		printf("i3 manager->pv_end = %d\n", manager->pv_end(depth));
 	}
+
 
 	// We checked everything.  Either it's an all node or a pv node.
 	// Update transposition table and return.
 	memory->tt->setitem(game, TranspositionEntry(game, result, depth));
+	printf("return 7 %d\n", depth);
 	return result;
 
 }
