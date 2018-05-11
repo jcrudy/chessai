@@ -498,10 +498,14 @@ AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memo
 			return result;
 		}else if(result.value > alpha){
 			alpha = result.value;
-		}else if(result.value < alpha - Evaluation::delta){
-			result.value = alpha;
+		}else if(result.value < alpha){
 			result.fail_low = true;
-			return result;
+			if(result.value < alpha - SimpleEvaluation::delta){
+				result.value = alpha;
+				return result;
+			}else{
+				result.value = alpha;
+			}
 		}
 	}else{
 		if(result.value < alpha){
@@ -512,18 +516,22 @@ AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memo
 		}else if(result.value < beta){
 			beta = result.value;
 		}else if(result.value > beta + Evaluation::delta){
-			result.value = beta;
 			result.fail_high = true;
-			return result;
+			if(result.value > beta + Evaluation::delta){
+				result.value = beta;
+				return result;
+			}else{
+				result.value = beta;
+			}
 		}
 	}
 
 	// Generate and order moves
 	bool in_check = own_check(&game);// TODO: The caller may have already evaluated this.
-	if(in_check && depth > -2){
+	if(in_check && depth > -10){
 		manager->generate_all(game, depth);
 		manager->order_all(game, memory, depth);
-	}else{
+	}else if(true){
 		manager->generate_noisy(game, depth);
 		manager->order_all(game, memory, depth); // TODO: Use order_noisy
 	}
