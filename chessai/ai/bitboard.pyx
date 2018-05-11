@@ -58,12 +58,15 @@ cdef extern from "bitboardlib.h":
         BoardState board_state
     
     ctypedef struct GameState:
-        BoardState board_state;
+        BoardState board_state
         unsigned int halfmove_clock
         unsigned int fullmove_counter
+        unsigned int halfmove_counter
+        unsigned int threefold_repetition_clock
         piece piece_map[64]
-        zobrist_int hash
+        zobrist_int hash;
         record_entry record[10000]
+        GameState();
     
     ctypedef struct move:
         brdidx from_square
@@ -82,7 +85,8 @@ cdef extern from "bitboardlib.h":
         brdidx from_square
         brdidx to_square
         piece promoted_from
-
+    
+    cdef bool draw_by_repetition(GameState *brd)
     cdef moverecord make_move(GameState *brd, move *mv)
     cdef void unmake_move(GameState *brd, moverecord *mv)
     cdef void set_hash(GameState *bs, zobrist_int value)
@@ -253,7 +257,7 @@ cdef extern from "movesearch.h":
         int num_moves
     
     cdef AlphaBetaValue quiesce[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, float alpha, float beta, int depth)
-    cdef AlphaBetaValue alphabeta[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, float alpha, float beta, int depth)
+    cdef AlphaBetaValue alphabeta[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, float alpha, float beta, int depth, bool debug)
     
 #     cdef cppclass SearchMemory:
 #         SearchMemory(int num_killers, int num_moves)
@@ -615,9 +619,9 @@ cdef class Player:
         self.memory = new SearchMemory(tt_size, num_killers, num_history)
         self.manager = new MoveManager()
     
-    cpdef Move movesearch(Player self, BitBoardState board):
+    cpdef Move movesearch(Player self, BitBoardState board, bool debug=False):
         cdef AlphaBetaValue search_result
-        search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000., 1000000., 3)
+        search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000., 1000000., 1, debug)
         if search_result.fail_low:
             print('fail_low')
         elif search_result.fail_high:
@@ -668,7 +672,20 @@ cdef class BitBoardState:
             return True
         else:
             return False
-        
+    
+    cpdef bool draw(BitBoardState self):
+        moves = self.all_moves()
+        if not moves:
+            if not self.check():
+                return True
+            else:
+                return False
+        if self.bs.halfmove_clock >= 50:
+            return True
+        if draw_by_repetition(&(self.bs)):
+            return True
+        return False
+    
     def extract_features(BitBoardState self):
         cdef np.ndarray[double, ndim=3, mode="c"] pieces = np.empty(shape=(20,8,8), order='C')
 #         cdef np.ndarray[double, ndim=3, mode="c"] knight = np.empty(shape=(8,8,2), order='C')  # @DuplicatedSignature

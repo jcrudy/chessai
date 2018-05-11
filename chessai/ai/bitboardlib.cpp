@@ -1249,3 +1249,5 @@ void BoardState::extract_features(BoardFeatures *features){
 }
 
 const BoardState empty_board_state = BoardState();
+
+//const int GameState::maxrecord = 10000;

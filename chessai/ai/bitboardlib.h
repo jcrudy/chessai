@@ -614,18 +614,27 @@ struct record_entry {
 
 struct GameState{
 	BoardState board_state;
+	static const int maxrecord = 10000;
 	unsigned int halfmove_clock;
 	unsigned int fullmove_counter;
 	unsigned int halfmove_counter;
 	unsigned int threefold_repetition_clock;
 	piece piece_map[64];
 	zobrist_int hash;
-	record_entry record[10000];
+	record_entry record[maxrecord];
 //	PositionCounter *position_count;
 //	int current_position_count;
 	GameState();
 	~GameState();
 };
+
+inline int game_record_index(int ply){
+	int result = ply % (GameState::maxrecord);
+	if(result < 0){
+		result += (GameState::maxrecord);
+	}
+	return result;
+}
 
 inline bool operator==(const BoardState& lhs, const BoardState& rhs)
 {
@@ -677,6 +686,26 @@ inline bool operator==(const GameState& lhs, const GameState& rhs)
     	}
     }
     return(true);
+}
+
+inline bool draw_by_repetition(GameState *brd){
+	int repetition_count=0;
+	int repetition_check;
+	record_entry rep_entry;
+	if(brd->threefold_repetition_clock >= 4){
+		for(repetition_check=brd->halfmove_counter-2;
+			repetition_check<=brd->threefold_repetition_clock;
+			repetition_check-=2){
+			rep_entry = brd->record[game_record_index(repetition_check)];
+			if(brd->hash == rep_entry.key && brd->board_state == rep_entry.board_state){
+				repetition_count++;
+			}
+			if(repetition_count>=3){
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 inline piece piece_from_square_index(GameState *bs, brdidx square_index){
@@ -1544,7 +1573,7 @@ inline moverecord make_move(GameState *brd, move *mv){
 //		(*(brd->position_count))[key] = 1;
 //	}
 //	brd->current_position_count = (*(brd->position_count))[key];
-	brd->record[brd->halfmove_counter] = {brd->hash, brd->board_state};
+	brd->record[game_record_index(brd->halfmove_counter)] = {brd->hash, brd->board_state};
 	return(record);
 }
 

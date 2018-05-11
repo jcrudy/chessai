@@ -604,10 +604,13 @@ AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memo
 
 
 template<class Evaluation>
-AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, float alpha, float beta, int depth){
+AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, float alpha, float beta, int depth, bool debug){
 	// Not using negamax.  All scores will be from the perspective of white.  That is,
 	// white seeks to maximize and black seeks to minimize.
 
+	if(debug && depth==1){
+		printf("Enter debug\n");
+	}
 	// Check whether maximizing or minimizing
 	bool maximize = game.board_state.whites_turn;
 
@@ -653,6 +656,35 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				return entry.value;
 			}
 		}
+		if(alpha > beta){
+			// In this case, we can cut out early.
+			// It's a little tricky, though.  If we are maximizing,
+			// it means the parent is minimizing.  We are still in the
+			// parent's perspective in a sense, since we haven't made a move
+			// at this point.  Therefore we fail low if we're minimizing and
+			// vice versa.
+			if(maximize){
+				result.fail_low = false;
+				result.fail_high = true;
+				result.value = beta;
+				result.checkmate = false;
+				result.checkmate_maximize = false;
+				result.draw = false;
+				result.ply = 0;
+				result.best_move = nomove;
+			}else{
+				result.fail_low = true;
+				result.fail_high = false;
+				result.value = alpha;
+				result.checkmate = false;
+				result.checkmate_maximize = false;
+				result.draw = false;
+				result.ply = 0;
+				result.best_move = nomove;
+
+			}
+			return result;
+		}
 	}
 
 	// Generate moves
@@ -676,8 +708,28 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 //			result.checkmate_maximize = maximize;
 		}
 		//
-		result.fail_high = (result.value < beta);
-		result.fail_low = (result.value > alpha);
+		result.fail_high = (result.value > beta);
+		result.fail_low = (result.value < alpha);
+		if(result.fail_low){
+			result.value = alpha;
+		}
+		if(result.fail_high){
+			result.value = beta;
+		}
+		result.best_move = nomove;
+		memory->tt->setitem(game, TranspositionEntry(game, result, depth));
+		return result;
+	}
+
+	// Check for draw by repetition or 50 move rule
+	if(game.halfmove_clock >= 50 || draw_by_repetition(&game)){
+		// Draw
+		result.value = Evaluation::draw;
+		result.checkmate = false;
+		result.draw = true;
+		result.ply = game.halfmove_counter;
+		result.fail_high = (result.value > beta);
+		result.fail_low = (result.value < alpha);
 		if(result.fail_low){
 			result.value = alpha;
 		}
@@ -731,24 +783,27 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	move *moves = manager->get_moves(depth);
 	moverecord rec;
 	for(int i=(manager->full_begin(depth));i<(manager->pv_end(depth));i++){
+		if(depth == 3 & i == 2){
+			printf("b1\n");
+		}
 		mv = moves[i];
 		rec = manager->make(game, mv);
 		if(i < manager->pv_begin(depth)){
 			// Search full depth right away
-			search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1);
+			search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, debug);
 		}else{
 			// Do a narrower search and make it larger if cutoff occurs
 			if(maximize){
-				search_result = alphabeta<Evaluation>(game, manager, memory, alpha, alpha+1, depth-1);
+				search_result = alphabeta<Evaluation>(game, manager, memory, alpha, alpha+1, depth-1, debug);
 				if(search_result.fail_high){
 					// The narrow search returned a lower bound, so we must search again with full width
-					search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1);
+					search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, debug);
 				}
 			}else{
-				search_result = alphabeta<Evaluation>(game, manager, memory, beta-1, beta, depth-1);
+				search_result = alphabeta<Evaluation>(game, manager, memory, beta-1, beta, depth-1, debug);
 				if(search_result.fail_low){
 					// The narrow search returned an upper bound, so we must search again with full width
-					search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1);
+					search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, debug);
 				}
 			}
 		}
