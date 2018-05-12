@@ -120,7 +120,6 @@ def test_movesearch():
 #         print(board.to_grid())
 
 if __name__ == '__main__':
-    test_iterative_speed_boost()
     # This code will run the test in this file.'
     import sys
     import nose

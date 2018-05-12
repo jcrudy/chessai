@@ -34,33 +34,34 @@ void TranspositionTable::setitem(GameState &game, const TranspositionEntry &entr
 	bool maximize = game.board_state.whites_turn;
 	size_t index = getindex(game);
 	TranspositionEntry old = data[index][0];
-	if(old == null_te){
+	if(old == null_te || (old.depth < entry.depth)){
 		// There's nothing here yet
 		data[index][0] = entry;
 		return;
-	}else if(old.key == entry.key && old.brd == entry.brd &&
-			 (old.depth < entry.depth || (entry.depth == old.depth && (old.value.fail_low || old.value.fail_high)))){
-		// The same position but scored to greater depth
-		data[index][0] = entry;
-		return;
 	}
-	if(maximize){
-		if(old.value.fail_low && !entry.value.fail_low){
-			data[index][0] = entry;
-			return;
-		}else if(old.value.value < entry.value.value){
-			data[index][0] = entry;
-			return;
-		}
-	}else{
-		if(old.value.fail_high && !entry.value.fail_high){
-			data[index][0] = entry;
-			return;
-		}else if(old.value.value > entry.value.value){
-			data[index][0] = entry;
-			return;
-		}
-	}
+//	else if(old.key == entry.key && old.brd == entry.brd &&
+//			 (old.depth < entry.depth || (entry.depth == old.depth && (old.value.fail_low || old.value.fail_high)))){
+//		// The same position but scored to greater depth
+//		data[index][0] = entry;
+//		return;
+//	}
+//	if(maximize){
+//		if(old.value.fail_low && !entry.value.fail_low){
+//			data[index][0] = entry;
+//			return;
+//		}else if(old.value.value < entry.value.value){
+//			data[index][0] = entry;
+//			return;
+//		}
+//	}else{
+//		if(old.value.fail_high && !entry.value.fail_high){
+//			data[index][0] = entry;
+//			return;
+//		}else if(old.value.value > entry.value.value){
+//			data[index][0] = entry;
+//			return;
+//		}
+//	}
 
 	// If we got here, the best entry didn't get replaced.  Then we
 	// replace the other entry unless it's the same position at a greater
