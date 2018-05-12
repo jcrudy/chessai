@@ -621,7 +621,7 @@ cdef class Player:
     
     cpdef Move movesearch(Player self, BitBoardState board, bool debug=False):
         cdef AlphaBetaValue search_result
-        search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000., 1000000., 1, debug)
+        search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000., 1000000., 3, debug)
         if search_result.fail_low:
             print('fail_low')
         elif search_result.fail_high:

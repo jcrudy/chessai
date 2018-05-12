@@ -608,7 +608,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	// Not using negamax.  All scores will be from the perspective of white.  That is,
 	// white seeks to maximize and black seeks to minimize.
 
-	if(debug && depth==1){
+	if(debug && depth==3){
 		printf("Enter debug\n");
 	}
 	// Check whether maximizing or minimizing
@@ -628,9 +628,31 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 		if(entry.value.fail_low){
 			// This transposition entry is an upper bound
 			beta = (entry.value.value < beta)?(entry.value.value):beta;
+			if(alpha > beta){
+				result.fail_low = true;
+				result.fail_high = false;
+				result.value = alpha;
+				result.checkmate = false;
+				result.checkmate_maximize = false;
+				result.draw = false;
+				result.ply = 0;
+				result.best_move = nomove;
+				return result;
+			}
 		}else if(entry.value.fail_high){
 			// This transposition entry is a lower bound
 			alpha = (entry.value.value > alpha)?(entry.value.value):alpha;
+			if(alpha > beta){
+				result.fail_low = false;
+				result.fail_high = true;
+				result.value = beta;
+				result.checkmate = false;
+				result.checkmate_maximize = false;
+				result.draw = false;
+				result.ply = 0;
+				result.best_move = nomove;
+				return result;
+			}
 		}else{
 			// The transposition entry is exact
 			value = entry.value.value;
@@ -656,35 +678,35 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				return entry.value;
 			}
 		}
-		if(alpha > beta){
-			// In this case, we can cut out early.
-			// It's a little tricky, though.  If we are maximizing,
-			// it means the parent is minimizing.  We are still in the
-			// parent's perspective in a sense, since we haven't made a move
-			// at this point.  Therefore we fail low if we're minimizing and
-			// vice versa.
-			if(maximize){
-				result.fail_low = false;
-				result.fail_high = true;
-				result.value = beta;
-				result.checkmate = false;
-				result.checkmate_maximize = false;
-				result.draw = false;
-				result.ply = 0;
-				result.best_move = nomove;
-			}else{
-				result.fail_low = true;
-				result.fail_high = false;
-				result.value = alpha;
-				result.checkmate = false;
-				result.checkmate_maximize = false;
-				result.draw = false;
-				result.ply = 0;
-				result.best_move = nomove;
-
-			}
-			return result;
-		}
+//		if(alpha > beta){
+//			// In this case, we can cut out early.
+//			// It's a little tricky, though.  If we are maximizing,
+//			// it means the parent is minimizing.  We are still in the
+//			// parent's perspective in a sense, since we haven't made a move
+//			// at this point.  Therefore we fail low if we're minimizing and
+//			// vice versa.
+//			if(maximize){
+//				result.fail_low = false;
+//				result.fail_high = true;
+//				result.value = beta;
+//				result.checkmate = false;
+//				result.checkmate_maximize = false;
+//				result.draw = false;
+//				result.ply = 0;
+//				result.best_move = nomove;
+//			}else{
+//				result.fail_low = true;
+//				result.fail_high = false;
+//				result.value = alpha;
+//				result.checkmate = false;
+//				result.checkmate_maximize = false;
+//				result.draw = false;
+//				result.ply = 0;
+//				result.best_move = nomove;
+//
+//			}
+//			return result;
+//		}
 	}
 
 	// Generate moves

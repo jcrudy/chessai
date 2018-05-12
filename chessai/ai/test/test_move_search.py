@@ -13,9 +13,9 @@ from chessai.ai.bitboard import BitBoardState, Player
 
 def test_movesearch():
     starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-    starting_fen = 'r1b1kbnr/ppp1pppp/2n5/8/3Pq3/5N2/PPP1QPPP/RNB1KB1R b KQkq - 3 5'
-    starting_fen = '1r3b2/N1pk1p1r/P3pn2/2P4p/5Pp1/R7/3BB2P/3K3b b - f3 0 27'
-    starting_fen = '4k3/N1p2p1r/P1Pb1n2/7p/3Bp2P/1r3B2/8/3K4 w - - 2 34'
+#     starting_fen = 'r1b1kbnr/ppp1pppp/2n5/8/3Pq3/5N2/PPP1QPPP/RNB1KB1R b KQkq - 3 5'
+#     starting_fen = '1r3b2/N1pk1p1r/P3pn2/2P4p/5Pp1/R7/3BB2P/3K3b b - f3 0 27'
+#     starting_fen = '4k3/2p2p2/P1PN1n1r/7p/3Bp2P/1r3B2/8/3K4 b - - 0 35'
 #     starting_fen = 'rn1q1bnr/pp1bk1pp/2p1pp2/8/3p4/BPP1PN2/P4PPP/RN2KB1R b KQ - 2 9'
 #     starting_fen = 'rnbqkb1r/ppp1pppp/5n2/3p4/4P3/2N5/PPPP1PPP/R1BQKBNR w KQkq d6 0 3'
     board = BitBoardState.from_fen(starting_fen)
@@ -24,7 +24,7 @@ def test_movesearch():
     white = Player(5000000, 3, 3)
     black = Player(5000000, 3, 3)
     i = 0
-    debug_on = 2
+    debug_on = 0
     while(True):
         print(board.to_grid())
         if board.draw():
