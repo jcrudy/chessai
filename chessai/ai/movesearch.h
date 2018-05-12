@@ -381,36 +381,36 @@ class MoveManager{
 			move *current_buffer = buffer[index];
 			int capture_count = 0;
 			piece capture_target;
-			move mv;
+			move *mv;
 			int killer_score;
 			int history_score;
 			int capture_score;
 			int tmp;
 			for(int i=0;i<_num_moves[index];i++){
-				mv = current_buffer[i];
-				mv.sort_score = 0;
-				if(mv == best_move){
-					mv.sort_score += 100000;
+				mv = &(current_buffer[i]);
+				mv->sort_score = 0;
+				if((*mv) == best_move){
+					mv->sort_score += 100000;
 				}
 
 				// If there are any killer moves, they will be just below the best move
 				// from the transposition table
-				tmp = 1000 * (memory->killers->score(game, mv));
-				mv.sort_score += tmp;
+				tmp = 1000 * (memory->killers->score(game, *mv));
+				mv->sort_score += tmp;
 
 				// Capture score is at most 560
 				// Prefer to capture the biggest piece, then prefer to use the smallest
-				capture_target = game.piece_map[mv.from_square];
+				capture_target = game.piece_map[mv->from_square];
 				if(capture_target != no){
 					capture_count += 1;
 				}
-				mv.sort_score += 10 * ((10 * piece_to_search_order(game.piece_map[mv.to_square])) + (6 - piece_to_search_order(capture_target)));
+				mv->sort_score += 10 * ((10 * piece_to_search_order(game.piece_map[mv->to_square])) + (6 - piece_to_search_order(capture_target)));
 
 				// Use history heuristic for any moves that remain
 				if(game.board_state.whites_turn){
-					mv.sort_score += memory->hh->score(game, mv);
+					mv->sort_score += memory->hh->score(game, *mv);
 				}else{
-					mv.sort_score += memory->hh->score(game, mv);
+					mv->sort_score += memory->hh->score(game, *mv);
 				}
 			}
 
@@ -494,7 +494,6 @@ AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memo
 		if(result.value > beta){
 			result.value = beta;
 			result.fail_high = true;
-//			printf("Q A %d\n", depth);
 			return result;
 		}else if(result.value > alpha){
 			alpha = result.value;
@@ -511,7 +510,6 @@ AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memo
 		if(result.value < alpha){
 			result.value = alpha;
 			result.fail_low = true;
-//			printf("Q A %d\n", depth);
 			return result;
 		}else if(result.value < beta){
 			beta = result.value;
@@ -567,7 +565,6 @@ AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memo
 		if((maximize && search_result.fail_high) || ((!maximize) && search_result.fail_low)){
 			// Cut node.  Yay!
 			memory->tt->setitem(game, TranspositionEntry(game, result, depth));
-//			printf("Q B %d\n", depth);
 			return search_result;
 		}else if(((!maximize) && search_result.fail_high) || (maximize && search_result.fail_low)){
 			// Potential all node. Ugh.
@@ -596,7 +593,6 @@ AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memo
 
 	// Update transposition table and return.
 	memory->tt->setitem(game, TranspositionEntry(game, result, depth));
-//	printf("Q C %d\n", depth);
 	return result;
 
 }
@@ -608,9 +604,6 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	// Not using negamax.  All scores will be from the perspective of white.  That is,
 	// white seeks to maximize and black seeks to minimize.
 
-	if(debug && depth==3){
-		printf("Enter debug\n");
-	}
 	// Check whether maximizing or minimizing
 	bool maximize = game.board_state.whites_turn;
 
@@ -805,9 +798,6 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	move *moves = manager->get_moves(depth);
 	moverecord rec;
 	for(int i=(manager->full_begin(depth));i<(manager->pv_end(depth));i++){
-		if(depth == 3 & i == 2){
-			printf("b1\n");
-		}
 		mv = moves[i];
 		rec = manager->make(game, mv);
 		if(i < manager->pv_begin(depth)){

@@ -11,6 +11,25 @@ from chessai.ai.bitboard import BitBoardState, Player
 #         board.make_move(move)
 #         print(t)
 
+def test_iterative_speed_boost():
+    starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    player1 = Player(5000000, 3, 3)
+    player2 = Player(5000000, 3, 3)
+    board = BitBoardState.from_fen(starting_fen)
+    depth = 5
+    
+    t0 = time.time()
+    move = player1.movesearch(board, depth)
+    t1 = time.time()
+    print('Initial search to depth %d took %fs. Got %s.' % (depth, t1-t0, str(move)))
+    
+    t0 = time.time()
+    for d in range(depth):
+        move = player2.movesearch(board, d)
+    t1 = time.time()
+    print('Iterative search to depth %d took %fs. Got %s.' % (depth, t1-t0, str(move)))
+        
+    
 def test_movesearch():
     starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 #     starting_fen = 'r1b1kbnr/ppp1pppp/2n5/8/3Pq3/5N2/PPP1QPPP/RNB1KB1R b KQkq - 3 5'
@@ -41,7 +60,7 @@ def test_movesearch():
             player_string = 'Black'
         
         t0 = time.time()
-        move = player.movesearch(board, i == debug_on)
+        move = player.movesearch(board, 3, i == debug_on)
         t1 = time.time()
         print('%s: Search took %fs.' % (board.to_fen(), t1-t0))
         
@@ -101,6 +120,7 @@ def test_movesearch():
 #         print(board.to_grid())
 
 if __name__ == '__main__':
+    test_iterative_speed_boost()
     # This code will run the test in this file.'
     import sys
     import nose

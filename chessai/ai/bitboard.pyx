@@ -619,9 +619,9 @@ cdef class Player:
         self.memory = new SearchMemory(tt_size, num_killers, num_history)
         self.manager = new MoveManager()
     
-    cpdef Move movesearch(Player self, BitBoardState board, bool debug=False):
+    cpdef Move movesearch(Player self, BitBoardState board, int depth, bool debug=False):
         cdef AlphaBetaValue search_result
-        search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000., 1000000., 3, debug)
+        search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000., 1000000., depth, debug)
         if search_result.fail_low:
             print('fail_low')
         elif search_result.fail_high:
