@@ -19,15 +19,15 @@ def test_iterative_speed_boost():
     depth = 5
     
     t0 = time.time()
-    move = player1.movesearch(board, depth)
+    move, score = player1.movesearch(board, depth, True)
     t1 = time.time()
-    print('Initial search to depth %d took %fs. Got %s.' % (depth, t1-t0, str(move)))
+    print('Initial search to depth %d took %fs. Got %s with score %f.' % (depth, t1-t0, str(move), score))
     
     t0 = time.time()
-    for d in range(depth):
-        move = player2.movesearch(board, d)
+    for d in range(depth+1):
+        move, score = player2.movesearch(board, d)
     t1 = time.time()
-    print('Iterative search to depth %d took %fs. Got %s.' % (depth, t1-t0, str(move)))
+    print('Iterative search to depth %d took %fs. Got %s with score %f.' % (depth, t1-t0, str(move), score))
         
     
 def test_movesearch():
@@ -42,8 +42,6 @@ def test_movesearch():
 #     black = ThresholdPlayer(5000000, 1e-9)
     white = Player(5000000, 3, 3)
     black = Player(5000000, 3, 3)
-    i = 0
-    debug_on = 0
     while(True):
         print(board.to_grid())
         if board.draw():
@@ -60,7 +58,7 @@ def test_movesearch():
             player_string = 'Black'
         
         t0 = time.time()
-        move = player.movesearch(board, 3, i == debug_on)
+        move = player.movesearch(board, 3)
         t1 = time.time()
         print('%s: Search took %fs.' % (board.to_fen(), t1-t0))
         
@@ -69,7 +67,6 @@ def test_movesearch():
         else:
             print('%s chose move %s' % (player_string, str(move)))
         board.make_move(move)
-        i += 1
         
 # #     for _ in range(3):
 #         t0 = time.time()
@@ -120,6 +117,8 @@ def test_movesearch():
 #         print(board.to_grid())
 
 if __name__ == '__main__':
+    test_iterative_speed_boost()
+    exit()
     # This code will run the test in this file.'
     import sys
     import nose

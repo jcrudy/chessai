@@ -93,6 +93,10 @@ class MoveTable{
 };
 
 struct AlphaBetaValue{
+	// In alpha-beta search, treat alpha and beta as inclusive (closed) bounds.
+	// If fail_low, value is a closed upper bound.
+	// If fail_high, value is a closed lower bound.
+	// Note that these are fail-soft values.
 	bool fail_low;
 	bool fail_high;
 	bool checkmate;
@@ -180,9 +184,12 @@ class TranspositionTable {
 extern const TranspositionEntry null_te;
 
 struct SimpleEvaluation{
+	static const float infinity;
 	static const float mate;
 	static const float draw;
 	static const float delta;
+	static const float epsilon;
+	static const float zero_window;
 	static const float evaluate(GameState &brd){
 		float white_score, black_score;
 		white_score = 0;
@@ -368,6 +375,70 @@ class MoveManager{
 			int index = getindex(depth);
 			_num_moves[index] = all_captures(&game, buffer[index]);
 		}
+		void order_noisy(GameState &game, SearchMemory *memory, int depth){
+			// Determine best move from transposition table
+			TranspositionEntry entry = memory->tt->getitem(game);
+			move best_move = nomove;
+			if(entry != null_te){
+				best_move = entry.value.best_move;
+			}
+
+			// Score all moves based on where they will be in the order
+			int index = getindex(depth);
+			move *current_buffer = buffer[index];
+			int capture_count = 0;
+			piece capture_target;
+			piece capturer;
+			move *mv;
+			int killer_score;
+			int history_score;
+			int capture_score;
+			int tmp;
+			for(int i=0;i<_num_moves[index];i++){
+				mv = &(current_buffer[i]);
+				mv->sort_score = 0;
+				if((*mv) == best_move){
+					mv->sort_score += 100000;
+				}
+
+				// If there are any killer moves, they will be just below the best move
+				// from the transposition table
+				tmp = 1000 * (memory->killers->score(game, *mv));
+				mv->sort_score += tmp;
+
+				// Use history heuristic for any moves that remain
+				if(game.board_state.whites_turn){
+					mv->sort_score += memory->hh->score(game, *mv);
+				}else{
+					mv->sort_score += memory->hh->score(game, *mv);
+				}
+
+				// Capture score is at most 560
+				// Prefer to capture the biggest piece, then prefer to use the smallest
+				capture_target = game.piece_map[mv->to_square];
+				capturer = game.piece_map[mv->from_square];
+				if(capture_target != no){
+					capture_count += 1;
+					mv->sort_score += 10 * ((10 * piece_to_search_order(capture_target))) + (6 - piece_to_search_order(capturer));
+				}else{
+					// This move is quiet, so it will go at the end and ultimately not be used.
+					mv->sort_score = -1;
+				}
+
+
+			}
+
+			// Sort moves based on sort_score.  Highest to lowest.
+			std::sort(current_buffer, current_buffer + _num_moves[index]);
+
+			// Keep track of this stuff
+			// We will only consider the captures.  All non-captures were set to -1,
+			// and so strictly get sorted after captures.
+			_full_begin[index] = 0;
+			_full_end[index] = capture_count > 3?3:capture_count; // TODO: Experiment with this.
+			_pv_begin[index] = _full_end[index];
+			_pv_end[index] = capture_count;
+		}
 		void order_all(GameState &game, SearchMemory *memory, int depth){
 			// Determine best move from transposition table
 			TranspositionEntry entry = memory->tt->getitem(game);
@@ -381,6 +452,7 @@ class MoveManager{
 			move *current_buffer = buffer[index];
 			int capture_count = 0;
 			piece capture_target;
+			piece capturer;
 			move *mv;
 			int killer_score;
 			int history_score;
@@ -401,10 +473,11 @@ class MoveManager{
 				// Capture score is at most 560
 				// Prefer to capture the biggest piece, then prefer to use the smallest
 				capture_target = game.piece_map[mv->from_square];
+				capturer = game.piece_map[mv->from_square];
 				if(capture_target != no){
 					capture_count += 1;
+					mv->sort_score += 10 * ((10 * piece_to_search_order(capture_target))) + (6 - piece_to_search_order(capturer));
 				}
-				mv->sort_score += 10 * ((10 * piece_to_search_order(game.piece_map[mv->to_square])) + (6 - piece_to_search_order(capture_target)));
 
 				// Use history heuristic for any moves that remain
 				if(game.board_state.whites_turn){
@@ -474,9 +547,6 @@ class MoveManager{
 
 template<class Evaluation>
 AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, float alpha, float beta, int depth){
-	// Note that the caller has already ensured that this is not a terminal node
-	// The main difference between quiesce and alphabeta is that we stop searching early if the
-	// current evaluation ever gets too good.  We're only looking for obvious reasons not to do the move.
 
 	AlphaBetaValue result;
 
@@ -491,47 +561,102 @@ AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memo
 	result.draw = false;
 	result.ply = game.halfmove_counter;
 	if(maximize){
-		if(result.value > beta){
-			result.value = beta;
+		if(result.value > beta + Evaluation::epsilon){
+//			result.value = beta;
 			result.fail_high = true;
 			return result;
-		}else if(result.value > alpha){
+		}else if(result.value > alpha - Evaluation::epsilon){
 			alpha = result.value;
-		}else if(result.value < alpha){
+		}else if(result.value < alpha - Evaluation::epsilon){
 			result.fail_low = true;
-			if(result.value < alpha - SimpleEvaluation::delta){
-				result.value = alpha;
+			if(result.value < alpha - Evaluation::delta + Evaluation::epsilon){
+//				result.value = alpha;
 				return result;
 			}else{
-				result.value = alpha;
+//				result.value = alpha;
 			}
-		}
+		}//else value == alpha
 	}else{
-		if(result.value < alpha){
-			result.value = alpha;
+		if(result.value < alpha - Evaluation::epsilon){
+//			result.value = alpha;
 			result.fail_low = true;
 			return result;
-		}else if(result.value < beta){
+		}else if(result.value < beta + Evaluation::epsilon){
 			beta = result.value;
-		}else if(result.value > beta + Evaluation::delta){
+		}else if(result.value > beta + Evaluation::epsilon){
 			result.fail_high = true;
-			if(result.value > beta + Evaluation::delta){
-				result.value = beta;
+			if(result.value > beta + Evaluation::delta - Evaluation::epsilon){
+//				result.value = beta;
 				return result;
 			}else{
-				result.value = beta;
+//				result.value = beta;
 			}
-		}
+		}//else value == beta
 	}
 
-	// Generate and order moves
+	// Generate all legal moves.  Some of these will not be searched,
+	// but we need to generate all moves to check for checkmate and
+	// stalemate.
+	manager->generate_all(game, depth);
+
+	// Check for checkmates and draws
+	if(manager->num_moves(depth) == 0){
+		if(own_check(&game)){
+			// Checkmate.  We lose.
+			result.value = maximize?(-(Evaluation::mate)):(Evaluation::mate);
+			result.checkmate = true;
+			result.draw = false;
+			result.ply = game.halfmove_counter;
+			result.checkmate_maximize = maximize;
+		}else{
+			// Stalemate
+			result.value = Evaluation::draw;
+			result.checkmate = false;
+			result.draw = true;
+			result.ply = game.halfmove_counter;
+//			result.checkmate_maximize = maximize;
+		}
+		//
+		result.fail_high = (result.value > beta + Evaluation::epsilon);
+		result.fail_low = (result.value < alpha - Evaluation::epsilon);
+//		if(result.fail_low){
+//			result.value = alpha;
+//		}
+//		if(result.fail_high){
+//			result.value = beta;
+//		}
+		result.best_move = nomove;
+		memory->tt->setitem(game, TranspositionEntry(game, result, depth));
+		return result;
+	}
+
+	// Check for draw by repetition or 50 move rule
+	if(game.halfmove_clock >= 50 || draw_by_repetition(&game)){
+		// Draw
+		result.value = Evaluation::draw;
+		result.checkmate = false;
+		result.draw = true;
+		result.ply = game.halfmove_counter;
+		result.fail_high = (result.value > beta + Evaluation::epsilon);
+		result.fail_low = (result.value < alpha - Evaluation::epsilon);
+//		if(result.fail_low){
+//			result.value = alpha;
+//		}
+//		if(result.fail_high){
+//			result.value = beta;
+//		}
+		result.best_move = nomove;
+		memory->tt->setitem(game, TranspositionEntry(game, result, depth));
+		return result;
+	}
+
+	// Order moves
 	bool in_check = own_check(&game);// TODO: The caller may have already evaluated this.
-	if(in_check && depth > -10){
-		manager->generate_all(game, depth);
+	if(in_check){
 		manager->order_all(game, memory, depth);
-	}else if(true){
-		manager->generate_noisy(game, depth);
-		manager->order_all(game, memory, depth); // TODO: Use order_noisy
+	}else{
+		// Order noisy will trim any quiet moves
+		manager->order_noisy(game, memory, depth);
 	}
 
 	// Recurse
@@ -542,19 +667,19 @@ AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memo
 	for(int i=manager->full_begin(depth);i<manager->pv_end(depth);i++){
 		mv = moves[i];
 		rec = manager->make(game, mv);
-		if(i < manager->pv_begin(depth)){
+		if(i < manager->pv_begin(depth) || true){
 			// Search full depth right away
 			search_result = quiesce<Evaluation>(game, manager, memory, alpha, beta, depth-1);
 		}else{
 			// Do a narrower search and make it larger if no cutoff occurs
 			if(maximize){
-				search_result = quiesce<Evaluation>(game, manager, memory, alpha, alpha+1, depth-1);
+				search_result = quiesce<Evaluation>(game, manager, memory, alpha, alpha+(Evaluation::zero_window), depth-1);
 				if(search_result.fail_high){
 					// The narrow search returned a lower bound, so we must search again with full width
 					search_result = quiesce<Evaluation>(game, manager, memory, alpha, beta, depth-1);
 				}
 			}else{
-				search_result = quiesce<Evaluation>(game, manager, memory, beta-1, beta, depth-1);
+				search_result = quiesce<Evaluation>(game, manager, memory, beta-(Evaluation::zero_window), beta, depth-1);
 				if(search_result.fail_low){
 					// The narrow search returned an upper bound, so we must search again with full width
 					search_result = quiesce<Evaluation>(game, manager, memory, alpha, beta, depth-1);
@@ -570,24 +695,27 @@ AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memo
 			// Potential all node. Ugh.
 		}else{
 			// It's a potential PV node!
-			if((maximize && (search_result.value >= result.value)) || ((!maximize) && (search_result.value <= result.value))){
-				result = search_result;
-				if(search_result.checkmate){
-					// Prefer sooner checkmates if we win, later if we lose
-					if((result.ply > search_result.ply) && (result.checkmate_maximize != maximize)){
-						result = search_result;
-						result.best_move = mv;
-					}else if((result.ply < search_result.ply) && (result.checkmate_maximize == maximize)){
-						result = search_result;
-						result.best_move = mv;
-					}
+			// Compare checkmates to each other
+			if(search_result.checkmate && result.checkmate && result.checkmate_maximize == search_result.checkmate_maximize){
+				// Prefer sooner checkmates if we win, later if we lose
+				if((result.ply > search_result.ply) && (result.checkmate_maximize != maximize)){
+					result = search_result;
+					result.best_move = mv;
+				}else if((result.ply < search_result.ply) && (result.checkmate_maximize == maximize)){
+					result = search_result;
+					result.best_move = mv;
 				}
+			}else if((maximize && (search_result.value > result.value + Evaluation::epsilon)) || ((!maximize) && (search_result.value < result.value - Evaluation::epsilon))){
+				result = search_result;
+				result.best_move = mv;
 				if(maximize){
 					alpha = result.value;
 				}else{
 					beta = result.value;
 				}
 			}
+			// In the remaining case, we tied the previous bound, and we prefer the earlier move for heuristic/consistency reasons.
+
 		}
 	}
 
@@ -607,6 +735,10 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	// Check whether maximizing or minimizing
 	bool maximize = game.board_state.whites_turn;
 
+	if(debug){
+		printf("debug\n");
+	}
+
 	// Allocate the result
 	AlphaBetaValue result;
 	float value;
@@ -620,11 +752,11 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 
 		if(entry.value.fail_low){
 			// This transposition entry is an upper bound
-			beta = (entry.value.value < beta)?(entry.value.value):beta;
-			if(alpha > beta){
+			beta = (entry.value.value < beta - Evaluation::epsilon)?(entry.value.value):beta;
+			if(alpha > beta + Evaluation::epsilon){
 				result.fail_low = true;
 				result.fail_high = false;
-				result.value = alpha;
+				result.value = entry.value.value;
 				result.checkmate = false;
 				result.checkmate_maximize = false;
 				result.draw = false;
@@ -634,11 +766,11 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 			}
 		}else if(entry.value.fail_high){
 			// This transposition entry is a lower bound
-			alpha = (entry.value.value > alpha)?(entry.value.value):alpha;
-			if(alpha > beta){
+			alpha = (entry.value.value > alpha + Evaluation::epsilon)?(entry.value.value):alpha;
+			if(alpha > beta + Evaluation::epsilon){
 				result.fail_low = false;
 				result.fail_high = true;
-				result.value = beta;
+				result.value = entry.value.value;
 				result.checkmate = false;
 				result.checkmate_maximize = false;
 				result.draw = false;
@@ -649,22 +781,22 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 		}else{
 			// The transposition entry is exact
 			value = entry.value.value;
-			if(value < alpha){
+			if(value < alpha - Evaluation::epsilon){
 				result.fail_low = true;
 				result.fail_high = false;
 				result.checkmate = false;
 				result.draw = false;
 				result.ply = entry.value.ply;
-				result.value = alpha;
+				result.value = entry.value.value;
 				result.best_move = nomove;
 				return result;
-			}else if(value > beta){
+			}else if(value > beta + Evaluation::epsilon){
 				result.fail_low = false;
 				result.fail_high = true;
 				result.checkmate = false;
 				result.draw = false;
 				result.ply = entry.value.ply;
-				result.value = beta;
+				result.value = entry.value.value;
 				result.best_move = nomove;
 				return result;
 			}else{
@@ -702,6 +834,15 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 //		}
 	}
 
+	// If this is a leaf node, call quiescence search
+//	float stand_pat;
+	if(depth <= 0){
+//		stand_pat = Evaluation::evaluate(game);
+		result = quiesce<Evaluation>(game, manager, memory, alpha, beta, depth - 1);
+		memory->tt->setitem(game, TranspositionEntry(game, result, depth));
+		return result;
+	}
+
 	// Generate moves
 	manager->generate_all(game, depth);
 
@@ -723,14 +864,14 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 //			result.checkmate_maximize = maximize;
 		}
 		//
-		result.fail_high = (result.value > beta);
-		result.fail_low = (result.value < alpha);
-		if(result.fail_low){
-			result.value = alpha;
-		}
-		if(result.fail_high){
-			result.value = beta;
-		}
+		result.fail_high = (result.value > beta + Evaluation::epsilon);
+		result.fail_low = (result.value < alpha - Evaluation::epsilon);
+//		if(result.fail_low){
+//			result.value = alpha;
+//		}
+//		if(result.fail_high){
+//			result.value = beta;
+//		}
 		result.best_move = nomove;
 		memory->tt->setitem(game, TranspositionEntry(game, result, depth));
 		return result;
@@ -743,24 +884,15 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 		result.checkmate = false;
 		result.draw = true;
 		result.ply = game.halfmove_counter;
-		result.fail_high = (result.value > beta);
-		result.fail_low = (result.value < alpha);
-		if(result.fail_low){
-			result.value = alpha;
-		}
-		if(result.fail_high){
-			result.value = beta;
-		}
+		result.fail_high = (result.value > beta + Evaluation::epsilon);
+		result.fail_low = (result.value < alpha - Evaluation::epsilon);
+//		if(result.fail_low){
+//			result.value = alpha;
+//		}
+//		if(result.fail_high){
+//			result.value = beta;
+//		}
 		result.best_move = nomove;
-		memory->tt->setitem(game, TranspositionEntry(game, result, depth));
-		return result;
-	}
-
-	// If this is a leaf node, call quiescence search
-	float stand_pat;
-	if(depth <= 0){
-		stand_pat = Evaluation::evaluate(game);
-		result = quiesce<Evaluation>(game, manager, memory, alpha, beta, depth - 1);
 		memory->tt->setitem(game, TranspositionEntry(game, result, depth));
 		return result;
 	}
@@ -782,7 +914,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 		result.draw = false;
 		result.checkmate_maximize = false;
 		result.ply = 0;
-		result.value = alpha;
+		result.value = -Evaluation::infinity;
 		result.best_move = nomove;
 	}else{
 		result.fail_low = false;
@@ -791,31 +923,32 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 		result.draw = false;
 		result.checkmate_maximize = false;
 		result.ply = 0;
-		result.value = beta;
+		result.value = Evaluation::infinity;
 		result.best_move = nomove;
 	}
+	bool fail_soft_hit;
 
 	move *moves = manager->get_moves(depth);
 	moverecord rec;
 	for(int i=(manager->full_begin(depth));i<(manager->pv_end(depth));i++){
 		mv = moves[i];
 		rec = manager->make(game, mv);
-		if(i < manager->pv_begin(depth)){
+		if(i < manager->pv_begin(depth) || true){
 			// Search full depth right away
-			search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, debug);
+			search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, false);
 		}else{
 			// Do a narrower search and make it larger if cutoff occurs
 			if(maximize){
-				search_result = alphabeta<Evaluation>(game, manager, memory, alpha, alpha+1, depth-1, debug);
+				search_result = alphabeta<Evaluation>(game, manager, memory, alpha, alpha+(Evaluation::zero_window), depth-1, false);
 				if(search_result.fail_high){
 					// The narrow search returned a lower bound, so we must search again with full width
-					search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, debug);
+					search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, false);
 				}
 			}else{
-				search_result = alphabeta<Evaluation>(game, manager, memory, beta-1, beta, depth-1, debug);
+				search_result = alphabeta<Evaluation>(game, manager, memory, beta-(Evaluation::zero_window), beta, depth-1, false);
 				if(search_result.fail_low){
 					// The narrow search returned an upper bound, so we must search again with full width
-					search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, debug);
+					search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, false);
 				}
 			}
 		}
@@ -826,34 +959,38 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 			memory->killers->record_cutoff(game, mv);
 			memory->tt->setitem(game, TranspositionEntry(game, result, depth));
 			return search_result;
-		}else if(((!maximize) && search_result.fail_high) || (maximize && search_result.fail_low)){
-			// Potential all node. Ugh.
+		}else if((!maximize) && search_result.fail_high){
+			if(search_result.value < result.value - Evaluation::epsilon){
+				result.value = search_result.value;
+				fail_soft_hit = true;
+			}
+		}else if(maximize && search_result.fail_low){
+			if(search_result.value > result.value + Evaluation::epsilon){
+				result.value = search_result.value;
+				fail_soft_hit = true;
+			}
 		}
 		else{
 			// It's a potential PV node!
-			if((maximize && (search_result.value >= result.value)) || ((!maximize) && (search_result.value <= result.value))){
-
-				if(search_result.checkmate){
-					// Prefer sooner checkmates if we win, later if we lose
-					if((result.ply > search_result.ply) && (result.checkmate_maximize != maximize)){
-						result = search_result;
-						result.best_move = mv;
-					}else if((result.ply < search_result.ply) && (result.checkmate_maximize == maximize)){
-						result = search_result;
-						result.best_move = mv;
-					}
-
-				}else{
+			if(search_result.checkmate){
+				// Prefer sooner checkmates if we win, later if we lose
+				if((result.ply > search_result.ply) && (result.checkmate_maximize != maximize)){
+					result = search_result;
+					result.best_move = mv;
+				}else if((result.ply < search_result.ply) && (result.checkmate_maximize == maximize)){
 					result = search_result;
 					result.best_move = mv;
 				}
-
+			}else if((maximize && (search_result.value > result.value + Evaluation::epsilon)) || ((!maximize) && (search_result.value < result.value - Evaluation::epsilon))){
+				result = search_result;
+				result.best_move = mv;
 				if(maximize){
 					alpha = result.value;
 				}else{
 					beta = result.value;
 				}
 			}
+			// In the remaining case, we tied the previous bound, and we prefer the earlier move for heuristic/consistency reasons.
 		}
 	}
 
@@ -865,18 +1002,103 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 
 }
 
-//// TODO: Can this simply be replaced with mtdf?
-//AlphaBetaValue pvsearch(GameState &game, MoveManager &manager, SearchMemory &memory, float alpha, float beta, int depth){
-//	// Check whether maximizing or minimizing
-//
-//	// Look for a cutoff with a narrow window
-//
-//	// If there was no cuttoff, extend the window
-//}
 //template<class Evaluation>
-//AlphaBetaValue mtdf(GameState &game, MoveManager &manager, SearchMemory &memory, float guess, int depth){
+//AlphaBetaValue mtdf(GameState &game, MoveManager &manager, SearchMemory &memory, float alpha, float beta, int depth){
 //	// Check whether maximizing or minimizing
 //	const bool maximize = game.whites_turn;
+//	AlphaBetaValue result;
+//	float orig_alpha = alpha;
+//	float orig_beta = beta;
+//	result.fail_low = false;
+//	result.fail_high = false;
+//	result.value = 0;
+//	result.checkmate = false;
+//	result.checkmate_maximize = false;
+//	result.draw = false;
+//	result.ply = 0;
+//	result.best_move = nomove;
+//
+//	// Check the transposition table
+//	TranspositionEntry entry = memory->tt->getitem(game);
+//	if(entry != null_te && (entry.depth >= depth || (entry.value.checkmate && entry.depth >= 0))){
+//		// The transposition entry is valid at this depth
+//
+//		if(entry.value.fail_low){
+//			// This transposition entry is an upper bound
+//			beta = (entry.value.value < beta)?(entry.value.value):beta;
+//			if(alpha > beta){
+//				result.fail_low = true;
+//				result.fail_high = false;
+//				result.value = alpha;
+//				result.checkmate = false;
+//				result.checkmate_maximize = false;
+//				result.draw = false;
+//				result.ply = 0;
+//				result.best_move = nomove;
+//				return result;
+//			}
+//		}else if(entry.value.fail_high){
+//			// This transposition entry is a lower bound
+//			alpha = (entry.value.value > alpha)?(entry.value.value):alpha;
+//			if(alpha > beta){
+//				result.fail_low = false;
+//				result.fail_high = true;
+//				result.value = beta;
+//				result.checkmate = false;
+//				result.checkmate_maximize = false;
+//				result.draw = false;
+//				result.ply = 0;
+//				result.best_move = nomove;
+//				return result;
+//			}
+//		}else{
+//			// The transposition entry is exact
+//			value = entry.value.value;
+//			if(value < alpha){
+//				result.fail_low = true;
+//				result.fail_high = false;
+//				result.checkmate = false;
+//				result.draw = false;
+//				result.ply = entry.value.ply;
+//				result.value = alpha;
+//				result.best_move = nomove;
+//				return result;
+//			}else if(value > beta){
+//				result.fail_low = false;
+//				result.fail_high = true;
+//				result.checkmate = false;
+//				result.draw = false;
+//				result.ply = entry.value.ply;
+//				result.value = beta;
+//				result.best_move = nomove;
+//				return result;
+//			}else{
+//				return entry.value;
+//			}
+//		}
+//	}else if(entry != null_te){
+//		guess = entry.value.value;
+//	}
+//
+//
+//	// Do mtdf
+//	float proposal;
+//	AlphaBetaValue search_result;
+//	if(maximize){
+//		while(alpha < beta){
+//			proposal = lower_bound-(Evaluation::zero_window);
+//			beta = (guess > proposal)?guess:proposal;
+//			search_result = alphabeta<Evaluation>(game, manager, memory, beta-(Evaluation::zero_window), beta, depth);
+//			if(search_result.fail_low){
+//				// It's bad to fail low because the zero-window search is slower, so take a bigger step.
+//
+//			}
+//
+//		}
+//
+//	}
+//
+//
 //
 //}
 //template<class Evaluation>

@@ -619,7 +619,7 @@ cdef class Player:
         self.memory = new SearchMemory(tt_size, num_killers, num_history)
         self.manager = new MoveManager()
     
-    cpdef Move movesearch(Player self, BitBoardState board, int depth, bool debug=False):
+    def movesearch(Player self, BitBoardState board, int depth, bool debug=False):
         cdef AlphaBetaValue search_result
         search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000., 1000000., depth, debug)
         if search_result.fail_low:
@@ -630,7 +630,7 @@ cdef class Player:
             print('no fail')
         cdef Move result = Move()
         result.mv = search_result.best_move
-        return result
+        return result, search_result.value
     
 # cdef class TimePlayer:
 #     cdef MoveSearchMemory *msm
