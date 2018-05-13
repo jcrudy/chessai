@@ -207,9 +207,9 @@ struct SimpleEvaluation{
 
 		black_score += 1 * 100 * population_count(brd.board_state.black & center4);
 		black_score += 1 * 100 * population_count(brd.board_state.black & center16);
-		black_score += 5 * population_count(brd.board_state.black & brd.board_state.p & rank_1);
-		black_score += 4 * population_count(brd.board_state.black & brd.board_state.p & rank_2);
-		black_score += 3 * population_count(brd.board_state.black & brd.board_state.p & rank_3);
+		black_score += 5 * population_count(brd.board_state.black & brd.board_state.p & rank_2);
+		black_score += 4 * population_count(brd.board_state.black & brd.board_state.p & rank_3);
+		black_score += 3 * population_count(brd.board_state.black & brd.board_state.p & rank_4);
 
 		return white_score - black_score;
 
@@ -608,7 +608,9 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 	}
 
 	// Check for draw by repetition or 50 move rule
-	if(game.halfmove_clock >= 50 || draw_by_repetition(&game)){
+	// A maxrep of 2 is used because, in principal, if we repeat once,
+	// we will repeat again, and this is faster to check.
+	if(game.halfmove_clock >= 50 || draw_by_repetition(&game, 2)){
 		// Draw
 		result = Evaluation::draw;
 		return result;
@@ -681,7 +683,7 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 
 
 template<class Evaluation>
-AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth, bool debug){
+AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth, bool *stop, bool debug){
 	// Not using negamax.  All scores will be from the perspective of white.  That is,
 	// white seeks to maximize and black seeks to minimize.
 
@@ -692,9 +694,23 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	AlphaBetaValue result;
 	int value;
 
+	// Check for draw by repetition or 50 move rule
+	// This must be done before transposition table lookup
+	// because the transposition table does not take the halfmove clock
+	// or threefold clock and position record into account.
+	if(game.halfmove_clock >= 50 || draw_by_repetition(&game, 2)){
+		// Draw
+		printf("Found draw\n");
+		result.value = Evaluation::draw;
+		result.ply = game.halfmove_counter;
+		result.best_move = nomove;
+//		memory->tt->setitem(game, TranspositionEntry(game, result, depth, result.value < alpha, result.value > beta));
+		return result;
+	}
+
 	// Check transposition table.  Can update alpha or beta or simply return.
 	TranspositionEntry entry = memory->tt->getitem(game);
-	if(entry != null_te && (entry.depth >= depth)){// || (entry.value.checkmate && entry.depth >= 0))){
+	if(entry != null_te && (entry.depth >= depth)){
 		if(entry.fail_low){
 			// This transposition entry is an upper bound
 			beta = (entry.value.value < beta)?(entry.value.value):beta;
@@ -720,15 +736,14 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				result.ply = entry.value.ply;
 				result.value = entry.value.value;
 				result.best_move = nomove;
-				return result;
 			}else if(value > beta){
 				result.ply = entry.value.ply;
 				result.value = entry.value.value;
 				result.best_move = nomove;
-				return result;
 			}else{
-				return entry.value;
+				result = entry.value;
 			}
+			return result;
 		}
 	}
 
@@ -744,7 +759,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	// Generate moves
 	manager->generate_all(game, depth);
 
-	// Check for checkmates and draws
+	// Check for checkmates and stalemates
 	if(manager->num_moves(depth) == 0){
 		if(own_check(&game)){
 			// Checkmate.  We lose.
@@ -755,16 +770,6 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 			result.value = Evaluation::draw;
 			result.ply = game.halfmove_counter;
 		}
-		result.best_move = nomove;
-		memory->tt->setitem(game, TranspositionEntry(game, result, depth, result.value < alpha, result.value > beta));
-		return result;
-	}
-
-	// Check for draw by repetition or 50 move rule
-	if(game.halfmove_clock >= 50 || draw_by_repetition(&game)){
-		// Draw
-		result.value = Evaluation::draw;
-		result.ply = game.halfmove_counter;
 		result.best_move = nomove;
 		memory->tt->setitem(game, TranspositionEntry(game, result, depth, result.value < alpha, result.value > beta));
 		return result;
@@ -796,20 +801,20 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 		rec = manager->make(game, mv);
 		if(i < manager->pv_begin(depth)){
 			// Search full depth right away
-			search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, debug_);
+			search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, stop, debug_);
 		}else{
 			// Do a narrower search and make it larger if cutoff occurs
 			if(maximize){
-				search_result = alphabeta<Evaluation>(game, manager, memory, alpha, alpha, depth-1, false);
+				search_result = alphabeta<Evaluation>(game, manager, memory, alpha, alpha, depth-1, stop, false);
 				if(search_result.value > alpha && beta > alpha){
 					// The narrow search returned a lower bound, so we must search again with full width
-					search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, false);
+					search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, stop, false);
 				}
 			}else{
-				search_result = alphabeta<Evaluation>(game, manager, memory, beta, beta, depth-1, false);
+				search_result = alphabeta<Evaluation>(game, manager, memory, beta, beta, depth-1, stop, false);
 				if(search_result.value < beta && beta > alpha){
 					// The narrow search returned an upper bound, so we must search again with full width
-					search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, false);
+					search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, stop, false);
 				}
 			}
 		}
@@ -855,6 +860,10 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				result.value = search_result.value;
 			}
 
+		}
+		if(*stop){
+			// The caller has asked us to stop.  We stop here, and the current result is returned.
+			break;
 		}
 	}
 

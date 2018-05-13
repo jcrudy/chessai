@@ -1,7 +1,7 @@
 from chessai.ai.bitboard import BitBoardState, BitBoard, Move, MoveRecord,\
     int_to_algebraic, algebraic_to_int
 from nose.tools import assert_equal, assert_list_equal, assert_almost_equal,\
-    assert_greater_equal
+    assert_greater_equal, assert_false, assert_true
 import random
 import chess
 import time
@@ -209,6 +209,25 @@ def test_algebraic():
     for ind, alg in correct.items():
         assert_equal(int_to_algebraic(ind), alg)
         assert_equal(ind, algebraic_to_int(alg))
+
+def test_draw_by_repetition():
+    fen = '6kn/8/8/8/8/8/8/NK6 w - - 0 1'
+    board = BitBoardState.from_fen(fen)
+    m1 = Move(0, 10)
+    m2 = Move(63, 53)
+    r1 = Move(10, 0)
+    r2 = Move(53, 63)
+    board.make_move(m1)
+    board.make_move(m2)
+    board.make_move(r1)
+    board.make_move(r2)
+    assert_false(board.draw())
+    assert_true(board.repetition(2))
+    board.make_move(m1)
+    board.make_move(m2)
+    board.make_move(r1)
+    board.make_move(r2)
+    assert_true(board.draw())
 
 def test_promotion():
     fen = '4k3/P7/8/8/8/8/8/8 w - - 0 100'

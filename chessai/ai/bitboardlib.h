@@ -688,19 +688,19 @@ inline bool operator==(const GameState& lhs, const GameState& rhs)
     return(true);
 }
 
-inline bool draw_by_repetition(GameState *brd){
+inline bool draw_by_repetition(GameState *brd, int maxrep){
 	int repetition_count=0;
 	int repetition_check;
 	record_entry rep_entry;
-	if(brd->threefold_repetition_clock >= 4){
-		for(repetition_check=brd->halfmove_counter-2;
-			repetition_check<=brd->threefold_repetition_clock;
-			repetition_check-=2){
+	if(brd->threefold_repetition_clock >= 2 * maxrep){
+		for(repetition_check = brd->halfmove_counter;
+			repetition_check <= brd->threefold_repetition_clock;
+			repetition_check -= 2){
 			rep_entry = brd->record[game_record_index(repetition_check)];
 			if(brd->hash == rep_entry.key && brd->board_state == rep_entry.board_state){
 				repetition_count++;
 			}
-			if(repetition_count>=3){
+			if(repetition_count>=maxrep){
 				return true;
 			}
 		}

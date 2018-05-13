@@ -86,7 +86,7 @@ cdef extern from "bitboardlib.h":
         brdidx to_square
         piece promoted_from
     
-    cdef bool draw_by_repetition(GameState *brd)
+    cdef bool draw_by_repetition(GameState *brd, int maxrep)
     cdef moverecord make_move(GameState *brd, move *mv)
     cdef void unmake_move(GameState *brd, moverecord *mv)
     cdef void set_hash(GameState *bs, zobrist_int value)
@@ -252,7 +252,7 @@ cdef extern from "movesearch.h":
         int num_moves
     
     cdef AlphaBetaValue quiesce[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth)
-    cdef AlphaBetaValue alphabeta[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth, bool debug)
+    cdef AlphaBetaValue alphabeta[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth, bool *stop, bool debug)
     
 #     cdef cppclass SearchMemory:
 #         SearchMemory(int num_killers, int num_moves)
@@ -616,7 +616,8 @@ cdef class Player:
     
     def movesearch(Player self, BitBoardState board, int depth, bool debug=False):
         cdef AlphaBetaValue search_result
-        search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000, 1000000, depth, debug)
+        cdef bool stop = False
+        search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000, 1000000, depth, &stop, debug)
         if search_result.value < -1000000:
             print('fail_low')
         elif search_result.value > 1000000:
@@ -677,7 +678,12 @@ cdef class BitBoardState:
                 return False
         if self.bs.halfmove_clock >= 50:
             return True
-        if draw_by_repetition(&(self.bs)):
+        if draw_by_repetition(&(self.bs), 3):
+            return True
+        return False
+    
+    cpdef bool repetition(BitBoardState self, int maxrep):
+        if draw_by_repetition(&(self.bs), maxrep):
             return True
         return False
     

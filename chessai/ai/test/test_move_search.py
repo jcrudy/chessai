@@ -1,6 +1,17 @@
 import time
-from nose.tools import assert_almost_equal, assert_greater_equal
+from nose.tools import assert_almost_equal, assert_greater_equal, assert_equal
 from chessai.ai.bitboard import BitBoardState, Player
+
+def test_draw():
+    starting_fen = 'Q1k5/7p/2p2r2/1p1p1p2/5qn1/P1N5/1PP4P/3R3K b - - 49 59'
+    board = BitBoardState.from_fen(starting_fen)
+    player = Player(1000000, 3, 3)
+    depth = 6
+    t0 = time.time()
+    move, score = player.movesearch(board, depth)
+    t1 = time.time()
+    print('Search to depth %d took %fs. Got %s with score %d.' % (depth, t1-t0, str(move), score))
+    assert_equal(score, 0)
 
 def test_iterative_speed_boost():
     starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
@@ -24,8 +35,8 @@ def test_iterative_speed_boost():
 def test_movesearch():
     starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     board = BitBoardState.from_fen(starting_fen)
-    white = Player(5000000, 3, 3)
-    black = Player(5000000, 3, 3)
+    white = Player(1000000, 3, 3)
+    black = Player(1000000, 3, 3)
     while(True):
         print(board.to_grid())
         if board.draw():
@@ -42,7 +53,7 @@ def test_movesearch():
             player_string = 'Black'
         
         t0 = time.time()
-        move, score = player.movesearch(board, 5)
+        move, score = player.movesearch(board, 4)
         t1 = time.time()
         print('%s: Search took %fs.' % (board.to_fen(), t1-t0))
         
