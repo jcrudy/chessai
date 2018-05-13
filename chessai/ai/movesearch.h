@@ -221,58 +221,131 @@ struct SimpleEvaluation{
 };
 
 class KillerTable{
+	// Tracks the most recent num_killers cutoff moves
+	// by ply.
 	public:
-		KillerTable(){
+		KillerTable(int num_killers){
 			highest_ply_seen = 0;
-		}
-		void initialize(int num_killers){
-			killers = new MoveTable<int> *[num_ply];
 			this->num_killers = num_killers;
-			for(int i=0;i<num_ply;i++){
-				killers[i] = new MoveTable<int>(num_killers);
+			if(num_killers > 0){
+				killers = new move*[num_ply];
+				starts = new int[num_ply];
+				for(int i=0;i<num_ply;i++){
+					killers[i] = new move[num_killers];
+					starts[i] = num_killers - 1;
+				}
 			}
 		}
-		KillerTable(int num_killers) : KillerTable(){
-			initialize(num_killers);
-		}
+		KillerTable() : KillerTable(0) {}
 		~KillerTable(){
-			for(int i=0;i<num_ply;i++){
-				delete killers[i];
+			if(num_killers > 0){
+				for(int i=0;i<num_ply;i++){
+					delete[] killers[i];
+				}
+				delete[] killers;
+				delete[] starts;
 			}
-			delete[] killers;
 		}
 		void record_cutoff(GameState &game, move &mv){
+			if(num_killers == 0){
+				return;
+			}
 			int ply = game.halfmove_counter;
+			int index = ply % num_ply;
+			move *moves = killers[index];
 			if(ply > highest_ply_seen){
-				clear(ply);
+				// Clear the killers at this index
+				for(int i=0;i<num_killers;i++){
+					moves[i] = nomove;
+				}
+				starts[index] = num_killers-1;
 				highest_ply_seen = ply;
 			}
-			int index = ply % num_ply;
-			MoveTable<int> *table = killers[index];
-			table->add(mv, 1);
+			int start = starts[index];
+			int new_start = start - 1;
+			if(new_start < 0){
+				new_start += num_killers;
+			}
+			moves[new_start] = mv;
+			starts[index] = new_start;
 		}
-		int score(GameState &game, move &mv){
-//			return 0;
-			int index = game.halfmove_counter % num_ply;
-			MoveTable<int> *table = killers[index];
-			int rank = table->rank(mv);
 
-			if(rank == -1){
+		int score(GameState &game, move &mv){
+			// The score is num_killers for the most recent killer,
+			// num_killers - 1 for the next most, and so on.  If none
+			// of the most recent num_killers is a match, the score is
+			// 0.
+			if(num_killers == 0){
 				return 0;
+			}
+			int ply = game.halfmove_counter;
+			if(ply > highest_ply_seen){
+				return 0;
+			}
+			int index = ply % num_ply;
+			int start = starts[index];
+			int rank = num_killers;
+			int killer_index;
+			move *moves = killers[index];
+			for(int i=0;i<num_killers;i++){
+				killer_index = i % (num_killers + start);
+				if(mv == moves[killer_index]){
+					rank = i;
+					break;
+				}
 			}
 			return num_killers - rank;
 		}
-		void clear(int ply){
-			// Clear the table for the ply
-			int index = ply % num_ply;
-			MoveTable<int> *table = killers[index];
-			table->reset(0);
-		}
+//		void initialize(int num_killers){
+//			killers = new MoveTable<int> *[num_ply];
+//			this->num_killers = num_killers;
+//			for(int i=0;i<num_ply;i++){
+//				killers[i] = new MoveTable<int>(num_killers);
+//			}
+//		}
+//		KillerTable(int num_killers) : KillerTable(){
+//			initialize(num_killers);
+//		}
+//		~KillerTable(){
+//			for(int i=0;i<num_ply;i++){
+//				delete killers[i];
+//			}
+//			delete[] killers;
+//		}
+//		void record_cutoff(GameState &game, move &mv){
+//			int ply = game.halfmove_counter;
+//			if(ply > highest_ply_seen){
+//				clear(ply);
+//				highest_ply_seen = ply;
+//			}
+//			int index = ply % num_ply;
+//			MoveTable<int> *table = killers[index];
+//			table->add(mv, 1);
+//		}
+//		int score(GameState &game, move &mv){
+////			return 0;
+//			int index = game.halfmove_counter % num_ply;
+//			MoveTable<int> *table = killers[index];
+//			int rank = table->rank(mv);
+//
+//			if(rank == -1){
+//				return 0;
+//			}
+//			return num_killers - rank;
+//		}
+//		void clear(int ply){
+//			// Clear the table for the ply
+//			int index = ply % num_ply;
+//			MoveTable<int> *table = killers[index];
+//			table->reset(0);
+//		}
 	private:
 		static const int num_ply;
 		int highest_ply_seen;
-		MoveTable<int> **killers;
+		move **killers;
+		int *starts;
 		int num_killers;
+
 };
 
 class HistoryTable{
