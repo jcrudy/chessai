@@ -15,7 +15,7 @@ def test_iterative_speed_boost():
     starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 #     starting_fen = '4k3/2p2p2/P1PN1n1r/7p/3Bp2P/1r3B2/8/3K4 b - - 0 35'
     player1 = Player(1000000, 3, 3)
-    player2 = Player(0, 3, 3)
+    player2 = Player(1000000, 3, 3)
     board = BitBoardState.from_fen(starting_fen)
     depth = 6
     
@@ -23,7 +23,7 @@ def test_iterative_speed_boost():
     move, score = player1.movesearch(board, depth, True)
     t1 = time.time()
     print('Initial search to depth %d took %fs. Got %s with score %d.' % (depth, t1-t0, str(move), score))
-    return
+
     t0 = time.time()
     for d in range(depth+1):
         move, score = player2.movesearch(board, d)
@@ -59,14 +59,14 @@ def test_movesearch():
             player_string = 'Black'
         
         t0 = time.time()
-        move = player.movesearch(board, 3)
+        move, score = player.movesearch(board, 5)
         t1 = time.time()
         print('%s: Search took %fs.' % (board.to_fen(), t1-t0))
         
         if not move:
             raise ValueError('%s failed to generate a move: %s' % (player_string, board.to_fen()))
         else:
-            print('%s chose move %s' % (player_string, str(move)))
+            print('%s chose move %s with score %d' % (player_string, str(move), score))
         board.make_move(move)
         
 # #     for _ in range(3):
@@ -118,8 +118,6 @@ def test_movesearch():
 #         print(board.to_grid())
 
 if __name__ == '__main__':
-    test_iterative_speed_boost()
-    exit()
     # This code will run the test in this file.'
     import sys
     import nose

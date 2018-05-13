@@ -933,7 +933,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	// Check for checkmates and draws
 	if(manager->num_moves(depth) == 0){
 		if(own_check(&game)){
-			printf("Checkmate in alphabeta\n");
+//			printf("Checkmate in alphabeta\n");
 			// Checkmate.  We lose.
 			result.value = maximize?(-(Evaluation::mate)):(Evaluation::mate);
 			result.ply = game.halfmove_counter;
@@ -957,7 +957,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	// Check for draw by repetition or 50 move rule
 	if(game.halfmove_clock >= 50 || draw_by_repetition(&game)){
 		// Draw
-		printf("Draw by clock\n");
+//		printf("Draw by clock\n");
 		result.value = Evaluation::draw;
 		result.ply = game.halfmove_counter;
 //		if(result.fail_low){
@@ -1032,19 +1032,19 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				}
 			}
 		}
-		if(debug){
-			for(k=0;k<(6-depth);k++){
-				printf("  ");
-			}
-			printf("alpha = %d, beta = %d\n", alpha, beta);
-			printf("%d -> %d - %d: %d\n", mv.from_square, mv.to_square, mv.sort_score, search_result.value);
-		}
+//		if(debug){
+//			for(k=0;k<(6-depth);k++){
+//				printf("  ");
+//			}
+//			printf("alpha = %d, beta = %d\n", alpha, beta);
+//			printf("%d -> %d - %d: %d\n", mv.from_square, mv.to_square, mv.sort_score, search_result.value);
+//		}
 		manager->unmake(game, rec);
 		if(maximize){
 			if(search_result.value > beta){
-				if(debug){
-					printf("Case 1\n");
-				}
+//				if(debug){
+//					printf("Case 1\n");
+//				}
 				// Cut node.  Yay!
 				memory->hh->record_cutoff(game, mv);
 				memory->killers->record_cutoff(game, mv);
@@ -1052,14 +1052,14 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				memory->tt->setitem(game, TranspositionEntry(game, search_result, depth, false, true));
 				return search_result;
 			}else if(search_result.value > result.value){
-				if(debug){
-					printf("Case 2\n");
-				}
+//				if(debug){
+//					printf("Case 2\n");
+//				}
 				if(search_result.value > alpha ||
 					(search_result.value == alpha && (result.best_move == nomove || result.ply < search_result.ply))){
-					if(debug){
-						printf("Case 2A\n");
-					}
+//					if(debug){
+//						printf("Case 2A\n");
+//					}
 					// New best move.  Note that in the case of equal scores, we keep the
 					// old best move unless the new one has a lower ply (which favors sooner checkmates).
 					// This is just an heuristic.
