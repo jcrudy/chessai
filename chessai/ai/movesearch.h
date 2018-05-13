@@ -103,7 +103,7 @@ struct AlphaBetaValue{
 	bool draw;
 	bool checkmate_maximize;
 	int ply;
-	float value;
+	int value;
 	move best_move;
 	AlphaBetaValue(){
 		fail_low = false;
@@ -184,14 +184,13 @@ class TranspositionTable {
 extern const TranspositionEntry null_te;
 
 struct SimpleEvaluation{
-	static const float infinity;
-	static const float mate;
-	static const float draw;
-	static const float delta;
-	static const float epsilon;
-	static const float zero_window;
-	static const float evaluate(GameState &brd){
-		float white_score, black_score;
+	static const int infinity;
+	static const int mate;
+	static const int draw;
+	static const int delta;
+	static const int zero_window;
+	static const int evaluate(GameState &brd){
+		int white_score, black_score;
 		white_score = 0;
 		black_score = 0;
 		white_score += 100 * population_count(brd.board_state.white & brd.board_state.p);
@@ -546,7 +545,7 @@ class MoveManager{
 
 
 template<class Evaluation>
-AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, float alpha, float beta, int depth){
+AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth){
 
 	AlphaBetaValue result;
 
@@ -561,31 +560,31 @@ AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memo
 	result.draw = false;
 	result.ply = game.halfmove_counter;
 	if(maximize){
-		if(result.value > beta + Evaluation::epsilon){
+		if(result.value > beta){
 //			result.value = beta;
 			result.fail_high = true;
 			return result;
-		}else if(result.value > alpha - Evaluation::epsilon){
+		}else if(result.value >= alpha){
 			alpha = result.value;
-		}else if(result.value < alpha - Evaluation::epsilon){
+		}else if(result.value < alpha){
 			result.fail_low = true;
-			if(result.value < alpha - Evaluation::delta + Evaluation::epsilon){
+			if(result.value < alpha - Evaluation::delta){
 //				result.value = alpha;
 				return result;
 			}else{
 //				result.value = alpha;
 			}
-		}//else value == alpha
+		}
 	}else{
-		if(result.value < alpha - Evaluation::epsilon){
+		if(result.value < alpha){
 //			result.value = alpha;
 			result.fail_low = true;
 			return result;
-		}else if(result.value < beta + Evaluation::epsilon){
+		}else if(result.value < beta){
 			beta = result.value;
-		}else if(result.value > beta + Evaluation::epsilon){
+		}else if(result.value > beta){
 			result.fail_high = true;
-			if(result.value > beta + Evaluation::delta - Evaluation::epsilon){
+			if(result.value > beta + Evaluation::delta){
 //				result.value = beta;
 				return result;
 			}else{
@@ -617,8 +616,8 @@ AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memo
 //			result.checkmate_maximize = maximize;
 		}
 		//
-		result.fail_high = (result.value > beta + Evaluation::epsilon);
-		result.fail_low = (result.value < alpha - Evaluation::epsilon);
+		result.fail_high = (result.value > beta);
+		result.fail_low = (result.value < alpha);
 //		if(result.fail_low){
 //			result.value = alpha;
 //		}
@@ -637,8 +636,8 @@ AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memo
 		result.checkmate = false;
 		result.draw = true;
 		result.ply = game.halfmove_counter;
-		result.fail_high = (result.value > beta + Evaluation::epsilon);
-		result.fail_low = (result.value < alpha - Evaluation::epsilon);
+		result.fail_high = (result.value > beta);
+		result.fail_low = (result.value < alpha);
 //		if(result.fail_low){
 //			result.value = alpha;
 //		}
@@ -705,7 +704,7 @@ AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memo
 					result = search_result;
 					result.best_move = mv;
 				}
-			}else if((maximize && (search_result.value > result.value + Evaluation::epsilon)) || ((!maximize) && (search_result.value < result.value - Evaluation::epsilon))){
+			}else if((maximize && (search_result.value > result.value)) || ((!maximize) && (search_result.value < result.value))){
 				result = search_result;
 				result.best_move = mv;
 				if(maximize){
@@ -728,7 +727,7 @@ AlphaBetaValue quiesce(GameState &game, MoveManager *manager, SearchMemory *memo
 
 
 template<class Evaluation>
-AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, float alpha, float beta, int depth, bool debug){
+AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth, bool debug){
 	// Not using negamax.  All scores will be from the perspective of white.  That is,
 	// white seeks to maximize and black seeks to minimize.
 
@@ -741,9 +740,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 
 	// Allocate the result
 	AlphaBetaValue result;
-	float value;
-	float guess;
-	bool did_guess = false;
+	int value;
 
 	// Check transposition table.  Can update alpha or beta or simply return.
 	TranspositionEntry entry = memory->tt->getitem(game);
@@ -752,8 +749,8 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 
 		if(entry.value.fail_low){
 			// This transposition entry is an upper bound
-			beta = (entry.value.value < beta - Evaluation::epsilon)?(entry.value.value):beta;
-			if(alpha > beta + Evaluation::epsilon){
+			beta = (entry.value.value < beta)?(entry.value.value):beta;
+			if(alpha > beta){
 				result.fail_low = true;
 				result.fail_high = false;
 				result.value = entry.value.value;
@@ -766,8 +763,8 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 			}
 		}else if(entry.value.fail_high){
 			// This transposition entry is a lower bound
-			alpha = (entry.value.value > alpha + Evaluation::epsilon)?(entry.value.value):alpha;
-			if(alpha > beta + Evaluation::epsilon){
+			alpha = (entry.value.value > alpha)?(entry.value.value):alpha;
+			if(alpha > beta){
 				result.fail_low = false;
 				result.fail_high = true;
 				result.value = entry.value.value;
@@ -781,7 +778,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 		}else{
 			// The transposition entry is exact
 			value = entry.value.value;
-			if(value < alpha - Evaluation::epsilon){
+			if(value < alpha){
 				result.fail_low = true;
 				result.fail_high = false;
 				result.checkmate = false;
@@ -790,7 +787,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				result.value = entry.value.value;
 				result.best_move = nomove;
 				return result;
-			}else if(value > beta + Evaluation::epsilon){
+			}else if(value > beta){
 				result.fail_low = false;
 				result.fail_high = true;
 				result.checkmate = false;
@@ -864,8 +861,8 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 //			result.checkmate_maximize = maximize;
 		}
 		//
-		result.fail_high = (result.value > beta + Evaluation::epsilon);
-		result.fail_low = (result.value < alpha - Evaluation::epsilon);
+		result.fail_high = (result.value > beta);
+		result.fail_low = (result.value < alpha);
 //		if(result.fail_low){
 //			result.value = alpha;
 //		}
@@ -884,8 +881,8 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 		result.checkmate = false;
 		result.draw = true;
 		result.ply = game.halfmove_counter;
-		result.fail_high = (result.value > beta + Evaluation::epsilon);
-		result.fail_low = (result.value < alpha - Evaluation::epsilon);
+		result.fail_high = (result.value > beta);
+		result.fail_low = (result.value < alpha);
 //		if(result.fail_low){
 //			result.value = alpha;
 //		}
@@ -960,12 +957,12 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 			memory->tt->setitem(game, TranspositionEntry(game, result, depth));
 			return search_result;
 		}else if((!maximize) && search_result.fail_high){
-			if(search_result.value < result.value - Evaluation::epsilon){
+			if(search_result.value < result.value){
 				result.value = search_result.value;
 				fail_soft_hit = true;
 			}
 		}else if(maximize && search_result.fail_low){
-			if(search_result.value > result.value + Evaluation::epsilon){
+			if(search_result.value > result.value){
 				result.value = search_result.value;
 				fail_soft_hit = true;
 			}
@@ -981,7 +978,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 					result = search_result;
 					result.best_move = mv;
 				}
-			}else if((maximize && (search_result.value > result.value + Evaluation::epsilon)) || ((!maximize) && (search_result.value < result.value - Evaluation::epsilon))){
+			}else if((maximize && (search_result.value > result.value)) || ((!maximize) && (search_result.value < result.value))){
 				result = search_result;
 				result.best_move = mv;
 				if(maximize){

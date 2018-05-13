@@ -10339,7 +10339,7 @@ static int __pyx_pf_7chessai_2ai_8bitboard_6Player___init__(struct __pyx_obj_7ch
  * 
  *     def movesearch(Player self, BitBoardState board, int depth, bool debug=False):             # <<<<<<<<<<<<<<
  *         cdef AlphaBetaValue search_result
- *         search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000., 1000000., depth, debug)
+ *         search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000, 1000000, depth, debug)
  */
 
 /* Python wrapper */
@@ -10440,15 +10440,15 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_6Player_2movesearch(struct __py
   /* "chessai/ai/bitboard.pyx":624
  *     def movesearch(Player self, BitBoardState board, int depth, bool debug=False):
  *         cdef AlphaBetaValue search_result
- *         search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000., 1000000., depth, debug)             # <<<<<<<<<<<<<<
+ *         search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000, 1000000, depth, debug)             # <<<<<<<<<<<<<<
  *         if search_result.fail_low:
  *             print('fail_low')
  */
-  __pyx_v_search_result = alphabeta<SimpleEvaluation>(__pyx_v_board->bs, __pyx_v_self->manager, __pyx_v_self->memory, -1000000., 1000000., __pyx_v_depth, __pyx_v_debug);
+  __pyx_v_search_result = alphabeta<SimpleEvaluation>(__pyx_v_board->bs, __pyx_v_self->manager, __pyx_v_self->memory, -1000000, 0xF4240, __pyx_v_depth, __pyx_v_debug);
 
   /* "chessai/ai/bitboard.pyx":625
  *         cdef AlphaBetaValue search_result
- *         search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000., 1000000., depth, debug)
+ *         search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000, 1000000, depth, debug)
  *         if search_result.fail_low:             # <<<<<<<<<<<<<<
  *             print('fail_low')
  *         elif search_result.fail_high:
@@ -10457,7 +10457,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_6Player_2movesearch(struct __py
   if (__pyx_t_1) {
 
     /* "chessai/ai/bitboard.pyx":626
- *         search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000., 1000000., depth, debug)
+ *         search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000, 1000000, depth, debug)
  *         if search_result.fail_low:
  *             print('fail_low')             # <<<<<<<<<<<<<<
  *         elif search_result.fail_high:
@@ -10467,7 +10467,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_6Player_2movesearch(struct __py
 
     /* "chessai/ai/bitboard.pyx":625
  *         cdef AlphaBetaValue search_result
- *         search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000., 1000000., depth, debug)
+ *         search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000, 1000000, depth, debug)
  *         if search_result.fail_low:             # <<<<<<<<<<<<<<
  *             print('fail_low')
  *         elif search_result.fail_high:
@@ -10546,7 +10546,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_6Player_2movesearch(struct __py
  * # cdef class TimePlayer:
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_search_result.value); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 633, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_search_result.value); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 633, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 633, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
@@ -10565,7 +10565,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_6Player_2movesearch(struct __py
  * 
  *     def movesearch(Player self, BitBoardState board, int depth, bool debug=False):             # <<<<<<<<<<<<<<
  *         cdef AlphaBetaValue search_result
- *         search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000., 1000000., depth, debug)
+ *         search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000, 1000000, depth, debug)
  */
 
   /* function exit code */

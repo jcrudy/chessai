@@ -2,12 +2,11 @@
 
 const AlphaBetaValue empty_alpha_beta_value = AlphaBetaValue();
 const TranspositionEntry null_te = TranspositionEntry();
-const float SimpleEvaluation::infinity = 1000000;
-const float SimpleEvaluation::mate = 200000;
-const float SimpleEvaluation::draw = 0;
-const float SimpleEvaluation::delta = 1000;
-const float SimpleEvaluation::epsilon = .01;
-const float SimpleEvaluation::zero_window = .5;
+const int SimpleEvaluation::infinity = 1000000;
+const int SimpleEvaluation::mate = 200000;
+const int SimpleEvaluation::draw = 0;
+const int SimpleEvaluation::delta = 1000;
+const int SimpleEvaluation::zero_window = 1;
 const int KillerTable::num_ply = 200;
 
 void TranspositionTable::initialize(size_t size){

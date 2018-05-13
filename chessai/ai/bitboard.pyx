@@ -199,7 +199,7 @@ cdef extern from "movesearch.h":
         bool draw
         bool checkmate_maximize
         int ply
-        float value
+        int value
         move best_move
         AlphaBetaValue()
     
@@ -256,8 +256,8 @@ cdef extern from "movesearch.h":
         int pv_end
         int num_moves
     
-    cdef AlphaBetaValue quiesce[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, float alpha, float beta, int depth)
-    cdef AlphaBetaValue alphabeta[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, float alpha, float beta, int depth, bool debug)
+    cdef AlphaBetaValue quiesce[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth)
+    cdef AlphaBetaValue alphabeta[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth, bool debug)
     
 #     cdef cppclass SearchMemory:
 #         SearchMemory(int num_killers, int num_moves)
@@ -621,7 +621,7 @@ cdef class Player:
     
     def movesearch(Player self, BitBoardState board, int depth, bool debug=False):
         cdef AlphaBetaValue search_result
-        search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000., 1000000., depth, debug)
+        search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000, 1000000, depth, debug)
         if search_result.fail_low:
             print('fail_low')
         elif search_result.fail_high:
