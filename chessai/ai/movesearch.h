@@ -312,6 +312,8 @@ class HistoryTable{
 			if(num_history>0){
 				white_history = new MoveTable<int>(num_history);
 				black_history = new MoveTable<int>(num_history);
+				white_history->reset(0);
+				black_history->reset(0);
 			}
 		}
 		HistoryTable(int num_history) : HistoryTable() {
@@ -596,7 +598,6 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 	// Check for checkmates and draws
 	if(manager->num_moves(depth) == 0){
 		if(own_check(&game)){
-//			printf("Checkmate in quiescence\n");
 			// Checkmate.  We lose.
 			result = maximize?(-(Evaluation::mate)):(Evaluation::mate);
 		}else{
