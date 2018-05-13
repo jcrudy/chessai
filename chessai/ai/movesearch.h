@@ -588,7 +588,7 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 			}
 		}//else value == beta
 	}
-	return result;
+//	return result;
 	// At this point result is the stand pat value, and matches alpha (if maximizing) or beta (otherwise).
 
 	// Generate all legal moves.  Some of these will not be searched,
@@ -649,7 +649,7 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 	}
 
 	// Order moves
-	bool in_check = own_check(&game);// TODO: The caller may have already evaluated this.
+	bool in_check = own_check(&game) || opponent_check(&game);
 	if(in_check){
 		manager->order_all(game, memory, depth);
 	}else{
@@ -665,20 +665,20 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 	for(int i=manager->full_begin(depth);i<manager->pv_end(depth);i++){
 		mv = moves[i];
 		rec = manager->make(game, mv);
-		if(i < manager->pv_begin(depth) || true){
+		if(i < manager->pv_begin(depth)){
 			// Search full depth right away
 			search_result = quiesce<Evaluation>(game, manager, memory, alpha, beta, depth-1);
 		}else{
 			// Do a narrower search and make it larger if no cutoff occurs
 			if(maximize){
-				search_result = quiesce<Evaluation>(game, manager, memory, alpha, alpha+(Evaluation::zero_window), depth-1);
-				if(search_result > beta){
+				search_result = quiesce<Evaluation>(game, manager, memory, alpha, alpha, depth-1);
+				if(search_result > alpha && beta > alpha){
 					// The narrow search returned a lower bound, so we must search again with full width
 					search_result = quiesce<Evaluation>(game, manager, memory, alpha, beta, depth-1);
 				}
 			}else{
-				search_result = quiesce<Evaluation>(game, manager, memory, beta-(Evaluation::zero_window), beta, depth-1);
-				if(search_result < alpha){
+				search_result = quiesce<Evaluation>(game, manager, memory, beta, beta, depth-1);
+				if(search_result < beta && beta > alpha){
 					// The narrow search returned an upper bound, so we must search again with full width
 					search_result = quiesce<Evaluation>(game, manager, memory, alpha, beta, depth-1);
 				}
@@ -940,20 +940,20 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 //		if(debug && depth == 2 && mv.from_square==18 && mv.to_square==1){
 //			debug_ = true;
 //		}
-		if(i < manager->pv_begin(depth) || true){
+		if(i < manager->pv_begin(depth)){
 			// Search full depth right away
 			search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, debug_);
 		}else{
 			// Do a narrower search and make it larger if cutoff occurs
 			if(maximize){
 				search_result = alphabeta<Evaluation>(game, manager, memory, alpha, alpha, depth-1, false);
-				if(search_result.value > alpha){
+				if(search_result.value > alpha && beta > alpha){
 					// The narrow search returned a lower bound, so we must search again with full width
 					search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, false);
 				}
 			}else{
 				search_result = alphabeta<Evaluation>(game, manager, memory, beta, beta, depth-1, false);
-				if(search_result.value < beta){
+				if(search_result.value < beta && beta > alpha){
 					// The narrow search returned an upper bound, so we must search again with full width
 					search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, false);
 				}
