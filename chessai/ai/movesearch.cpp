@@ -6,7 +6,6 @@ const int SimpleEvaluation::infinity = 1000000;
 const int SimpleEvaluation::mate = 200000;
 const int SimpleEvaluation::draw = 0;
 const int SimpleEvaluation::delta = 1000;
-const int SimpleEvaluation::zero_window = 1;
 const int KillerTable::num_ply = 200;
 
 void TranspositionTable::initialize(size_t size){
@@ -20,14 +19,6 @@ void TranspositionTable::initialize(size_t size){
 }
 TranspositionTable::TranspositionTable(size_t size) {
 	initialize(size);
-//	for(int i=0;i<size;i++){
-//		for(int j=0;j<2;j++){
-//			if(data[i][j] != null_te){
-//				printf("Danger!! Uninitialized transposition table!!!\n");
-//			}
-//		}
-//
-//	}
 }
 
 TranspositionEntry TranspositionTable::getitem(GameState &game){

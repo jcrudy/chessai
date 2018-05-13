@@ -183,7 +183,6 @@ struct SimpleEvaluation{
 	static const int mate;
 	static const int draw;
 	static const int delta;
-	static const int zero_window;
 	static const int evaluate(GameState &brd){
 		int white_score, black_score;
 		white_score = 0;
@@ -193,7 +192,6 @@ struct SimpleEvaluation{
 		white_score += 330 * population_count(brd.board_state.white & brd.board_state.b);
 		white_score += 500 * population_count(brd.board_state.white & brd.board_state.r);
 		white_score += 900 * population_count(brd.board_state.white & brd.board_state.q);
-		//white_score += 200000 * population_count(brd.board_state.white & brd.board_state.k);
 
 		white_score += 1 * population_count(brd.board_state.white & center4);
 		white_score += 1 * population_count(brd.board_state.white & center16);
@@ -206,7 +204,6 @@ struct SimpleEvaluation{
 		black_score += 330 * population_count(brd.board_state.black & brd.board_state.b);
 		black_score += 500 * population_count(brd.board_state.black & brd.board_state.r);
 		black_score += 900 * population_count(brd.board_state.black & brd.board_state.q);
-		//black_score += 200000 * population_count(brd.board_state.black & brd.board_state.k);
 
 		black_score += 1 * 100 * population_count(brd.board_state.black & center4);
 		black_score += 1 * 100 * population_count(brd.board_state.black & center16);
@@ -296,49 +293,6 @@ class KillerTable{
 			}
 			return num_killers - rank;
 		}
-//		void initialize(int num_killers){
-//			killers = new MoveTable<int> *[num_ply];
-//			this->num_killers = num_killers;
-//			for(int i=0;i<num_ply;i++){
-//				killers[i] = new MoveTable<int>(num_killers);
-//			}
-//		}
-//		KillerTable(int num_killers) : KillerTable(){
-//			initialize(num_killers);
-//		}
-//		~KillerTable(){
-//			for(int i=0;i<num_ply;i++){
-//				delete killers[i];
-//			}
-//			delete[] killers;
-//		}
-//		void record_cutoff(GameState &game, move &mv){
-//			int ply = game.halfmove_counter;
-//			if(ply > highest_ply_seen){
-//				clear(ply);
-//				highest_ply_seen = ply;
-//			}
-//			int index = ply % num_ply;
-//			MoveTable<int> *table = killers[index];
-//			table->add(mv, 1);
-//		}
-//		int score(GameState &game, move &mv){
-////			return 0;
-//			int index = game.halfmove_counter % num_ply;
-//			MoveTable<int> *table = killers[index];
-//			int rank = table->rank(mv);
-//
-//			if(rank == -1){
-//				return 0;
-//			}
-//			return num_killers - rank;
-//		}
-//		void clear(int ply){
-//			// Clear the table for the ply
-//			int index = ply % num_ply;
-//			MoveTable<int> *table = killers[index];
-//			table->reset(0);
-//		}
 	private:
 		static const int num_ply;
 		int highest_ply_seen;
@@ -415,15 +369,6 @@ class SearchMemory{
 		KillerTable *killers;
 		HistoryTable *hh;
 };
-
-//struct AnnotatedMove{
-//	AnnotatedMove(move &mv){
-//		this->mv = mv;
-//		sort_score = 0;
-//	}
-//	move mv;
-//	int sort_score;
-//};
 
 class MoveManager{
 	// Responsible for move ordering
@@ -504,7 +449,7 @@ class MoveManager{
 			// We will only consider the captures.  All non-captures were set to -1,
 			// and so strictly get sorted after captures.
 			_full_begin[index] = 0;
-			_full_end[index] = capture_count > 3?3:capture_count; // TODO: Experiment with this.
+			_full_end[index] = capture_count > 3?3:capture_count;
 			_pv_begin[index] = _full_end[index];
 			_pv_end[index] = capture_count;
 		}
@@ -565,7 +510,6 @@ class MoveManager{
 			_pv_end[index] = _num_moves[index];
 
 		}
-//		void order_noisy(GameState &game, SearchMemory<num_killers, num_history> &memory) = order_all;
 		moverecord make(GameState &game, move &mv){
 			return make_move(&game, &mv);
 		}
@@ -607,61 +551,41 @@ class MoveManager{
 		int _pv_begin[maxply];
 		int _pv_end[maxply];
 		int _num_moves[maxply];
-
-
 };
-
-
 
 template<class Evaluation>
 int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth){
-
-	int result;
 
 	// Check whether maximizing or minimizing
 	const bool maximize = game.board_state.whites_turn;
 
 	// Get the current evaluation and possibly cut off immediately
-	result = Evaluation::evaluate(game);
-//	result.fail_high = false;
-//	result.fail_low = false;
-//	result.checkmate = false;
-//	result.draw = false;
-//	result.ply = game.halfmove_counter;
+	int result = Evaluation::evaluate(game);
 	if(maximize){
 		if(result > beta){
-//			result.value = beta;
-//			result.fail_high = true;
 			return result;
 		}else if(result > alpha){
 			alpha = result;
 		}else if(result < alpha){
-//			result.fail_low = true;
 			if(result < alpha - Evaluation::delta){
 				// Delta prune
 				return result;
 			}else{
-//				result.value = alpha;
 			}
 		}
 	}else{
 		if(result < alpha){
-//			result.value = alpha;
-//			result.fail_low = true;
 			return result;
 		}else if(result < beta){
 			beta = result;
 		}else if(result > beta){
-//			result.fail_high = true;
 			if(result > beta + Evaluation::delta){
 				// Delta prune
 				return result;
 			}else{
-//				result.value = beta;
 			}
 		}//else value == beta
 	}
-//	return result;
 	// At this point result is the stand pat value, and matches alpha (if maximizing) or beta (otherwise).
 
 	// Generate all legal moves.  Some of these will not be searched,
@@ -675,29 +599,10 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 //			printf("Checkmate in quiescence\n");
 			// Checkmate.  We lose.
 			result = maximize?(-(Evaluation::mate)):(Evaluation::mate);
-//			result.checkmate = true;
-//			result.draw = false;
-//			result.ply = game.halfmove_counter;
-//			result.checkmate_maximize = maximize;
 		}else{
 			// Stalemate
 			result = Evaluation::draw;
-//			result.checkmate = false;
-//			result.draw = true;
-//			result.ply = game.halfmove_counter;
-//			result.checkmate_maximize = maximize;
 		}
-		//
-//		result.fail_high = (result.value > beta);
-//		result.fail_low = (result.value < alpha);
-//		if(result.fail_low){
-//			result.value = alpha;
-//		}
-//		if(result.fail_high){
-//			result.value = beta;
-//		}
-//		result.best_move = nomove;
-//		memory->tt->setitem(game, TranspositionEntry(game, result, depth));
 		return result;
 	}
 
@@ -705,19 +610,6 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 	if(game.halfmove_clock >= 50 || draw_by_repetition(&game)){
 		// Draw
 		result = Evaluation::draw;
-//		result.checkmate = false;
-//		result.draw = true;
-//		result.ply = game.halfmove_counter;
-//		result.fail_high = (result.value > beta);
-//		result.fail_low = (result.value < alpha);
-//		if(result.fail_low){
-//			result.value = alpha;
-//		}
-//		if(result.fail_high){
-//			result.value = beta;
-//		}
-//		result.best_move = nomove;
-//		memory->tt->setitem(game, TranspositionEntry(game, result, depth));
 		return result;
 	}
 
@@ -778,47 +670,9 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 			}
 		}
 
-//		if((maximize && search_result > beta) || ((!maximize) && search_result < alpha)){
-//			// Cut node.  Yay!
-////			memory->tt->setitem(game, TranspositionEntry(game, result, depth));
-//			return search_result;
-//		}else if(((!maximize) && search_result > beta) || (maximize && search_result < alpha)){
-//			// Potential all node. Ugh.
-//		}else{
-//			// It's a potential PV node!
-//			// Compare checkmates to each other
-////			if(search_result.checkmate && result.checkmate){
-////			//				if(debug){
-////			//					printf("search_result.checkmate\n");
-////			//				}
-////							// Prefer sooner checkmates if we win, later if we lose
-////				if((result.ply > search_result.ply) && (result.checkmate_maximize != maximize)){
-////					result = search_result;
-////					result.best_move = mv;
-////				}else if((result.ply < search_result.ply) && (result.checkmate_maximize == maximize)){
-////					result = search_result;
-////					result.best_move = mv;
-////				}
-////			}else
-//				if((maximize && (search_result > result)) || ((!maximize) && (search_result < result))){
-////				if(debug){
-////					printf("result = search_result\n");
-////				}
-//				result = search_result;
-////				result.best_move = mv;
-//				if(maximize){
-//					alpha = result;
-//				}else{
-//					beta = result;
-//				}
-//			}
-//			// In the remaining case, we tied the previous bound, and we prefer the earlier move for heuristic/consistency reasons.
-//
-//		}
 	}
 
 	// Update transposition table and return.
-//	memory->tt->setitem(game, TranspositionEntry(game, result, depth));
 	return result;
 
 }
@@ -829,17 +683,9 @@ template<class Evaluation>
 AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth, bool debug){
 	// Not using negamax.  All scores will be from the perspective of white.  That is,
 	// white seeks to maximize and black seeks to minimize.
-	int orig_alpha = alpha;
-	int orig_beta = beta;
-//	if(debug && depth == 1){
-//		printf("Hello\n");
-//	}
+
 	// Check whether maximizing or minimizing
 	bool maximize = game.board_state.whites_turn;
-
-//	if(debug){
-//		printf("debug\n");
-//	}
 
 	// Allocate the result
 	AlphaBetaValue result;
@@ -848,10 +694,8 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	// Check transposition table.  Can update alpha or beta or simply return.
 	TranspositionEntry entry = memory->tt->getitem(game);
 	if(entry != null_te && (entry.depth >= depth)){// || (entry.value.checkmate && entry.depth >= 0))){
-//	if(false){
-		// The transposition entry is valid at this depth
 		if(entry.fail_low){
-//			// This transposition entry is an upper bound
+			// This transposition entry is an upper bound
 			beta = (entry.value.value < beta)?(entry.value.value):beta;
 			if(alpha > beta){
 				result.value = entry.value.value;
@@ -885,41 +729,10 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				return entry.value;
 			}
 		}
-//		if(alpha > beta){
-//			// In this case, we can cut out early.
-//			// It's a little tricky, though.  If we are maximizing,
-//			// it means the parent is minimizing.  We are still in the
-//			// parent's perspective in a sense, since we haven't made a move
-//			// at this point.  Therefore we fail low if we're minimizing and
-//			// vice versa.
-//			if(maximize){
-//				result.fail_low = false;
-//				result.fail_high = true;
-//				result.value = beta;
-//				result.checkmate = false;
-//				result.checkmate_maximize = false;
-//				result.draw = false;
-//				result.ply = 0;
-//				result.best_move = nomove;
-//			}else{
-//				result.fail_low = true;
-//				result.fail_high = false;
-//				result.value = alpha;
-//				result.checkmate = false;
-//				result.checkmate_maximize = false;
-//				result.draw = false;
-//				result.ply = 0;
-//				result.best_move = nomove;
-//
-//			}
-//			return result;
-//		}
 	}
 
 	// If this is a leaf node, call quiescence search
-//	float stand_pat;
 	if(depth <= 0){
-//		stand_pat = Evaluation::evaluate(game);
 		result.value = quiesce<Evaluation>(game, manager, memory, alpha, beta, depth - 1);
 		result.ply = game.halfmove_counter;
 		result.best_move = nomove;
@@ -933,7 +746,6 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	// Check for checkmates and draws
 	if(manager->num_moves(depth) == 0){
 		if(own_check(&game)){
-//			printf("Checkmate in alphabeta\n");
 			// Checkmate.  We lose.
 			result.value = maximize?(-(Evaluation::mate)):(Evaluation::mate);
 			result.ply = game.halfmove_counter;
@@ -942,13 +754,6 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 			result.value = Evaluation::draw;
 			result.ply = game.halfmove_counter;
 		}
-		//
-//		if(result.fail_low){
-//			result.value = alpha;
-//		}
-//		if(result.fail_high){
-//			result.value = beta;
-//		}
 		result.best_move = nomove;
 		memory->tt->setitem(game, TranspositionEntry(game, result, depth, result.value < alpha, result.value > beta));
 		return result;
@@ -957,15 +762,8 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	// Check for draw by repetition or 50 move rule
 	if(game.halfmove_clock >= 50 || draw_by_repetition(&game)){
 		// Draw
-//		printf("Draw by clock\n");
 		result.value = Evaluation::draw;
 		result.ply = game.halfmove_counter;
-//		if(result.fail_low){
-//			result.value = alpha;
-//		}
-//		if(result.fail_high){
-//			result.value = beta;
-//		}
 		result.best_move = nomove;
 		memory->tt->setitem(game, TranspositionEntry(game, result, depth, result.value < alpha, result.value > beta));
 		return result;
@@ -975,15 +773,6 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	// Order moves
 	manager->order_all(game, memory, depth);
 	move *moves = manager->get_moves(depth);
-//	if(debug){
-//		printf("Moves after sorting:\n");
-//		for(int j=manager->full_begin(depth);j<manager->pv_end(depth);j++){
-//			printf("%d -> %d\n", moves[j].from_square, moves[j].to_square);
-//		}
-//	}
-
-	// Do any internal iterative deepening or other scouting steps, and
-	// possibly reorder
 
 	// Iterate over full moves
 	move mv;
@@ -1004,15 +793,6 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	for(int i=(manager->full_begin(depth));i<(manager->pv_end(depth));i++){
 		mv = moves[i];
 		rec = manager->make(game, mv);
-//		if(debug && depth == 4 && mv.from_square==1 && mv.to_square==18){
-//			debug_ = true;
-//		}
-//		if(debug && depth == 3 && mv.from_square==57 && mv.to_square==42){
-//			debug_ = true;
-//		}
-//		if(debug && depth == 2 && mv.from_square==18 && mv.to_square==1){
-//			debug_ = true;
-//		}
 		if(i < manager->pv_begin(depth)){
 			// Search full depth right away
 			search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, debug_);
@@ -1032,19 +812,9 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				}
 			}
 		}
-//		if(debug){
-//			for(k=0;k<(6-depth);k++){
-//				printf("  ");
-//			}
-//			printf("alpha = %d, beta = %d\n", alpha, beta);
-//			printf("%d -> %d - %d: %d\n", mv.from_square, mv.to_square, mv.sort_score, search_result.value);
-//		}
 		manager->unmake(game, rec);
 		if(maximize){
 			if(search_result.value > beta){
-//				if(debug){
-//					printf("Case 1\n");
-//				}
 				// Cut node.  Yay!
 				memory->hh->record_cutoff(game, mv);
 				memory->killers->record_cutoff(game, mv);
@@ -1052,14 +822,8 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				memory->tt->setitem(game, TranspositionEntry(game, search_result, depth, false, true));
 				return search_result;
 			}else if(search_result.value > result.value){
-//				if(debug){
-//					printf("Case 2\n");
-//				}
 				if(search_result.value > alpha ||
 					(search_result.value == alpha && (result.best_move == nomove || result.ply < search_result.ply))){
-//					if(debug){
-//						printf("Case 2A\n");
-//					}
 					// New best move.  Note that in the case of equal scores, we keep the
 					// old best move unless the new one has a lower ply (which favors sooner checkmates).
 					// This is just an heuristic.
@@ -1091,60 +855,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 			}
 
 		}
-//		if((maximize && (search_result.value > beta))) || ((!maximize) && search_result.fail_low)){
-//			// Cut node.  Yay!
-//			memory->hh->record_cutoff(game, mv);
-//			memory->killers->record_cutoff(game, mv);
-//			memory->tt->setitem(game, TranspositionEntry(game, search_result, depth));
-//			return search_result;
-//		}else if((!maximize) && search_result.fail_high){
-//			if(result.fail_high && search_result.value > result.value){
-//				result.value = search_result.value;
-//			}
-//		}else if(maximize && search_result.fail_low){
-////			if(debug){
-////				printf("fail low\n");
-////			}
-//			if(result.fail_low && search_result.value < result.value){
-//				result.value = search_result.value;
-//			}
-//		}
-//		else{
-//			// It's a potential PV node!
-////			if(debug){
-////				printf("It's a potential PV node!\n");
-////				printf("result.value = %d\n", result.value);
-////				printf("search_result.value = %d\n", search_result.value);
-////			}
-////			if(search_result.checkmate && result.checkmate){
-//////				if(debug){
-//////					printf("search_result.checkmate\n");
-//////				}
-////				// Prefer sooner checkmates if we win, later if we lose
-////				if((result.ply > search_result.ply) && (result.checkmate_maximize != maximize)){
-////					result = search_result;
-////					result.best_move = mv;
-////				}else if((result.ply < search_result.ply) && (result.checkmate_maximize == maximize)){
-////					result = search_result;
-////					result.best_move = mv;
-////				}
-////			}else
-//			if((maximize && (search_result.value > result.value)) || ((!maximize) && (search_result.value < result.value))){
-////				if(debug){
-////					printf("result = search_result\n");
-////				}
-//				result = search_result;
-//				result.best_move = mv;
-//				if(maximize){
-//					alpha = result.value;
-//				}else{
-//					beta = result.value;
-//				}
-//			}
-//		//	 In the remaining case, we tied the previous bound, and we prefer the earlier move for heuristic/consistency reasons.
-//		}
 	}
-
 
 	// We checked everything.  Either it's an all node or a pv node.
 	// Update transposition table and return.
