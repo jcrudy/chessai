@@ -193,11 +193,6 @@ cdef extern from "movesearch.h":
         int num_best
     
     cdef cppclass AlphaBetaValue:
-        bool fail_low
-        bool fail_high
-        bool checkmate
-        bool draw
-        bool checkmate_maximize
         int ply
         int value
         move best_move
@@ -622,9 +617,9 @@ cdef class Player:
     def movesearch(Player self, BitBoardState board, int depth, bool debug=False):
         cdef AlphaBetaValue search_result
         search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000, 1000000, depth, debug)
-        if search_result.fail_low:
+        if search_result.value < -1000000:
             print('fail_low')
-        elif search_result.fail_high:
+        elif search_result.value > 1000000:
             print('fail_high')
         else:
             print('no fail')

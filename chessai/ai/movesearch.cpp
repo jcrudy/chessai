@@ -91,7 +91,7 @@ void TranspositionTable::setitem(GameState &game, const TranspositionEntry &entr
 	// depth or width
 	old = data[index][1];
 	if(old.key == entry.key && old.brd == entry.brd &&
-	   (old.depth > entry.depth || (entry.depth == old.depth && (entry.value.fail_low || entry.value.fail_high)))){
+	   (old.depth > entry.depth || (entry.depth == old.depth && (entry.fail_low || entry.fail_high)))){
 		// Do not replace
 	}else{
 		data[index][1] = entry;
