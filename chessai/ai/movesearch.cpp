@@ -18,8 +18,22 @@ void TranspositionTable::initialize(size_t size){
 		}
 	}
 }
+TranspositionTable::TranspositionTable(size_t size) {
+	initialize(size);
+//	for(int i=0;i<size;i++){
+//		for(int j=0;j<2;j++){
+//			if(data[i][j] != null_te){
+//				printf("Danger!! Uninitialized transposition table!!!\n");
+//			}
+//		}
+//
+//	}
+}
 
 TranspositionEntry TranspositionTable::getitem(GameState &game){
+	if(size == 0){
+		return null_te;
+	}
 	size_t index = getindex(game);
 	TranspositionEntry candidate = data[index][0];
 	if(candidate.key == game.hash && candidate.brd == game.board_state){
@@ -33,11 +47,18 @@ TranspositionEntry TranspositionTable::getitem(GameState &game){
 }
 
 void TranspositionTable::setitem(GameState &game, const TranspositionEntry &entry){
+	if(size == 0){
+		return;
+	}
 	bool maximize = game.board_state.whites_turn;
 	size_t index = getindex(game);
 	TranspositionEntry old = data[index][0];
-	if(old == null_te || (old.depth < entry.depth)){
+	if(old == null_te){
 		// There's nothing here yet
+		data[index][0] = entry;
+		return;
+	}else if(old.key == entry.key && old.brd == entry.brd && old.depth < entry.depth){
+		// Replace with deeper result
 		data[index][0] = entry;
 		return;
 	}

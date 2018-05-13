@@ -13,21 +13,22 @@ from chessai.ai.bitboard import BitBoardState, Player
 
 def test_iterative_speed_boost():
     starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-    player1 = Player(5000000, 3, 3)
-    player2 = Player(5000000, 3, 3)
+#     starting_fen = '4k3/2p2p2/P1PN1n1r/7p/3Bp2P/1r3B2/8/3K4 b - - 0 35'
+    player1 = Player(1000000, 3, 3)
+    player2 = Player(0, 3, 3)
     board = BitBoardState.from_fen(starting_fen)
-    depth = 5
+    depth = 6
     
     t0 = time.time()
     move, score = player1.movesearch(board, depth, True)
     t1 = time.time()
-    print('Initial search to depth %d took %fs. Got %s with score %f.' % (depth, t1-t0, str(move), score))
-    
+    print('Initial search to depth %d took %fs. Got %s with score %d.' % (depth, t1-t0, str(move), score))
+    return
     t0 = time.time()
     for d in range(depth+1):
         move, score = player2.movesearch(board, d)
     t1 = time.time()
-    print('Iterative search to depth %d took %fs. Got %s with score %f.' % (depth, t1-t0, str(move), score))
+    print('Iterative search to depth %d took %fs. Got %s with score %d.' % (depth, t1-t0, str(move), score))
         
     
 def test_movesearch():
