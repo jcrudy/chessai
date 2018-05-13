@@ -669,6 +669,10 @@ cdef class BitBoardState:
         else:
             return False
     
+    property halfmove_clock:
+        def __get__(MoveRecord self):  # @DuplicatedSignature
+            return self.bs.halfmove_clock
+            
     cpdef bool draw(BitBoardState self):
         moves = self.all_moves()
         if not moves:

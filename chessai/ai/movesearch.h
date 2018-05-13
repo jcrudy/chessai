@@ -123,6 +123,7 @@ struct TranspositionEntry{
 	int depth;
 	bool fail_low;
 	bool fail_high;
+	int halfmove_clock;
 	BoardState brd;
 	AlphaBetaValue value;
 	TranspositionEntry(){
@@ -130,6 +131,7 @@ struct TranspositionEntry{
 		this->depth = 0;
 		this->fail_low = false;
 		this->fail_high = false;
+		this->halfmove_clock = 0;
 		this->value = empty_alpha_beta_value;
 		this->brd = empty_board_state;
 	}
@@ -138,13 +140,14 @@ struct TranspositionEntry{
 		this->depth = depth;
 		this->fail_low = fail_low;
 		this->fail_high = fail_high;
+		this->halfmove_clock = game.halfmove_clock;
 		this->value = value;
 		this->brd = game.board_state;
 	}
 	bool operator==(const TranspositionEntry &other) const{
 		if(key == other.key && depth == other.depth &&
 			fail_low == other.fail_low && fail_high == other.fail_high &&
-			value == other.value && brd == other.brd){
+			value == other.value && brd == other.brd && halfmove_clock == other.halfmove_clock){
 			return true;
 		}else{
 			return false;
@@ -700,7 +703,6 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	// or threefold clock and position record into account.
 	if(game.halfmove_clock >= 50 || draw_by_repetition(&game, 2)){
 		// Draw
-		printf("Found draw\n");
 		result.value = Evaluation::draw;
 		result.ply = game.halfmove_counter;
 		result.best_move = nomove;
@@ -711,39 +713,50 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	// Check transposition table.  Can update alpha or beta or simply return.
 	TranspositionEntry entry = memory->tt->getitem(game);
 	if(entry != null_te && (entry.depth >= depth)){
-		if(entry.fail_low){
-			// This transposition entry is an upper bound
-			beta = (entry.value.value < beta)?(entry.value.value):beta;
-			if(alpha > beta){
-				result.value = entry.value.value;
-				result.ply = entry.value.ply;
-				result.best_move = nomove;
-				return result;
-			}
-		}else if(entry.fail_high){
-			// This transposition entry is a lower bound
-			alpha = (entry.value.value > alpha)?(entry.value.value):alpha;
-			if(alpha > beta){
-				result.value = entry.value.value;
-				result.ply = entry.value.ply;
-				result.best_move = nomove;
-				return result;
-			}
+		// TODO: Put this halfmove logic in the TranspositionTable getitem and setitem methods
+		// instead of here.  Would also allow to store the same position with two different
+		// clocks in some cases.
+		if(game.halfmove_clock >= 50 - depth && game.halfmove_clock != entry.halfmove_clock){
+			// In this case, we are in range of a draw by 50 move rule and the entry does
+			// not match the current halfmove clock, so we can't use it.
+		}else if(entry.halfmove_clock >= 50 - entry.depth && game.halfmove_clock != entry.halfmove_clock){
+			// In this case, the entry was in range of a draw by the fifty move rule and
+			// again the halfmove clocks don't match, so we can't use it.
 		}else{
-			// The transposition entry is exact
-			value = entry.value.value;
-			if(value < alpha){
-				result.ply = entry.value.ply;
-				result.value = entry.value.value;
-				result.best_move = nomove;
-			}else if(value > beta){
-				result.ply = entry.value.ply;
-				result.value = entry.value.value;
-				result.best_move = nomove;
+			if(entry.fail_low){
+				// This transposition entry is an upper bound
+				beta = (entry.value.value < beta)?(entry.value.value):beta;
+				if(alpha > beta){
+					result.value = entry.value.value;
+					result.ply = entry.value.ply;
+					result.best_move = nomove;
+					return result;
+				}
+			}else if(entry.fail_high){
+				// This transposition entry is a lower bound
+				alpha = (entry.value.value > alpha)?(entry.value.value):alpha;
+				if(alpha > beta){
+					result.value = entry.value.value;
+					result.ply = entry.value.ply;
+					result.best_move = nomove;
+					return result;
+				}
 			}else{
-				result = entry.value;
+				// The transposition entry is exact
+				value = entry.value.value;
+				if(value < alpha){
+					result.ply = entry.value.ply;
+					result.value = entry.value.value;
+					result.best_move = nomove;
+				}else if(value > beta){
+					result.ply = entry.value.ply;
+					result.value = entry.value.value;
+					result.best_move = nomove;
+				}else{
+					result = entry.value;
+				}
+				return result;
 			}
-			return result;
 		}
 	}
 
@@ -794,7 +807,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	}
 	bool fail_soft_hit;
 
-	bool debug_ = false;
+	bool debug_ = depth==4?debug:false;
 	moverecord rec;
 	for(int i=(manager->full_begin(depth));i<(manager->pv_end(depth));i++){
 		mv = moves[i];
