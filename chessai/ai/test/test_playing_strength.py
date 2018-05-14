@@ -1,4 +1,4 @@
-from chessai.ai.bitboard import BitBoardState, TimePlayer
+from chessai.ai.bitboard import BitBoardState, Player
 import chess
 from six import string_types
 
@@ -8,7 +8,7 @@ def test_bratko_kopec():
                  ('3r1k2/4npp1/1ppr3p/p6P/P2PPPP1/1NR5/5K2/2R5 w - - 0 1', 'd5', 'BK.02'),
                  ('2q1rr1k/3bbnnp/p2p1pp1/2pPp3/PpP1P1P1/1P2BNNP/2BQ1PRK/7R b - - 0 1', 'f5', 'BK.03'),
                  ('rnbqkb1r/p3pppp/1p6/2ppP3/3N4/2P5/PPP1QPPP/R1B1KB1R w KQkq - 0 1', 'e6', 'BK.04'),
-                 ('r1b2rk1/2q1b1pp/p2ppn2/1p6/3QP3/1BN1B3/PPP3PP/R4RK1 w - - 0 1', 'Nd5 a4', 'BK.05'),
+                 ('r1b2rk1/2q1b1pp/p2ppn2/1p6/3QP3/1BN1B3/PPP3PP/R4RK1 w - - 0 1', {'Nd5','a4'}, 'BK.05'),
                  ('2r3k1/pppR1pp1/4p3/4P1P1/5P2/1P4K1/P1P5/8 w - - 0 1', 'g6', 'BK.06'),
                  ('1nk1r1r1/pp2n1pp/4p3/q2pPp1N/b1pP1P2/B1P2R2/2P1B1PP/R2Q2K1 w - - 0 1', 'Nf6', 'BK.07'),
                  ('4b3/p3kp2/6p1/3pP2p/2pP1P2/4K1P1/P3N2P/8 w - - 0 1', 'f5', 'BK.08'),
@@ -30,13 +30,14 @@ def test_bratko_kopec():
                  ('r2qnrnk/p2b2b1/1p1p2pp/2pPpp2/1PP1P3/PRNBB3/3QNPPP/5RK1 w - - 0 1', 'f4', 'BK.24')
                  ]
     score = 0
-    player = TimePlayer(5000000, 120., False)
+    player = Player(5000000, 3, 3)
     for fen, best_moves, q_id in positions:
         if isinstance(best_moves, string_types):
             best_moves = {best_moves}
         pyboard = chess.Board(fen)
         board = BitBoardState.from_fen(fen)
-        move = player.movesearch(board)
+        move, score_, depth = player.tmovesearch(board, 30000)
+        print('Selected %s with score %d at depth %d' % (str(move), score_, depth))
         pymove = chess.Move(move.from_square, move.to_square, 
                             move.promotion if move.promotion.lower() not in {'p', 'ep', 'no'} else None)
         result = pyboard.san(pymove)

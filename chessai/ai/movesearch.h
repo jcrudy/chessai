@@ -1,6 +1,8 @@
 #ifndef MOVESEARCH_H_
 #define MOVESEARCH_H_
 #include "bitboardlib.h"
+#include <chrono>
+#include <thread>
 
 template <typename ElementType>
 class MoveTable{
@@ -208,8 +210,8 @@ struct SimpleEvaluation{
 		black_score += 500 * population_count(brd.board_state.black & brd.board_state.r);
 		black_score += 900 * population_count(brd.board_state.black & brd.board_state.q);
 
-		black_score += 1 * 100 * population_count(brd.board_state.black & center4);
-		black_score += 1 * 100 * population_count(brd.board_state.black & center16);
+		black_score += 1 * population_count(brd.board_state.black & center4);
+		black_score += 1 * population_count(brd.board_state.black & center16);
 		black_score += 5 * population_count(brd.board_state.black & brd.board_state.p & rank_2);
 		black_score += 4 * population_count(brd.board_state.black & brd.board_state.p & rank_3);
 		black_score += 3 * population_count(brd.board_state.black & brd.board_state.p & rank_4);
@@ -683,8 +685,6 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 
 }
 
-
-
 template<class Evaluation>
 AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth, bool *stop, bool debug){
 	// Not using negamax.  All scores will be from the perspective of white.  That is,
@@ -886,6 +886,47 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	return result;
 
 }
+
+template<class Evaluation>
+AlphaBetaValue ialphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth){
+	bool stop = false;
+	AlphaBetaValue result;
+	for(int i=0;i<depth;i++){
+		result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth, stop, false);
+	}
+	return result;
+}
+
+template<class Evaluation>
+void calphabeta(GameState *game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, bool *stop, int *depth, AlphaBetaValue *result){
+	AlphaBetaValue search_result;
+	int _depth = 0;
+	while(true){
+		if(*stop){
+			break;
+		}
+		search_result = alphabeta<Evaluation>(*game, manager, memory, alpha, beta, _depth, stop, false);
+		if(!(*stop)){
+			// Don't take partial results
+			*result = search_result;
+			*depth = _depth;
+		}
+		_depth++;
+	}
+}
+
+template<class Evaluation>
+AlphaBetaValue talphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int time, int *depth){
+	// time in milliseconds
+	AlphaBetaValue result;
+	bool stop = false;
+	std::thread t1 = std::thread(calphabeta<Evaluation>, &game, manager, memory, alpha, beta, &stop, depth, &result);
+	std::this_thread::sleep_for(std::chrono::milliseconds(time));
+	stop = true;
+	t1.join();
+	return result;
+}
+
 
 //template<class Evaluation>
 //AlphaBetaValue mtdf(GameState &game, MoveManager &manager, SearchMemory &memory, float alpha, float beta, int depth){

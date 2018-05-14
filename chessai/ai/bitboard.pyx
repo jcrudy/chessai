@@ -253,7 +253,8 @@ cdef extern from "movesearch.h":
     
     cdef AlphaBetaValue quiesce[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth)
     cdef AlphaBetaValue alphabeta[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth, bool *stop, bool debug)
-    
+    cdef void calphabeta[Evaluation](GameState *game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, bool *stop, int *depth, AlphaBetaValue *result)
+    cdef AlphaBetaValue talphabeta[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int time, int *depth)
 #     cdef cppclass SearchMemory:
 #         SearchMemory(int num_killers, int num_moves)
 #         TranspositionTable tt
@@ -628,6 +629,17 @@ cdef class Player:
         result.mv = search_result.best_move
         return result, search_result.value
     
+    def tmovesearch(Player self, BitBoardState board, int time):
+        '''
+        time : time limit in milliseconds
+        '''
+        cdef AlphaBetaValue search_result
+        cdef int depth
+        search_result = talphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000, 1000000, time, &depth)
+        cdef Move result = Move()
+        result.mv = search_result.best_move
+        return result, search_result.value, depth
+
 # cdef class TimePlayer:
 #     cdef MoveSearchMemory *msm
 #     cdef readonly double time_per_move

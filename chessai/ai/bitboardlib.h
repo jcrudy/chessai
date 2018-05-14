@@ -225,12 +225,13 @@ inline bitboard ls1b(bitboard b){
 }
 
 inline int population_count(bitboard b){
-	int result = 0;
-	while(b){
-		b ^= ls1b(b);
-		result++;
-	}
-	return(result);
+	return __builtin_popcountll(b);
+//	int result = 0;
+//	while(b){
+//		b ^= ls1b(b);
+//		result++;
+//	}
+//	return(result);
 }
 
 inline bitboard step_north(bitboard b){
