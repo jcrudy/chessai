@@ -4,7 +4,10 @@ dependencies:
     - nose
     - multipledispatch
     - cython
+    - numpy
     - pip:
         - toolz==0.8.2
         - frozendict
+        - python-chess
+        - tqdm
         - python-chess

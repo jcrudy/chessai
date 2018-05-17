@@ -675,8 +675,7 @@ inline bool operator==(const GameState& lhs, const GameState& rhs)
            lhs.halfmove_clock == rhs.halfmove_clock &&
            lhs.threefold_repetition_clock == rhs.threefold_repetition_clock &&
            lhs.fullmove_counter == rhs.fullmove_counter &&
-           lhs.halfmove_counter == rhs.halfmove_counter &&
-           lhs.threefold_repetition_clock == rhs.threefold_repetition_clock
+           lhs.halfmove_counter == rhs.halfmove_counter
            )){
  		return(false);
  	}

@@ -686,7 +686,7 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 }
 
 template<class Evaluation>
-AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth, bool *stop, bool debug){
+AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth, bool *stop, int top, bool debug){
 	// Not using negamax.  All scores will be from the perspective of white.  That is,
 	// white seeks to maximize and black seeks to minimize.
 
@@ -701,7 +701,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	// This must be done before transposition table lookup
 	// because the transposition table does not take the halfmove clock
 	// or threefold clock and position record into account.
-	if(game.halfmove_clock >= 50 || draw_by_repetition(&game, 2)){
+	if(game.halfmove_clock >= 50 || (draw_by_repetition(&game, 2) && !(top == depth))){
 		// Draw
 		result.value = Evaluation::draw;
 		result.ply = game.halfmove_counter;
@@ -814,20 +814,20 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 		rec = manager->make(game, mv);
 		if(i < manager->pv_begin(depth)){
 			// Search full depth right away
-			search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, stop, debug_);
+			search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, stop, top, debug_);
 		}else{
 			// Do a narrower search and make it larger if cutoff occurs
 			if(maximize){
-				search_result = alphabeta<Evaluation>(game, manager, memory, alpha, alpha, depth-1, stop, false);
+				search_result = alphabeta<Evaluation>(game, manager, memory, alpha, alpha, depth-1, stop, top, false);
 				if(search_result.value > alpha && beta > alpha){
 					// The narrow search returned a lower bound, so we must search again with full width
-					search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, stop, false);
+					search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, stop, top, false);
 				}
 			}else{
-				search_result = alphabeta<Evaluation>(game, manager, memory, beta, beta, depth-1, stop, false);
+				search_result = alphabeta<Evaluation>(game, manager, memory, beta, beta, depth-1, stop, top, false);
 				if(search_result.value < beta && beta > alpha){
 					// The narrow search returned an upper bound, so we must search again with full width
-					search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, stop, false);
+					search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, stop, top, false);
 				}
 			}
 		}
@@ -888,24 +888,54 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 }
 
 template<class Evaluation>
-AlphaBetaValue ialphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth){
-	bool stop = false;
+AlphaBetaValue mtdf(GameState &game, MoveManager *manager, SearchMemory *memory, int depth, bool *stop){
+	bool maximize = game.board_state.whites_turn;
+	int f;
+	TranspositionEntry te = memory->tt->getitem(game);
+	int g;
+	if(te != null_te){
+		g = te.value.value;
+	}else{
+		g = Evaluation::draw;
+	}
+	int alpha = -(Evaluation::infinity);
+	int beta = Evaluation::infinity;
 	AlphaBetaValue result;
-	for(int i=0;i<depth;i++){
-		result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth, stop, false);
+	while(alpha < beta){
+		f = g;
+		result = alphabeta<Evaluation>(game, manager, memory, f, f, depth, stop, depth, false);
+		g = result.value;
+		if(g == f){
+			break;
+		}
+		if(g < f){
+			beta = g;
+		}else{
+			alpha = g;
+		}
 	}
 	return result;
 }
 
 template<class Evaluation>
-void calphabeta(GameState *game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, bool *stop, int *depth, AlphaBetaValue *result){
+AlphaBetaValue ialphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth){
+	bool stop = false;
+	AlphaBetaValue result;
+	for(int i=0;i<depth;i++){
+		result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth, stop, depth, false);
+	}
+	return result;
+}
+
+template<class Evaluation>
+void calphabeta(GameState *game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, bool *stop, int *depth, AlphaBetaValue *result, bool debug){
 	AlphaBetaValue search_result;
 	int _depth = 0;
 	while(true){
 		if(*stop){
 			break;
 		}
-		search_result = alphabeta<Evaluation>(*game, manager, memory, alpha, beta, _depth, stop, false);
+		search_result = alphabeta<Evaluation>(*game, manager, memory, alpha, beta, _depth, stop, _depth, debug);
 		if(!(*stop)){
 			// Don't take partial results
 			*result = search_result;
@@ -916,11 +946,14 @@ void calphabeta(GameState *game, MoveManager *manager, SearchMemory *memory, int
 }
 
 template<class Evaluation>
-AlphaBetaValue talphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int time, int *depth){
+AlphaBetaValue talphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int time, int *depth, bool debug){
 	// time in milliseconds
 	AlphaBetaValue result;
+	if(debug){
+		printf("debug talphabeta\n");
+	}
 	bool stop = false;
-	std::thread t1 = std::thread(calphabeta<Evaluation>, &game, manager, memory, alpha, beta, &stop, depth, &result);
+	std::thread t1 = std::thread(calphabeta<Evaluation>, &game, manager, memory, alpha, beta, &stop, depth, &result, debug);
 	std::this_thread::sleep_for(std::chrono::milliseconds(time));
 	stop = true;
 	t1.join();

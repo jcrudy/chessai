@@ -1,6 +1,47 @@
 import time
 from nose.tools import assert_almost_equal, assert_greater_equal, assert_equal
 from chessai.ai.bitboard import BitBoardState, Player
+import chess
+
+def move_is_legal(board, move):
+    promotion_dict = {'Q':5, 'R':4, 'B':3, 'N':2, 'NO':None}
+    pyboard = chess.Board(board.to_fen())
+    pymove = chess.Move(move.from_square, move.to_square, promotion_dict[move.promotion.upper()])
+    return pyboard.is_legal(pymove)
+
+def test_weird_position():
+    fen = '2b5/8/rqp1kpr1/3p2p1/4P2p/p3Q2P/2PPKPP1/R1B3b1 w - - 12 41'
+    board = BitBoardState.from_fen(fen)
+    player = Player(1000000, 3, 3)
+    move, score, depth = player.tmovesearch(board, 10)
+    print(score, depth)
+    assert(move_is_legal(board, move))
+
+def test_fast_move_is_legal():
+    starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    player = Player(1000000, 3, 3)
+    board = BitBoardState.from_fen(starting_fen)
+    move, _, _ = player.tmovesearch(board, 1)
+    assert(move_is_legal(board, move))
+
+def test_mtdf_vs_regular():
+    starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    player1 = Player(1000000, 3, 3)
+    player2 = Player(1000000, 3, 3)
+    board = BitBoardState.from_fen(starting_fen)
+    depth = 6
+    
+    t0 = time.time()
+    move, score = player1.mtdf(board, depth)
+    t1 = time.time()
+    print('Initial search to depth %d took %fs. Got %s with score %d.' % (depth, t1-t0, str(move), score))
+
+    t0 = time.time()
+    for d in range(depth+1):
+        move, score = player2.mtdf(board, d)
+    t1 = time.time()
+    print('Iterative search to depth %d took %fs. Got %s with score %d.' % (depth, t1-t0, str(move), score))
+
 
 def test_draw():
     starting_fen = 'Q1k5/7p/2p2r2/1p1p1p2/5qn1/P1N5/1PP4P/3R3K b - - 49 59'
@@ -53,7 +94,10 @@ def test_movesearch():
             player_string = 'Black'
         
         t0 = time.time()
-        move, score = player.movesearch(board, 4)
+        if player_string == black:
+            move, score = player.movesearch(board, 4)
+        else:
+            move, score = player.movesearch(board, 4)
         t1 = time.time()
         print('%s: Search took %fs.' % (board.to_fen(), t1-t0))
         

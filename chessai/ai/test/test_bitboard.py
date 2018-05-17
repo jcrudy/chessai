@@ -89,6 +89,12 @@ def test_zobrist_update_correctness():
 #     hash3 = hash1.update(board, record)
 #     assert_equal(hash2, hash3)
 
+def test_king_v_king():
+    starting_fen = '8/8/8/8/8/8/8/5k1K w - - 0 1'
+    board = BitBoardState.from_fen(starting_fen)
+    print board.to_grid()
+    print board.all_moves()
+
 def test_long_form_move_formats():
     starting_fen = 'rnbqkbnr/pppppppr/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     board = BitBoardState.from_fen(starting_fen)
@@ -1101,6 +1107,8 @@ def test_step_north():
 
 
 if __name__ == '__main__':
+    test_king_v_king()
+    exit()
     # This code will run the test in this file.'
     import sys
     import nose

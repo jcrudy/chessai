@@ -8,6 +8,7 @@ from libcpp.vector cimport vector
 import time
 cimport numpy as np
 import numpy as np
+from cython.operator cimport dereference
 
 cdef extern from "stdbool.h":
     ctypedef char bool
@@ -252,9 +253,10 @@ cdef extern from "movesearch.h":
         int num_moves
     
     cdef AlphaBetaValue quiesce[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth)
-    cdef AlphaBetaValue alphabeta[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth, bool *stop, bool debug)
-    cdef void calphabeta[Evaluation](GameState *game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, bool *stop, int *depth, AlphaBetaValue *result)
-    cdef AlphaBetaValue talphabeta[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int time, int *depth)
+    cdef AlphaBetaValue alphabeta[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth, bool *stop, int top, bool debug)
+    cdef void calphabeta[Evaluation](GameState *game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, bool *stop, int *depth, AlphaBetaValue *result, bool debug)
+    cdef AlphaBetaValue talphabeta[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int time, int *depth, bool debug)
+    cdef AlphaBetaValue mtdf[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, int depth, bool *stop)
 #     cdef cppclass SearchMemory:
 #         SearchMemory(int num_killers, int num_moves)
 #         TranspositionTable tt
@@ -615,31 +617,41 @@ cdef class Player:
         self.memory = new SearchMemory(tt_size, num_killers, num_history)
         self.manager = new MoveManager()
     
-    def movesearch(Player self, BitBoardState board, int depth, bool debug=False):
+    def alphabeta(Player self, BitBoardState board, int depth):
         cdef AlphaBetaValue search_result
         cdef bool stop = False
-        search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000, 1000000, depth, &stop, debug)
-        if search_result.value < -1000000:
-            print('fail_low')
-        elif search_result.value > 1000000:
-            print('fail_high')
-        else:
-            print('no fail')
+        search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000, 1000000, depth, &stop, depth, False)
         cdef Move result = Move()
         result.mv = search_result.best_move
         return result, search_result.value
     
-    def tmovesearch(Player self, BitBoardState board, int time):
+    def movesearch(Player self, BitBoardState board, int depth, bool debug=False):
+        cdef AlphaBetaValue search_result
+        cdef bool stop = False
+        search_result = alphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000, 1000000, depth, &stop, depth, debug)
+        cdef Move result = Move()
+        result.mv = search_result.best_move
+        return result, search_result.value
+    
+    def tmovesearch(Player self, BitBoardState board, int time, bool debug=False):
         '''
         time : time limit in milliseconds
         '''
         cdef AlphaBetaValue search_result
         cdef int depth
-        search_result = talphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000, 1000000, time, &depth)
+        search_result = talphabeta[SimpleEvaluation](board.bs, self.manager, self.memory, -1000000, 1000000, time, &depth, debug)
         cdef Move result = Move()
         result.mv = search_result.best_move
         return result, search_result.value, depth
 
+    def mtdf(Player self, BitBoardState board, int depth):
+        cdef AlphaBetaValue search_result
+        cdef bool stop = False
+        search_result = mtdf[SimpleEvaluation](board.bs, self.manager, self.memory, depth, &stop)
+        cdef Move result = Move()
+        result.mv = search_result.best_move
+        return result, search_result.value
+        
 # cdef class TimePlayer:
 #     cdef MoveSearchMemory *msm
 #     cdef readonly double time_per_move
