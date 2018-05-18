@@ -26,8 +26,10 @@ def chess_move_to_white_move(chess_move):
               promotion_dict[chess_move.promotion] if chess_move.promotion else 'no')
     return mv
 
-def all_moves_from_chess_package(fen):
+def all_moves_from_chess_package(fen, whites_turn=None):
     board = chess.Board(fen)
+    if whites_turn is not None:
+        board.turn = whites_turn
     moves = board.legal_moves
     if board.turn:
         return list(map(chess_move_to_white_move, moves))
@@ -287,6 +289,20 @@ def test_all_moves():
     moves = BitBoardState.from_fen(fen).all_moves()
     expected_moves = all_moves_from_chess_package(fen)
     assert_equal(set(moves), set(expected_moves))
+
+def test_all_opponent_moves():
+    fens = [
+            'rnbqkbnr/pppppppr/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+            '1k6/1b6/8/8/7R/8/8/4K2R b K - 0 1',
+            '5k2/8/8/8/8/8/8/4K2R w K - 0 1',
+            'rnbqkb1r/ppp1pppp/5n2/3p4/4P3/2N2P2/PPPP2PP/R1BQKBNR b KQkq - 0 3'
+            ]
+    for fen in fens:
+        board = BitBoardState.from_fen(fen) 
+        moves = board.all_moves(False)
+        expected_moves = all_moves_from_chess_package(fen, False)
+        assert_equal(set(moves), set(expected_moves))
+        assert_equal(fen, board.to_fen())
 
 def test_all_captures():
     fens = [

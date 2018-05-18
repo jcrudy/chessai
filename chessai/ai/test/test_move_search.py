@@ -13,9 +13,14 @@ def test_weird_position():
     fen = '2b5/8/rqp1kpr1/3p2p1/4P2p/p3Q2P/2PPKPP1/R1B3b1 w - - 12 41'
     board = BitBoardState.from_fen(fen)
     player = Player(1000000, 3, 3)
-    move, score, depth = player.tmovesearch(board, 10)
+    move, score, depth = player.tmovesearch(board, 100)
     print(score, depth)
-    assert(move_is_legal(board, move))
+    try:
+        assert(move_is_legal(board, move))
+    except:
+        print(board.to_grid())
+        print(move)
+        raise
 
 def test_fast_move_is_legal():
     starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'

@@ -137,11 +137,11 @@ cdef extern from "bitboardlib.h":
     cdef bitboard bitboard_from_square_index(int i)
     cdef piece unplace_piece(GameState *bs, brdidx square_index)
     cdef void place_piece(GameState *bs, brdidx square_index, piece pc)
-    cdef int quiet_queen_moves(GameState *brd, move *moves)
-    cdef int all_queen_moves(GameState *brd, move *moves)
-    cdef int queen_captures(GameState *brd, move *moves)
-    cdef int all_moves(GameState *brd, move *moves)
-    cdef int all_captures(GameState *brd, move *moves)
+    cdef int quiet_queen_moves(GameState *brd, move *moves, bool whites_turn)
+    cdef int all_queen_moves(GameState *brd, move *moves, bool whites_turn)
+    cdef int queen_captures(GameState *brd, move *moves, bool whites_turn)
+    cdef int all_moves(GameState *brd, move *moves, bool whites_turn)
+    cdef int all_captures(GameState *brd, move *moves, bool whites_turn)
     cdef unsigned long long perft(GameState *brd, int depth)
     cdef bool own_check(GameState *brd)
     ctypedef struct movechoice:
@@ -812,9 +812,14 @@ cdef class BitBoardState:
     cpdef unsigned long long perft(BitBoardState self, int depth):
         return perft(&(self.bs), depth)
     
-    cpdef all_moves(BitBoardState self):
-        cdef move mvs[300];
-        cdef int num_moves = all_moves(&(self.bs), mvs)
+    cpdef all_moves(BitBoardState self, whites_turn=None):
+        cdef move mvs[300]
+        cdef bool whites_turn_
+        if whites_turn is None:
+            whites_turn_ = self.bs.board_state.whites_turn
+        else:
+            whites_turn_ = whites_turn
+        cdef int num_moves = all_moves(&(self.bs), mvs, whites_turn_)
 #         print "num_moves = %d" % num_moves
         cdef list result = []
         cdef move mv
@@ -825,7 +830,7 @@ cdef class BitBoardState:
     
     cpdef all_captures(BitBoardState self):
         cdef move mvs[300];  # @DuplicatedSignature
-        cdef int num_moves = all_captures(&(self.bs), mvs)
+        cdef int num_moves = all_captures(&(self.bs), mvs, self.bs.board_state.whites_turn)
         cdef list result = []  # @DuplicatedSignature
         cdef move mv  # @DuplicatedSignature
         for i in range(num_moves):
@@ -835,7 +840,7 @@ cdef class BitBoardState:
     
     cpdef quiet_queen_moves(BitBoardState self):
         cdef move mvs[300];  # @DuplicatedSignature
-        cdef int num_moves = quiet_queen_moves(&(self.bs), mvs)
+        cdef int num_moves = quiet_queen_moves(&(self.bs), mvs, self.bs.board_state.whites_turn)
         cdef list result = []  # @DuplicatedSignature
         cdef move mv  # @DuplicatedSignature
         for i in range(num_moves):
@@ -845,7 +850,7 @@ cdef class BitBoardState:
     
     cpdef all_queen_moves(BitBoardState self):
         cdef move mvs[300];  # @DuplicatedSignature
-        cdef int num_moves = all_queen_moves(&(self.bs), mvs)
+        cdef int num_moves = all_queen_moves(&(self.bs), mvs, self.bs.board_state.whites_turn)
         cdef list result = []  # @DuplicatedSignature
         cdef move mv  # @DuplicatedSignature
         for i in range(num_moves):
@@ -855,7 +860,7 @@ cdef class BitBoardState:
     
     cpdef queen_captures(BitBoardState self):
         cdef move mvs[300];  # @DuplicatedSignature
-        cdef int num_moves = queen_captures(&(self.bs), mvs)
+        cdef int num_moves = queen_captures(&(self.bs), mvs, self.bs.board_state.whites_turn)
         cdef list result = []  # @DuplicatedSignature
         cdef move mv  # @DuplicatedSignature
         for i in range(num_moves):

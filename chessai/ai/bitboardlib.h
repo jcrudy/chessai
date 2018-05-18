@@ -650,7 +650,6 @@ class TargetTable{
 			clear();
 			add_moves(moves, num_moves, reverse);
 		}
-	private:
 		bitboard targets[64];
 	
 };
@@ -1134,6 +1133,14 @@ inline void unset_blacks_turn(GameState *bs){
 
 inline bitboard get_current_movers_bitboard(GameState *bs){
 	if(get_whites_turn(bs)){
+		return(bs->board_state.white);
+	}else{
+		return(bs->board_state.black);
+	}
+}
+
+inline bitboard get_player_bitboard(GameState *bs, bool white){
+	if(white){
 		return(bs->board_state.white);
 	}else{
 		return(bs->board_state.black);
@@ -1677,10 +1684,22 @@ inline bool opponent_check(GameState *brd){
 	}
 }
 
-inline int king_captures(GameState *brd, move *moves){
+inline bool player_check(GameState *brd, bool whites_turn){
+	bitboard own = get_player_bitboard(brd, whites_turn);
+	bitboard opponent = get_player_bitboard(brd, !whites_turn);
+	brdidx king_square = greatest_square_index(opponent & brd->board_state.k);
+	bitboard attackers = attackers_from_square_index(brd, king_square) & own;
+	if(attackers){
+		return(true);
+	}else{
+		return(false);
+	}
+}
+
+inline int king_captures(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
-	bitboard own = get_current_movers_bitboard(brd);
-	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard own = get_player_bitboard(brd, whites_turn);
+	bitboard opponent = get_player_bitboard(brd, !whites_turn);
 	brdidx king_square = greatest_square_index(brd->board_state.k & own); // there is only one king
 	bitboard king_targets = king_moves_from_square_index(king_square);
 	piece own_king;
@@ -1716,18 +1735,18 @@ inline int king_captures(GameState *brd, move *moves){
 }
 
 
-inline int all_king_moves(GameState *brd, move *moves){
+inline int all_king_moves(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
 	BoardState bs = brd->board_state;
-	bitboard own = get_current_movers_bitboard(brd);
-	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard own = get_player_bitboard(brd, whites_turn);
+	bitboard opponent = get_player_bitboard(brd, !whites_turn);
 	brdidx king_square = greatest_square_index(bs.k & own); // there is only one king
 	bitboard king_targets = king_moves_from_square_index(king_square) & (~own);
 	bitboard attackers;
 	move mv;
 	
 	// Castling
-	if(get_whites_turn(brd)){
+	if(whites_turn){
 		if(get_white_castle_king(brd)){
 			if((bs.white & bs.r & castle_king_rook) && !((own | opponent) & white_castle_king_open)){
 				attackers = attackers_from_square_index(brd, 4) & opponent;
@@ -1793,7 +1812,7 @@ inline int all_king_moves(GameState *brd, move *moves){
 	}
 	
 	piece own_king, captured;
-	if(get_whites_turn(brd)){
+	if(whites_turn){
 		own_king = K;
 	}else{
 		own_king = k;
@@ -1825,18 +1844,18 @@ inline int all_king_moves(GameState *brd, move *moves){
 	return num_moves;
 }
 
-inline int quiet_king_moves(GameState *brd, move *moves){
+inline int quiet_king_moves(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
 	BoardState bs = brd->board_state;
-	bitboard own = get_current_movers_bitboard(brd);
-	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard own = get_player_bitboard(brd, whites_turn);
+	bitboard opponent = get_player_bitboard(brd, !whites_turn);
 	brdidx king_square = greatest_square_index(bs.k & own); // there is only one king
 	bitboard king_targets = king_moves_from_square_index(king_square);
 	bitboard attackers;
 	move mv;
 	
 	// Castling
-	if(get_whites_turn(brd)){
+	if(whites_turn){
 		if(get_white_castle_king(brd)){
 			if((bs.white & bs.r & castle_king_rook) && !((own | opponent) & white_castle_king_open)){
 				attackers = attackers_from_square_index(brd, 4) & opponent;
@@ -1903,7 +1922,7 @@ inline int quiet_king_moves(GameState *brd, move *moves){
 	}
 	
 	piece own_king;
-	if(get_whites_turn(brd)){
+	if(whites_turn){
 		own_king = K;
 	}else{
 		own_king = k;
@@ -1933,11 +1952,11 @@ inline int quiet_king_moves(GameState *brd, move *moves){
 		
 }
 
-inline int knight_captures(GameState *brd, move *moves){
+inline int knight_captures(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
 	BoardState bs = brd->board_state;
-	bitboard own = get_current_movers_bitboard(brd);
-	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard own = get_player_bitboard(brd, whites_turn);
+	bitboard opponent = get_player_bitboard(brd, !whites_turn);
 	
 	bitboard targets, current_source, current_target, propagator;
 	brdidx source_square, target_square;
@@ -1953,7 +1972,7 @@ inline int knight_captures(GameState *brd, move *moves){
 		propagator = full;
 		unplace_piece(brd, source_square);
 		propagator &= checking_rays_intersection(brd, false);
-		if(get_whites_turn(brd)){
+		if(whites_turn){
 			unsafe_place_piece(brd, source_square, N);
 		}else{
 			unsafe_place_piece(brd, source_square, n);
@@ -1987,10 +2006,10 @@ inline int knight_captures(GameState *brd, move *moves){
 	return num_moves;
 }
 
-inline int all_knight_moves(GameState *brd, move *moves){
+inline int all_knight_moves(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
 	BoardState bs = brd->board_state;
-	bitboard own = get_current_movers_bitboard(brd);
+	bitboard own = get_player_bitboard(brd, whites_turn);
 	bitboard targets, current_source, current_target, propagator;
 	brdidx source_square, target_square;
 	move mv;
@@ -2005,7 +2024,7 @@ inline int all_knight_moves(GameState *brd, move *moves){
 		propagator = full;
 		unplace_piece(brd, source_square);
 		propagator &= checking_rays_intersection(brd, false);
-		if(get_whites_turn(brd)){
+		if(whites_turn){
 			unsafe_place_piece(brd, source_square, N);
 		}else{
 			unsafe_place_piece(brd, source_square, n);
@@ -2039,11 +2058,11 @@ inline int all_knight_moves(GameState *brd, move *moves){
 	return num_moves;
 }
 
-inline int quiet_knight_moves(GameState *brd, move *moves){
+inline int quiet_knight_moves(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
 	BoardState bs = brd->board_state;
-	bitboard own = get_current_movers_bitboard(brd);
-	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard own = get_player_bitboard(brd, whites_turn);
+	bitboard opponent = get_player_bitboard(brd, !whites_turn);
 	bitboard unoccupied = ~(own | opponent);
 	
 	bitboard targets, current_source, current_target, propagator;
@@ -2060,7 +2079,7 @@ inline int quiet_knight_moves(GameState *brd, move *moves){
 		propagator = full;
 		unplace_piece(brd, source_square);
 		propagator &= checking_rays_intersection(brd, false);
-		if(get_whites_turn(brd)){
+		if(whites_turn){
 			unsafe_place_piece(brd, source_square, N);
 		}else{
 			unsafe_place_piece(brd, source_square, n);
@@ -2094,11 +2113,11 @@ inline int quiet_knight_moves(GameState *brd, move *moves){
 	return num_moves;
 }
 
-inline int pawn_captures(GameState *brd, move *moves){
+inline int pawn_captures(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
 	BoardState bs = brd->board_state;
-	bitboard own = get_current_movers_bitboard(brd);
-	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard own = get_player_bitboard(brd, whites_turn);
+	bitboard opponent = get_player_bitboard(brd, !whites_turn);
 	bitboard potential_targets = opponent | get_enpassant_bitboard(brd);
 	bitboard targets, current_source, pinboard, current_target;
 	brdidx source_square, target_square;
@@ -2108,7 +2127,7 @@ inline int pawn_captures(GameState *brd, move *moves){
 	move mv;
 	brdidx rank;
 	brdidx end_rank;
-	if(get_whites_turn(brd)){
+	if(whites_turn){
 		end_rank = 7;
 	}else{
 		end_rank = 0;
@@ -2126,14 +2145,14 @@ inline int pawn_captures(GameState *brd, move *moves){
 		if(bs.enpassant != no_enpassant){
 			pinboard |= get_enpassant_bitboard(brd);
 		}
-		if(get_whites_turn(brd)){
+		if(whites_turn){
 			unsafe_place_piece(brd, source_square, P);
 		}else{
 			unsafe_place_piece(brd, source_square, p);
 		}
 		
 		targets = empty;
-		if(get_whites_turn(brd)){
+		if(whites_turn){
 			targets |= ((step_northeast(current_source) | step_northwest(current_source)) & pinboard & potential_targets);
 		}else{
 			targets |= ((step_southeast(current_source) | step_southwest(current_source)) & pinboard & potential_targets);
@@ -2145,7 +2164,7 @@ inline int pawn_captures(GameState *brd, move *moves){
 			target_piece = brd->piece_map[target_square];
 			rank = square_index_to_rank_index(target_square);
 			if(rank == end_rank){
-				if(get_whites_turn(brd)){
+				if(whites_turn){
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
@@ -2209,7 +2228,7 @@ inline int pawn_captures(GameState *brd, move *moves){
 				mv.to_square = target_square;
 				mv.promotion = no;
 				rec = make_move(brd, &mv);
-				if(!opponent_check(brd)){
+				if(!player_check(brd, whites_turn)){
 					moves[num_moves] = mv;
 					num_moves++;
 				}
@@ -2228,11 +2247,11 @@ inline int pawn_captures(GameState *brd, move *moves){
 	return num_moves;
 }
 
-inline int all_pawn_moves(GameState *brd, move *moves){
+inline int all_pawn_moves(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
 	BoardState bs = brd->board_state;
-	bitboard own = get_current_movers_bitboard(brd);
-	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard own = get_player_bitboard(brd, whites_turn);
+	bitboard opponent = get_player_bitboard(brd, !whites_turn);
 	bitboard unoccupied = ~(own | opponent);
 	bitboard potential_targets = opponent | get_enpassant_bitboard(brd);
 	bitboard targets, current_source, current_target;
@@ -2245,7 +2264,7 @@ inline int all_pawn_moves(GameState *brd, move *moves){
 	piece pc;
 	brdidx rank;
 	brdidx end_rank;
-	if(get_whites_turn(brd)){
+	if(whites_turn){
 		end_rank = 7;
 	}else{
 		end_rank = 0;
@@ -2265,7 +2284,7 @@ inline int all_pawn_moves(GameState *brd, move *moves){
 		}
 		unsafe_place_piece(brd, source_square, pc);
 		targets = empty;
-		if(get_whites_turn(brd)){
+		if(whites_turn){
 			// single step push
 			targets |= (step_north(current_source) & unoccupied & pinboard);
 			// double step push
@@ -2285,7 +2304,7 @@ inline int all_pawn_moves(GameState *brd, move *moves){
 			target_piece = brd->piece_map[target_square];
 			rank = square_index_to_rank_index(target_square);
 			if(rank == end_rank){
-				if(get_whites_turn(brd)){
+				if(whites_turn){
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
@@ -2349,7 +2368,7 @@ inline int all_pawn_moves(GameState *brd, move *moves){
 				mv.to_square = target_square;
 				mv.promotion = no;
 				rec = make_move(brd, &mv);
-				if(!opponent_check(brd)){
+				if(!player_check(brd, whites_turn)){
 					moves[num_moves] = mv;
 					num_moves++;
 				}
@@ -2368,17 +2387,17 @@ inline int all_pawn_moves(GameState *brd, move *moves){
 	return num_moves;
 }
 
-inline int quiet_pawn_moves(GameState *brd, move *moves){
+inline int quiet_pawn_moves(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
-	bitboard own = get_current_movers_bitboard(brd);
-	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard own = get_player_bitboard(brd, whites_turn);
+	bitboard opponent = get_player_bitboard(brd, !whites_turn);
 	bitboard unoccupied = ~(own | opponent);
 	bitboard targets, current_source, propagator, current_target;
 	brdidx source_square, target_square;
 	move mv;
 	brdidx rank;
 	brdidx end_rank;
-	if(get_whites_turn(brd)){
+	if(whites_turn){
 		end_rank = 8;
 	}else{
 		end_rank = 1;
@@ -2394,14 +2413,14 @@ inline int quiet_pawn_moves(GameState *brd, move *moves){
 		propagator = unoccupied;
 		unplace_piece(brd, source_square);
 		propagator &= checking_rays_intersection(brd, false);
-		if(get_whites_turn(brd)){
+		if(whites_turn){
 			unsafe_place_piece(brd, source_square, P);
 		}else{
 			unsafe_place_piece(brd, source_square, p);
 		}
 		
 		targets = empty;
-		if(get_whites_turn(brd)){
+		if(whites_turn){
 			// single step push
 			targets |= (step_north(current_source) & propagator);
 			// double step push
@@ -2419,7 +2438,7 @@ inline int quiet_pawn_moves(GameState *brd, move *moves){
 			target_square = greatest_square_index(current_target);
 			rank = square_index_to_rank_index(target_square);
 			if(rank == end_rank){
-				if(get_whites_turn(brd)){
+				if(whites_turn){
 					mv = move();
 					mv.from_square = source_square;
 					mv.to_square = target_square;
@@ -2504,10 +2523,10 @@ inline int quiet_pawn_moves(GameState *brd, move *moves){
 	return num_moves;
 }
 
-inline int bishop_captures(GameState *brd, move *moves){
+inline int bishop_captures(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
-	bitboard own = get_current_movers_bitboard(brd);
-	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard own = get_player_bitboard(brd, whites_turn);
+	bitboard opponent = get_player_bitboard(brd, !whites_turn);
 	bitboard unoccupied = ~(own | opponent);
 	bitboard pinboard;
 	bitboard bishops;
@@ -2526,7 +2545,7 @@ inline int bishop_captures(GameState *brd, move *moves){
 		// take care of pinning
 		unplace_piece(brd, source_square);
 		pinboard = checking_rays_intersection(brd, false);
-		if(get_whites_turn(brd)){
+		if(whites_turn){
 			unsafe_place_piece(brd, source_square, B);
 		}else{
 			unsafe_place_piece(brd, source_square, b);
@@ -2562,10 +2581,10 @@ inline int bishop_captures(GameState *brd, move *moves){
 	return num_moves;
 }
 
-inline int all_bishop_moves(GameState *brd, move *moves){
+inline int all_bishop_moves(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
-	bitboard own = get_current_movers_bitboard(brd);
-	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard own = get_player_bitboard(brd, whites_turn);
+	bitboard opponent = get_player_bitboard(brd, !whites_turn);
 	bitboard unoccupied = ~(own | opponent);
 	bitboard pinboard;
 	bitboard bishops;
@@ -2584,7 +2603,7 @@ inline int all_bishop_moves(GameState *brd, move *moves){
 		// take care of pinning
 		unplace_piece(brd, source_square);
 		pinboard = checking_rays_intersection(brd, false);
-		if(get_whites_turn(brd)){
+		if(whites_turn){
 			unsafe_place_piece(brd, source_square, B);
 		}else{
 			unsafe_place_piece(brd, source_square, b);
@@ -2619,10 +2638,10 @@ inline int all_bishop_moves(GameState *brd, move *moves){
 }
 
 
-inline int quiet_bishop_moves(GameState *brd, move *moves){
+inline int quiet_bishop_moves(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
-	bitboard own = get_current_movers_bitboard(brd);
-	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard own = get_player_bitboard(brd, whites_turn);
+	bitboard opponent = get_player_bitboard(brd, !whites_turn);
 	bitboard unoccupied = ~(own | opponent);
 	bitboard propagator;
 	bitboard bishops;
@@ -2641,7 +2660,7 @@ inline int quiet_bishop_moves(GameState *brd, move *moves){
 		propagator = unoccupied;
 		unplace_piece(brd, source_square);
 		propagator &= checking_rays_intersection(brd, false);
-		if(get_whites_turn(brd)){
+		if(whites_turn){
 			unsafe_place_piece(brd, source_square, B);
 		}else{
 			unsafe_place_piece(brd, source_square, b);
@@ -2669,10 +2688,10 @@ inline int quiet_bishop_moves(GameState *brd, move *moves){
 	return num_moves;
 }
 
-inline int rook_captures(GameState *brd, move *moves){
+inline int rook_captures(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
-	bitboard own = get_current_movers_bitboard(brd);
-	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard own = get_player_bitboard(brd, whites_turn);
+	bitboard opponent = get_player_bitboard(brd, !whites_turn);
 	bitboard unoccupied = ~(own | opponent);
 	bitboard pinboard;
 	bitboard rooks;
@@ -2691,7 +2710,7 @@ inline int rook_captures(GameState *brd, move *moves){
 		// take care of pinning
 		unplace_piece(brd, source_square);
 		pinboard = checking_rays_intersection(brd, false);
-		if(get_whites_turn(brd)){
+		if(whites_turn){
 			unsafe_place_piece(brd, source_square, R);
 		}else{
 			unsafe_place_piece(brd, source_square, r);
@@ -2727,10 +2746,10 @@ inline int rook_captures(GameState *brd, move *moves){
 	return num_moves;
 }
 
-inline int all_rook_moves(GameState *brd, move *moves){
+inline int all_rook_moves(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
-	bitboard own = get_current_movers_bitboard(brd);
-	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard own = get_player_bitboard(brd, whites_turn);
+	bitboard opponent = get_player_bitboard(brd, !whites_turn);
 	bitboard unoccupied = ~(own | opponent);
 	bitboard pinboard;
 	bitboard rooks;
@@ -2749,7 +2768,7 @@ inline int all_rook_moves(GameState *brd, move *moves){
 		// take care of pinning
 		unplace_piece(brd, source_square);
 		pinboard = checking_rays_intersection(brd, false);
-		if(get_whites_turn(brd)){
+		if(whites_turn){
 			unsafe_place_piece(brd, source_square, R);
 		}else{
 			unsafe_place_piece(brd, source_square, r);
@@ -2786,10 +2805,10 @@ inline int all_rook_moves(GameState *brd, move *moves){
 }
 
 
-inline int quiet_rook_moves(GameState *brd, move *moves){
+inline int quiet_rook_moves(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
-	bitboard own = get_current_movers_bitboard(brd);
-	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard own = get_player_bitboard(brd, whites_turn);
+	bitboard opponent = get_player_bitboard(brd, !whites_turn);
 	bitboard unoccupied = ~(own | opponent);
 	bitboard propagator;
 	bitboard rooks;
@@ -2808,7 +2827,7 @@ inline int quiet_rook_moves(GameState *brd, move *moves){
 		propagator = unoccupied;
 		unplace_piece(brd, source_square);
 		propagator &= checking_rays_intersection(brd, false);
-		if(get_whites_turn(brd)){
+		if(whites_turn){
 			unsafe_place_piece(brd, source_square, R);
 		}else{
 			unsafe_place_piece(brd, source_square, r);
@@ -2836,10 +2855,10 @@ inline int quiet_rook_moves(GameState *brd, move *moves){
 	return num_moves;
 }
 
-inline int queen_captures(GameState *brd, move *moves){
+inline int queen_captures(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
-	bitboard own = get_current_movers_bitboard(brd);
-	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard own = get_player_bitboard(brd, whites_turn);
+	bitboard opponent = get_player_bitboard(brd, !whites_turn);
 	bitboard unoccupied = ~(own | opponent);
 	bitboard pinboard;
 	bitboard queens;
@@ -2858,7 +2877,7 @@ inline int queen_captures(GameState *brd, move *moves){
 		// take care of pinning
 		unplace_piece(brd, source_square);
 		pinboard = checking_rays_intersection(brd, false);
-		if(get_whites_turn(brd)){
+		if(whites_turn){
 			unsafe_place_piece(brd, source_square, Q);
 		}else{
 			unsafe_place_piece(brd, source_square, q);
@@ -2906,10 +2925,10 @@ inline int queen_captures(GameState *brd, move *moves){
 	return num_moves;
 }
 
-inline int all_queen_moves(GameState *brd, move *moves){
+inline int all_queen_moves(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
-	bitboard own = get_current_movers_bitboard(brd);
-	bitboard opponent = get_opposing_movers_bitboard(brd);
+	bitboard own = get_player_bitboard(brd, whites_turn);
+	bitboard opponent = get_player_bitboard(brd, !whites_turn);
 	bitboard unoccupied = ~(own | opponent);
 	bitboard pinboard;
 	bitboard queens;
@@ -2928,7 +2947,7 @@ inline int all_queen_moves(GameState *brd, move *moves){
 		// take care of pinning
 		unplace_piece(brd, source_square);
 		pinboard = checking_rays_intersection(brd, false);
-		if(get_whites_turn(brd)){
+		if(whites_turn){
 			unsafe_place_piece(brd, source_square, Q);
 		}else{
 			unsafe_place_piece(brd, source_square, q);
@@ -2977,12 +2996,12 @@ inline int all_queen_moves(GameState *brd, move *moves){
 }
 
 
-inline int quiet_queen_moves(GameState *brd, move *moves){
+inline int quiet_queen_moves(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
 	bitboard unoccupied = ~(brd->board_state.white | brd->board_state.black);
 	bitboard propagator;
 	bitboard queens;
-	if(get_whites_turn(brd)){
+	if(whites_turn){
 		queens = brd->board_state.white & brd->board_state.q;
 	}else{
 		queens = brd->board_state.black & brd->board_state.q;
@@ -3001,7 +3020,7 @@ inline int quiet_queen_moves(GameState *brd, move *moves){
 		propagator = unoccupied;
 		unplace_piece(brd, source_square);
 		propagator &= checking_rays_intersection(brd, false);
-		if(get_whites_turn(brd)){
+		if(whites_turn){
 			unsafe_place_piece(brd, source_square, Q);
 		}else{
 			unsafe_place_piece(brd, source_square, q);
@@ -3033,36 +3052,36 @@ inline int quiet_queen_moves(GameState *brd, move *moves){
 	return num_moves;
 }
 
-inline int all_captures(GameState *brd, move *moves){
+inline int all_captures(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
-	num_moves += king_captures(brd, moves + num_moves);
-	num_moves += queen_captures(brd, moves + num_moves);
-	num_moves += bishop_captures(brd, moves + num_moves);
-	num_moves += rook_captures(brd, moves + num_moves);
-	num_moves += pawn_captures(brd, moves + num_moves);
-	num_moves += knight_captures(brd, moves + num_moves);
+	num_moves += king_captures(brd, moves + num_moves, whites_turn);
+	num_moves += queen_captures(brd, moves + num_moves, whites_turn);
+	num_moves += bishop_captures(brd, moves + num_moves, whites_turn);
+	num_moves += rook_captures(brd, moves + num_moves, whites_turn);
+	num_moves += pawn_captures(brd, moves + num_moves, whites_turn);
+	num_moves += knight_captures(brd, moves + num_moves, whites_turn);
 	return num_moves;
 }
 
-inline int all_moves(GameState *brd, move *moves){
+inline int all_moves(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
-	num_moves += all_king_moves(brd, moves + num_moves);
-	num_moves += all_queen_moves(brd, moves + num_moves);
-	num_moves += all_bishop_moves(brd, moves + num_moves);
-	num_moves += all_rook_moves(brd, moves + num_moves);
-	num_moves += all_pawn_moves(brd, moves + num_moves);
-	num_moves += all_knight_moves(brd, moves + num_moves);
+	num_moves += all_king_moves(brd, moves + num_moves, whites_turn);
+	num_moves += all_queen_moves(brd, moves + num_moves, whites_turn);
+	num_moves += all_bishop_moves(brd, moves + num_moves, whites_turn);
+	num_moves += all_rook_moves(brd, moves + num_moves, whites_turn);
+	num_moves += all_pawn_moves(brd, moves + num_moves, whites_turn);
+	num_moves += all_knight_moves(brd, moves + num_moves, whites_turn);
 	return num_moves;
 }
 
-inline int all_quiet_moves(GameState *brd, move *moves){
+inline int all_quiet_moves(GameState *brd, move *moves, bool whites_turn){
 	int num_moves = 0;
-	num_moves += quiet_king_moves(brd, moves + num_moves);
-	num_moves += quiet_queen_moves(brd, moves + num_moves);
-	num_moves += quiet_bishop_moves(brd, moves + num_moves);
-	num_moves += quiet_rook_moves(brd, moves + num_moves);
-	num_moves += quiet_pawn_moves(brd, moves + num_moves);
-	num_moves += quiet_knight_moves(brd, moves + num_moves);
+	num_moves += quiet_king_moves(brd, moves + num_moves, whites_turn);
+	num_moves += quiet_queen_moves(brd, moves + num_moves, whites_turn);
+	num_moves += quiet_bishop_moves(brd, moves + num_moves, whites_turn);
+	num_moves += quiet_rook_moves(brd, moves + num_moves, whites_turn);
+	num_moves += quiet_pawn_moves(brd, moves + num_moves, whites_turn);
+	num_moves += quiet_knight_moves(brd, moves + num_moves, whites_turn);
 	return num_moves;
 }
 

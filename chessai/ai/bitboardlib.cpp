@@ -182,7 +182,7 @@ GameState::~GameState(){
 
 unsigned long long perft(GameState *brd, int depth){
     move moves[200];
-    int n_moves = all_moves(brd, moves);
+    int n_moves = all_moves(brd, moves, brd->board_state.whites_turn);
     moverecord rec;
     move mv;
     unsigned long long result = 0;

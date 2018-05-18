@@ -188,7 +188,7 @@ struct SimpleEvaluation{
 	static const int mate;
 	static const int draw;
 	static const int delta;
-	static const int evaluate(GameState &brd, move *moves, int num_moves){
+	static const int evaluate(GameState &brd, move *own_moves, int num_own_moves, move *opponent_moves, int num_opponent_moves){
 		int white_score, black_score;
 		white_score = 0;
 		black_score = 0;
@@ -216,8 +216,16 @@ struct SimpleEvaluation{
 		black_score += 4 * population_count(brd.board_state.black & brd.board_state.p & rank_3);
 		black_score += 3 * population_count(brd.board_state.black & brd.board_state.p & rank_4);
 		
-		brd.moves_from.set_moves(moves, num_moves, true);
-		brd.moves_to.set_moves(moves, num_moves, false);
+		brd.moves_from.set_moves(own_moves, num_own_moves, true);
+		brd.moves_to.set_moves(own_moves, num_own_moves, false);
+		brd.moves_from.set_moves(opponent_moves, num_opponent_moves, true);
+		brd.moves_to.set_moves(opponent_moves, num_opponent_moves, false);
+		bitboard moves_from, moves_to;
+		for(int i=0;i<64;i++){
+			moves_from = brd.moves_from.targets[i];
+			moves_to = brd.moves_to.targets[i];
+
+		}
 
 		return white_score - black_score;
 
@@ -394,13 +402,16 @@ class MoveManager{
 			}
 			return index;
 		}
+		void generate_all_opponent(GameState &game){
+			_num_opponent_moves = all_moves(&game, opponent_buffer, !game.board_state.whites_turn);
+		}
 		void generate_all(GameState &game, int depth){
 			int index = getindex(depth);
-			_num_moves[index] = all_moves(&game, buffer[index]);
+			_num_moves[index] = all_moves(&game, buffer[index], game.board_state.whites_turn);
 		}
 		void generate_noisy(GameState &game, int depth){
 			int index = getindex(depth);
-			_num_moves[index] = all_captures(&game, buffer[index]);
+			_num_moves[index] = all_captures(&game, buffer[index], game.board_state.whites_turn);
 		}
 		void order_noisy(GameState &game, SearchMemory *memory, int depth){
 			// Determine best move from transposition table
@@ -533,6 +544,9 @@ class MoveManager{
 			int index = getindex(depth);
 			return buffer[index];
 		}
+		move *get_opponent_moves(){
+			return opponent_buffer;
+		}
 		int full_begin(int depth){
 			int index = getindex(depth);
 			return _full_begin[index];
@@ -553,17 +567,22 @@ class MoveManager{
 			int index = getindex(depth);
 			return _num_moves[index];
 		}
+		int num_opponent_moves(){
+			return _num_opponent_moves;
+		}
 	private:
 		// No search is likely to exceed 1000 ply, and
 		// no position has more than 1000 possible moves
 		static const int maxply = 1000;
 		static const int maxmove = 1000;
 		move buffer[maxply][maxmove];
+		move opponent_buffer[maxmove];
 		int _full_begin[maxply];
 		int _full_end[maxply];
 		int _pv_begin[maxply];
 		int _pv_end[maxply];
 		int _num_moves[maxply];
+		int _num_opponent_moves;
 };
 
 template<class Evaluation>
@@ -579,8 +598,12 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 	move *moves = manager->get_moves(depth);
 	int num_moves = manager->num_moves(depth);
 	
+	manager->generate_all_opponent(game);
+	move *opponent_moves = manager->get_opponent_moves();
+	int num_opponent_moves = manager->num_opponent_moves();
+
 	// Get the current evaluation and possibly cut off immediately
-	int result = Evaluation::evaluate(game, moves, num_moves);
+	int result = Evaluation::evaluate(game, moves, num_moves, opponent_moves, num_opponent_moves);
 	if(maximize){
 		if(result > beta){
 			return result;
@@ -693,7 +716,8 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 }
 
 template<class Evaluation>
-AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth, bool *stop, int top, bool debug){
+AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, int alpha,
+		                 int beta, int depth, bool *stop, int top, bool debug){
 	// Not using negamax.  All scores will be from the perspective of white.  That is,
 	// white seeks to maximize and black seeks to minimize.
 
