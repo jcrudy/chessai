@@ -67,7 +67,7 @@ ext_modules = [Extension('chessai.ai.bitboard',
 #                          libraries = ['easy_profiler'],
 #                          library_dirs = [os.path.join('easy_profiler-1.3.0', 'bin')],
 #                         extra_compile_args = ['-std=c++14', '-g', '-O0', '-stdlib=libc++'],
-                        extra_compile_args=['-std=c++14', '-Ofast', '-march=native', '-fomit-frame-pointer', ] + (['-stdlib=libc++'] if sys.platform.lower().startswith('darwin') else []),
+                        extra_compile_args=['-std=c++14', '-Ofast', '-march=native', '-fomit-frame-pointer', '-Wmaybe-uninitialized', '-Wuninitialized'] + (['-stdlib=libc++'] if sys.platform.lower().startswith('darwin') else []),
                         #, '-g', '-O0'
 #                          **ext_args
                          ),

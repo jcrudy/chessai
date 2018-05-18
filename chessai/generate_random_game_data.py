@@ -14,8 +14,18 @@ def move_is_legal(board, move):
     if move.promotion.upper() not in promotion_dict:
         print('%s not legal promotion' % move.promotion)
         return False
+    if move.from_square > 63 or move.to_square > 63:
+        print('%s not legal' % str(move))
+        return False
     pymove = chess.Move(move.from_square, move.to_square, promotion_dict[move.promotion.upper()])
-    return pyboard.is_legal(pymove)
+    try:
+        return pyboard.is_legal(pymove)
+    except:
+        print(board.to_grid())
+        print(move)
+        print(pyboard)
+        print(pymove)
+        raise
 
 def random_fen(random_ply, smart_ply=0, player=None, time=10, start='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'):
 #     print('random_fen')

@@ -188,7 +188,7 @@ struct SimpleEvaluation{
 	static const int mate;
 	static const int draw;
 	static const int delta;
-	static const int evaluate(GameState &brd){
+	static const int evaluate(GameState &brd, move *moves, int num_moves){
 		int white_score, black_score;
 		white_score = 0;
 		black_score = 0;
@@ -215,6 +215,9 @@ struct SimpleEvaluation{
 		black_score += 5 * population_count(brd.board_state.black & brd.board_state.p & rank_2);
 		black_score += 4 * population_count(brd.board_state.black & brd.board_state.p & rank_3);
 		black_score += 3 * population_count(brd.board_state.black & brd.board_state.p & rank_4);
+		
+		brd.moves_from.set_moves(moves, num_moves, true);
+		brd.moves_to.set_moves(moves, num_moves, false);
 
 		return white_score - black_score;
 
@@ -234,6 +237,9 @@ class KillerTable{
 				starts = new int[num_ply];
 				for(int i=0;i<num_ply;i++){
 					killers[i] = new move[num_killers];
+					for(int j=0;j<num_killers;j++){
+						killers[i][j] = nomove;
+					}
 					starts[i] = num_killers - 1;
 				}
 			}
@@ -565,9 +571,16 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 
 	// Check whether maximizing or minimizing
 	const bool maximize = game.board_state.whites_turn;
-
+	
+	// Generate all legal moves.  Some of these will not be searched,
+	// but we need to generate all moves to check for checkmate and
+	// stalemate and for evaluation.
+	manager->generate_all(game, depth);
+	move *moves = manager->get_moves(depth);
+	int num_moves = manager->num_moves(depth);
+	
 	// Get the current evaluation and possibly cut off immediately
-	int result = Evaluation::evaluate(game);
+	int result = Evaluation::evaluate(game, moves, num_moves);
 	if(maximize){
 		if(result > beta){
 			return result;
@@ -595,13 +608,8 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 	}
 	// At this point result is the stand pat value, and matches alpha (if maximizing) or beta (otherwise).
 
-	// Generate all legal moves.  Some of these will not be searched,
-	// but we need to generate all moves to check for checkmate and
-	// stalemate.
-	manager->generate_all(game, depth);
-
 	// Check for checkmates and draws
-	if(manager->num_moves(depth) == 0){
+	if(num_moves == 0){
 		if(own_check(&game)){
 			// Checkmate.  We lose.
 			result = maximize?(-(Evaluation::mate)):(Evaluation::mate);
@@ -634,7 +642,6 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 	int search_result;
 	move mv;
 	moverecord rec;
-	move *moves = manager->get_moves(depth);
 	for(int i=manager->full_begin(depth);i<manager->pv_end(depth);i++){
 		mv = moves[i];
 		rec = manager->make(game, mv);

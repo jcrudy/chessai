@@ -1107,8 +1107,6 @@ def test_step_north():
 
 
 if __name__ == '__main__':
-    test_king_v_king()
-    exit()
     # This code will run the test in this file.'
     import sys
     import nose

@@ -612,6 +612,48 @@ struct record_entry {
 	BoardState board_state;
 };
 
+struct move{
+	brdidx from_square;
+	brdidx to_square;
+	piece promotion;
+	int sort_score;
+};
+
+extern const move nomove;
+
+class TargetTable{
+	public:
+		TargetTable(){
+			clear();
+		}
+		void clear(){
+			for(int i=0;i<64;i++){
+				this->targets[i] = empty;
+			}
+		}
+		void add_moves(move *moves, int num_moves, bool reverse){
+			move mv;
+			brdidx from_square, to_square;
+			for(int i=0;i<num_moves;i++){
+				mv = moves[i];
+				if(reverse){
+					from_square = mv.to_square;
+					to_square = mv.from_square;
+				}else{
+					to_square = mv.to_square;
+					from_square = mv.from_square;
+				}
+				this->targets[from_square] |= bitboard_from_square_index(to_square);
+			}
+		}
+		void set_moves(move *moves, int num_moves, bool reverse){
+			clear();
+			add_moves(moves, num_moves, reverse);
+		}
+	private:
+		bitboard targets[64];
+	
+};
 
 struct GameState{
 	BoardState board_state;
@@ -623,6 +665,8 @@ struct GameState{
 	piece piece_map[64];
 	zobrist_int hash;
 	record_entry record[maxrecord];
+	TargetTable moves_from;
+	TargetTable moves_to;
 //	PositionCounter *position_count;
 //	int current_position_count;
 	GameState();
@@ -921,15 +965,6 @@ inline bitboard color_bitboard_from_piece(GameState *bs, piece pc){
 inline bitboard bitboard_from_piece(GameState *bs, piece pc){
 	return(piece_bitboard_from_piece(bs, pc) & color_bitboard_from_piece(bs, pc));
 }
-
-typedef struct {
-	brdidx from_square;
-	brdidx to_square;
-	piece promotion;
-	int sort_score;
-} move;
-
-extern const move nomove;
 
 inline void printmove(move mv){
 	// For debugging
