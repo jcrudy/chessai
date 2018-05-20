@@ -5,6 +5,8 @@ dependencies:
     - multipledispatch
     - cython
     - numpy
+    - pandas
+    - scikit-learn
     - pip:
         - toolz==0.8.2
         - frozendict

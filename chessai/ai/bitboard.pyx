@@ -9,6 +9,7 @@ import time
 cimport numpy as np
 import numpy as np
 from cython.operator cimport dereference
+from tqdm import tqdm
 
 cdef extern from "stdbool.h":
     ctypedef char bool
@@ -240,23 +241,45 @@ cdef extern from "movesearch.h":
 
     cdef cppclass MoveManager:
         MoveManager()
+        int getindex(int depth)
+        void generate_all_opponent(GameState &game)
         void generate_all(GameState &game, int depth)
         void generate_noisy(GameState &game, int depth)
+        void order_noisy(GameState &game, SearchMemory *memory, int depth)
         void order_all(GameState &game, SearchMemory *memory, int depth)
         moverecord make(GameState &game, move &mv)
         void unmake(GameState &game, moverecord &rec)
         move *get_moves(int depth)
-        int full_begin
-        int full_end
-        int pv_begin
-        int pv_end
-        int num_moves
+        move *get_opponent_moves()
+        int full_begin(int depth)
+        int full_end(int depth)
+        int pv_begin(int depth)
+        int pv_end(int depth)
+        int num_moves(int depth)
+        int num_opponent_moves()
+        
+#         
+#         
+#         
+#         void generate_all(GameState &game, int depth)
+#         void generate_noisy(GameState &game, int depth)
+#         void order_all(GameState &game, SearchMemory *memory, int depth)
+#         moverecord make(GameState &game, move &mv)
+#         void unmake(GameState &game, moverecord &rec)
+#         move *get_moves(int depth)
+#         int full_begin
+#         int full_end
+#         int pv_begin
+#         int pv_end
+#         int num_moves
     
     cdef AlphaBetaValue quiesce[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth)
     cdef AlphaBetaValue alphabeta[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int depth, bool *stop, int top, bool debug)
     cdef void calphabeta[Evaluation](GameState *game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, bool *stop, int *depth, AlphaBetaValue *result, bool debug)
     cdef AlphaBetaValue talphabeta[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int time, int *depth, bool debug)
     cdef AlphaBetaValue mtdf[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, int depth, bool *stop)
+    cdef void extract_engineered_features(GameState &brd, move *own_moves, int num_own_moves, move *opponent_moves,
+                                          int num_opponent_moves, int *output)
 #     cdef cppclass SearchMemory:
 #         SearchMemory(int num_killers, int num_moves)
 #         TranspositionTable tt
@@ -651,7 +674,7 @@ cdef class Player:
         cdef Move result = Move()
         result.mv = search_result.best_move
         return result, search_result.value
-        
+    
 # cdef class TimePlayer:
 #     cdef MoveSearchMemory *msm
 #     cdef readonly double time_per_move
@@ -683,6 +706,42 @@ cdef class Player:
 #         cdef Move result = Move()  # @DuplicatedSignature
 #         result.mv = mv
 #         return result
+
+cdef class FeatureExtractor:
+    cdef MoveManager *manager
+    def __init__(FeatureExtractor self):
+        self.manager = new MoveManager()
+        
+    def engineered_features(FeatureExtractor self, fens):
+        cdef BitBoardState board;
+        
+        cdef move *moves
+        cdef int num_moves
+    
+        cdef move *opponent_moves
+        cdef int num_opponent_moves
+        
+        cdef np.ndarray[int, ndim=1, mode='c'] output = np.empty(shape=15*15 + 15, dtype='i')
+        cdef list features = []
+        for fen in tqdm(fens):
+            board = BitBoardState.from_fen(fen)
+            self.manager.generate_all(board.bs, 1)
+            moves = self.manager.get_moves(1)
+            num_moves = self.manager.num_moves(1)
+        
+            self.manager.generate_all_opponent(board.bs)
+            opponent_moves = self.manager.get_opponent_moves()
+            num_opponent_moves = self.manager.num_opponent_moves()
+            board = BitBoardState.from_fen(fen)
+            extract_engineered_features(board.bs, moves, num_moves, opponent_moves, 
+                                        num_opponent_moves, &(output[0]))
+            features.append(output.copy())
+            
+        return features
+            
+            
+
+
 
 cdef class BitBoardState:
     cdef GameState bs

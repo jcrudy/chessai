@@ -183,6 +183,79 @@ class TranspositionTable {
 
 extern const TranspositionEntry null_te;
 
+inline void extract_engineered_features(GameState &brd, move *own_moves, int num_own_moves, move *opponent_moves,
+		                                int num_opponent_moves, int *output){
+	// output should be at least 15*15 + 15
+	int w_p, w_n, w_b, w_r, w_q, b_p, b_n, b_b, b_r, b_q;
+
+	// attack_count_diff[from][to];
+	// use piece_to_target_type_index to index
+	int attack_count[15][15];
+	for(int i=0;i<15;i++){
+		for(int j=0;j<15;j++){
+			attack_count[i][j] = 0;
+		}
+	}
+//
+//	int w_king_mobility, b_king_mobility;
+//	int w_doubled_pawns, b_doubled_pawns;
+
+	w_p = population_count(brd.board_state.white & brd.board_state.p);
+	w_n = population_count(brd.board_state.white & brd.board_state.n);
+	w_b = population_count(brd.board_state.white & brd.board_state.b);
+	w_r = population_count(brd.board_state.white & brd.board_state.r);
+	w_q = population_count(brd.board_state.white & brd.board_state.q);
+	b_p = population_count(brd.board_state.black & brd.board_state.p);
+	b_n = population_count(brd.board_state.black & brd.board_state.n);
+	b_b = population_count(brd.board_state.black & brd.board_state.b);
+	b_r = population_count(brd.board_state.black & brd.board_state.r);
+	b_q = population_count(brd.board_state.black & brd.board_state.q);
+
+	brd.moves_from.set_moves(own_moves, num_own_moves, true);
+	brd.moves_to.set_moves(own_moves, num_own_moves, false);
+	brd.moves_from.add_moves(opponent_moves, num_opponent_moves, true);
+	brd.moves_to.add_moves(opponent_moves, num_opponent_moves, false);
+	bitboard targets, tmp;
+	int from_target_index, to_target_index;
+	piece to_pc, from_pc;
+	for(int i=0;i<64;i++){
+		targets = brd.moves_from.targets[i];
+		from_pc = brd.piece_map[i];
+		from_target_index = piece_to_target_index(from_pc);
+		while(targets){
+			tmp = ls1b(targets);
+			to_pc = brd.piece_map[greatest_square_index(tmp)];
+			to_target_index = piece_to_target_index(to_pc);
+			attack_count[from_target_index][to_target_index] += 1;
+			targets ^= tmp;
+		}
+	}
+
+	output[0] = w_p;
+	output[1] = b_p;
+	output[2] = w_n;
+	output[3] = b_n;
+	output[4] = w_b;
+	output[5] = b_b;
+	output[6] = w_r;
+	output[7] = b_r;
+	output[8] = w_q;
+	output[9] = b_q;
+	output[10] = brd.board_state.whites_turn;
+	output[11] = brd.board_state.white_castle_queen;
+	output[12] = brd.board_state.white_castle_king;
+	output[13] = brd.board_state.black_castle_queen;
+	output[14] = brd.board_state.black_castle_queen;
+
+
+	for(int i=0;i<15;i++){
+		for(int j=0;j<15;j++){
+			output[15 + i*15 + j] = attack_count[i][j];
+		}
+	}
+
+}
+
 struct SimpleEvaluation{
 	static const int infinity;
 	static const int mate;
@@ -216,17 +289,6 @@ struct SimpleEvaluation{
 		black_score += 4 * population_count(brd.board_state.black & brd.board_state.p & rank_3);
 		black_score += 3 * population_count(brd.board_state.black & brd.board_state.p & rank_4);
 		
-		brd.moves_from.set_moves(own_moves, num_own_moves, true);
-		brd.moves_to.set_moves(own_moves, num_own_moves, false);
-		brd.moves_from.set_moves(opponent_moves, num_opponent_moves, true);
-		brd.moves_to.set_moves(opponent_moves, num_opponent_moves, false);
-		bitboard moves_from, moves_to;
-		for(int i=0;i<64;i++){
-			moves_from = brd.moves_from.targets[i];
-			moves_to = brd.moves_to.targets[i];
-
-		}
-
 		return white_score - black_score;
 
 	}

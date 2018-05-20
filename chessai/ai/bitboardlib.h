@@ -891,6 +891,77 @@ inline void place_piece(GameState *bs, brdidx square_index, piece pc){
 	}
 }
 
+inline bool piece_is_white(piece pc){
+	switch(pc){
+		case K:
+			return(true);
+		case k:
+			return(false);
+		case Q:
+			return(true);
+		case q:
+			return(false);
+		case B:
+			return(true);
+		case b:
+			return(false);
+		case N:
+			return(true);
+		case n:
+			return(false);
+		case R:
+			return(true);
+		case r:
+			return(false);
+		case P:
+			return(true);
+		case p:
+			return(false);
+		case EP:
+			return(true);
+		case ep:
+			return(false);
+		case no:
+			return(false);
+	}
+}
+
+inline bool piece_is_black(piece pc){
+	switch(pc){
+		case K:
+			return(false);
+		case k:
+			return(true);
+		case Q:
+			return(false);
+		case q:
+			return(true);
+		case B:
+			return(false);
+		case b:
+			return(true);
+		case N:
+			return(false);
+		case n:
+			return(true);
+		case R:
+			return(false);
+		case r:
+			return(true);
+		case P:
+			return(false);
+		case p:
+			return(true);
+		case EP:
+			return(false);
+		case ep:
+			return(true);
+		case no:
+			return(false);
+	}
+}
+
+
 inline bitboard piece_bitboard_from_piece(GameState *bs, piece pc){
 	switch(pc){
 		case K:
@@ -3086,6 +3157,41 @@ inline int all_quiet_moves(GameState *brd, move *moves, bool whites_turn){
 }
 
 unsigned long long perft(GameState *brd, int depth);
+
+inline int piece_to_target_index(piece pc){
+	switch(pc){
+		case K:
+			return(14);
+		case k:
+			return(13);
+		case Q:
+			return(12);
+		case q:
+			return(11);
+		case B:
+			return(10);
+		case b:
+			return(9);
+		case N:
+			return(8);
+		case n:
+			return(7);
+		case R:
+			return(6);
+		case r:
+			return(5);
+		case P:
+			return(4);
+		case p:
+			return(3);
+		case EP:
+			return(2);
+		case ep:
+			return(1);
+		case no:
+			return(0);
+	}
+}
 
 inline int piece_to_zobrist_index(piece pc){
 	switch(pc){
