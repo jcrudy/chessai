@@ -6,6 +6,10 @@ const int SimpleEvaluation::infinity = 1000000;
 const int SimpleEvaluation::mate = 200000;
 const int SimpleEvaluation::draw = 0;
 const int SimpleEvaluation::delta = 1000;
+const int LogisticEvaluation::infinity = 10000000;
+const int LogisticEvaluation::mate = 9000000;
+const int LogisticEvaluation::draw = 0;
+const int LogisticEvaluation::delta = 28000;
 const int KillerTable::num_ply = 200;
 
 void TranspositionTable::initialize(size_t size){

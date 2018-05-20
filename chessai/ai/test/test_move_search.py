@@ -1,6 +1,6 @@
 import time
 from nose.tools import assert_almost_equal, assert_greater_equal, assert_equal
-from chessai.ai.bitboard import BitBoardState, Player
+from chessai.ai.bitboard import BitBoardState, Player, LogisticPlayer
 import chess
 
 def move_is_legal(board, move):
@@ -59,6 +59,25 @@ def test_draw():
     print('Search to depth %d took %fs. Got %s with score %d.' % (depth, t1-t0, str(move), score))
     assert_equal(score, 0)
 
+def test_logistic_iterative_speed_boost():
+    starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    player1 = LogisticPlayer(1000000, 3, 3)
+    player2 = LogisticPlayer(1000000, 3, 3)
+    board = BitBoardState.from_fen(starting_fen)
+    depth = 6
+    
+    t0 = time.time()
+    move, score = player1.movesearch(board, depth, True)
+    t1 = time.time()
+    print('Initial search to depth %d took %fs. Got %s with score %d.' % (depth, t1-t0, str(move), score))
+
+    t0 = time.time()
+    for d in range(depth+1):
+        move, score = player2.movesearch(board, d)
+    t1 = time.time()
+    print('Iterative search to depth %d took %fs. Got %s with score %d.' % (depth, t1-t0, str(move), score))
+ 
+
 def test_iterative_speed_boost():
     starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     player1 = Player(1000000, 3, 3)
@@ -113,6 +132,9 @@ def test_movesearch():
         board.make_move(move)
 
 if __name__ == '__main__':
+    test_iterative_speed_boost()
+    test_logistic_iterative_speed_boost()
+    exit()
     # This code will run the test in this file.'
     import sys
     import nose

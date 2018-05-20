@@ -187,6 +187,8 @@ inline void extract_engineered_features(GameState &brd, move *own_moves, int num
 		                                int num_opponent_moves, int *output){
 	// output should be at least 15*15 + 15
 	int w_p, w_n, w_b, w_r, w_q, b_p, b_n, b_b, b_r, b_q;
+	int w_center_4, w_center_16, w_rank_7, w_rank_6, w_rank_5, b_center_4, b_center_16, b_rank_2,
+		b_rank_3, b_rank_4;
 
 	// attack_count_diff[from][to];
 	// use piece_to_target_type_index to index
@@ -210,6 +212,18 @@ inline void extract_engineered_features(GameState &brd, move *own_moves, int num
 	b_b = population_count(brd.board_state.black & brd.board_state.b);
 	b_r = population_count(brd.board_state.black & brd.board_state.r);
 	b_q = population_count(brd.board_state.black & brd.board_state.q);
+
+	w_center_4 = population_count(brd.board_state.white & center4);
+	w_center_16 = population_count(brd.board_state.white & center16);
+	w_rank_7 = population_count(brd.board_state.white & brd.board_state.p & rank_7);
+	w_rank_6 = population_count(brd.board_state.white & brd.board_state.p & rank_6);
+	w_rank_5 = population_count(brd.board_state.white & brd.board_state.p & rank_5);
+
+	b_center_4 = population_count(brd.board_state.black & center4);
+	b_center_16 = population_count(brd.board_state.black & center16);
+	b_rank_2 = population_count(brd.board_state.black & brd.board_state.p & rank_2);
+	b_rank_3 = population_count(brd.board_state.black & brd.board_state.p & rank_3);
+	b_rank_4 = population_count(brd.board_state.black & brd.board_state.p & rank_4);
 
 	brd.moves_from.set_moves(own_moves, num_own_moves, true);
 	brd.moves_to.set_moves(own_moves, num_own_moves, false);
@@ -246,15 +260,111 @@ inline void extract_engineered_features(GameState &brd, move *own_moves, int num
 	output[12] = brd.board_state.white_castle_king;
 	output[13] = brd.board_state.black_castle_queen;
 	output[14] = brd.board_state.black_castle_queen;
+	output[15] = w_center_4;
+	output[16] = b_center_4;
+	output[17] = w_center_16;
+	output[18] = b_center_16;
+	output[19] = w_rank_7;
+	output[20] = b_rank_2;
+	output[21] = w_rank_6;
+	output[22] = b_rank_3;
+	output[23] = w_rank_5;
+	output[24] = b_rank_4;
 
 
 	for(int i=0;i<15;i++){
 		for(int j=0;j<15;j++){
-			output[15 + i*15 + j] = attack_count[i][j];
+			output[25 + i*15 + j] = attack_count[i][j];
 		}
 	}
 
 }
+
+struct LogisticEvaluation{
+	static const int infinity;
+	static const int mate;
+	static const int draw;
+	static const int delta;
+	static const int evaluate(GameState &brd, move *own_moves, int num_own_moves, move *opponent_moves, int num_opponent_moves){
+		int w_p, w_n, w_b, w_r, w_q, b_p, b_n, b_b, b_r, b_q;
+		int w_center_4, w_center_16, w_rank_7, w_rank_6, w_rank_5, b_center_4, b_center_16, b_rank_2,
+				b_rank_3, b_rank_4;
+
+		// attack_count_diff[from][to];
+		// use piece_to_target_type_index to index
+		int attack_count[15][15];
+		for(int i=0;i<15;i++){
+			for(int j=0;j<15;j++){
+				attack_count[i][j] = 0;
+			}
+		}
+		w_p = population_count(brd.board_state.white & brd.board_state.p);
+		w_n = population_count(brd.board_state.white & brd.board_state.n);
+		w_b = population_count(brd.board_state.white & brd.board_state.b);
+		w_r = population_count(brd.board_state.white & brd.board_state.r);
+		w_q = population_count(brd.board_state.white & brd.board_state.q);
+		b_p = population_count(brd.board_state.black & brd.board_state.p);
+		b_n = population_count(brd.board_state.black & brd.board_state.n);
+		b_b = population_count(brd.board_state.black & brd.board_state.b);
+		b_r = population_count(brd.board_state.black & brd.board_state.r);
+		b_q = population_count(brd.board_state.black & brd.board_state.q);
+
+
+		w_center_4 = population_count(brd.board_state.white & center4);
+		w_center_16 = population_count(brd.board_state.white & center16);
+		w_rank_7 = population_count(brd.board_state.white & brd.board_state.p & rank_7);
+		w_rank_6 = population_count(brd.board_state.white & brd.board_state.p & rank_6);
+		w_rank_5 = population_count(brd.board_state.white & brd.board_state.p & rank_5);
+
+		b_center_4 = population_count(brd.board_state.black & center4);
+		b_center_16 = population_count(brd.board_state.black & center16);
+		b_rank_2 = population_count(brd.board_state.black & brd.board_state.p & rank_2);
+		b_rank_3 = population_count(brd.board_state.black & brd.board_state.p & rank_3);
+		b_rank_4 = population_count(brd.board_state.black & brd.board_state.p & rank_4);
+
+//		int coef[240] = {3519, -3671, 7275, -7292, 8093, -9000, 12604, -12925, 25405, -23569, 3209, -1107, 488, -94, -585, 0, 0, 0, 50, 162, -259, 200, -333, 162, -121, 167, -210, 168, -311, 5, 0, 0, 0, -2322, 4384, -6450, 0, -28, 1004, -6856, -1407, 6598, 0, 0, 0, 0, 0, 0, 1777, -450, 0, 1018, 1879, -438, 0, 4041, -4994, -2947, 0, 6267, 0, 0, 0, 0, 119, 0, 270, 0, 619, 0, 267, 0, -325, 0, 1601, 0, 0, 0, 90, 0, -960, 0, 0, 0, -89, 0, 196, 0, 11, 0, 0, 0, 0, 0, 2988, 0, 0, 0, 3236, 0, 3449, 0, 585, 0, 5830, 0, 0, 0, -3841, 0, 1152, 0, -1328, 0, -1595, 0, -824, 0, -3542, 0, 0, 0, 0, 0, 2484, 0, 1734, 0, -1182, 0, 565, 0, 126, 0, 4229, 0, 0, 0, -3801, 0, -2070, 0, 1180, 0, -1435, 0, -23, 0, -1482, 0, 0, 0, 0, 0, 2098, 0, 1399, 0, 2278, 0, -265, 0, -105, 0, 5532, 0, 0, 0, -2402, 0, -1628, 0, -1091, 0, 0, 0, -336, 0, -3584, 0, 0, 0, 0, 0, 4255, 0, 5376, 0, 6603, 0, 5069, 0, 0, 0, 12742, 0, 0, 0, -6199, 0, -3254, 0, -3958, 0, -5631, 0, 2612, 0, -11757, 0, 0, 0, 0, 0, -955, 0, 0, 0, 1683, 0, 2054, 0, 119, 0, 0, 0, 0, 0, -2641, 0, 330, 0, -347, 0, -3686, 0, -840, 0, 0, 0};
+		int coef[250] = {3025, -3187, 7289, -7168, 8098, -9081, 12896, -13281, 25474, -23751, 3353, -1133, 552, -577, -4, 231, 119, 295, -47, 5945, -5144, 1495, -1817, 351, -1226, 0, 0, 0, -28, 220, -231, 168, -320, 108, -100, 139, -198, 157, -237, -84, 0, 0, 0, -2470, 4199, -6551, 0, -59, 785, -6935, -1211, 6720, 0, 0, 0, 0, 0, 0, 2640, -399, 0, 1023, 1903, -375, 0, 4005, -6350, -3066, 0, 5945, 0, 0, 0, 0, 0, 0, 400, 0, 704, 0, 265, 0, -251, 0, 2755, 0, 0, 0, 214, 0, -1039, 0, -141, 0, -64, 0, 143, 0, -308, 0, 0, 0, 0, 0, 2373, 0, 0, 0, 3565, 0, 3631, 0, 766, 0, 5533, 0, 0, 0, -3224, 0, 1098, 0, -1344, 0, -1855, 0, -943, 0, -3759, 0, 0, 0, 0, 0, 2356, 0, 1665, 0, -1544, 0, 564, 0, 33, 0, 3911, 0, 0, 0, -3534, 0, -2011, 0, 1345, 0, -1496, 0, -102, 0, -983, 0, 0, 0, 0, 0, 1880, 0, 1380, 0, 2262, 0, -328, 0, -38, 0, 5387, 0, 0, 0, -2310, 0, -1628, 0, -1156, 0, 0, 0, -439, 0, -3029, 0, 0, 0, 0, 0, 4267, 0, 5472, 0, 6697, 0, 5163, 0, 0, 0, 12402, 0, 0, 0, -6178, 0, -3182, 0, -4022, 0, -5759, 0, 2601, 0, -11954, 0, 0, 0, 0, 0, -1608, 0, 0, 0, 1521, 0, 2077, 0, 138, 0, 0, 0, 0, 0, -2242, 0, 0, 0, -1029, 0, -4604, 0, -1540, 0, 0, 0};
+
+
+		int output = 0;
+
+		output += coef[0]*w_p;
+		output += coef[1]*b_p;
+		output += coef[2]*w_n;
+		output += coef[3]*b_n;
+		output += coef[4]*w_b;
+		output += coef[5]*b_b;
+		output += coef[6]*w_r;
+		output += coef[7]*b_r;
+		output += coef[8]*w_q;
+		output += coef[9]*b_q;
+		output += coef[10]*brd.board_state.whites_turn;
+		output += coef[11]*brd.board_state.white_castle_queen;
+		output += coef[12]*brd.board_state.white_castle_king;
+		output += coef[13]*brd.board_state.black_castle_queen;
+		output += coef[14]*brd.board_state.black_castle_queen;
+		output += coef[15]*w_center_4;
+		output += coef[16]*b_center_4;
+		output += coef[17]*w_center_16;
+		output += coef[18]*b_center_16;
+		output += coef[19]*w_rank_7;
+		output += coef[20]*b_rank_2;
+		output += coef[21]*w_rank_6;
+		output += coef[22]*b_rank_3;
+		output += coef[23]*w_rank_5;
+		output += coef[24]*b_rank_4;
+
+
+
+		for(int i=0;i<15;i++){
+			for(int j=0;j<15;j++){
+				output += coef[25 + i*15 + j]*attack_count[i][j];
+			}
+		}
+
+		return output;
+	}
+};
 
 struct SimpleEvaluation{
 	static const int infinity;

@@ -219,6 +219,9 @@ cdef extern from "movesearch.h":
     cdef cppclass SimpleEvaluation:
         pass
     
+    cdef cppclass LogisticEvaluation:
+        pass
+    
     cdef cppclass KillerTable:
         void initialize(int num_killers)
         KillerTable(int num_killers)
@@ -633,6 +636,48 @@ cdef class ZobristHash:
         result.value = zobrist.update(self.value, &(brd.bs), &(mv.rec))
         return result
 
+cdef class LogisticPlayer:
+    cdef SearchMemory *memory
+    cdef MoveManager *manager
+    def __init__(Player self, size_t tt_size, int num_killers, int num_history):
+        self.memory = new SearchMemory(tt_size, num_killers, num_history)
+        self.manager = new MoveManager()
+    
+    def alphabeta(Player self, BitBoardState board, int depth):
+        cdef AlphaBetaValue search_result
+        cdef bool stop = False
+        search_result = alphabeta[LogisticEvaluation](board.bs, self.manager, self.memory, -10000000, 10000000, depth, &stop, depth, False)
+        cdef Move result = Move()
+        result.mv = search_result.best_move
+        return result, search_result.value
+    
+    def movesearch(Player self, BitBoardState board, int depth, bool debug=False):
+        cdef AlphaBetaValue search_result
+        cdef bool stop = False
+        search_result = alphabeta[LogisticEvaluation](board.bs, self.manager, self.memory, -10000000, 10000000, depth, &stop, depth, debug)
+        cdef Move result = Move()
+        result.mv = search_result.best_move
+        return result, search_result.value
+    
+    def tmovesearch(Player self, BitBoardState board, int time, bool debug=False):
+        '''
+        time : time limit in milliseconds
+        '''
+        cdef AlphaBetaValue search_result
+        cdef int depth
+        search_result = talphabeta[LogisticEvaluation](board.bs, self.manager, self.memory, -10000000, 10000000, time, &depth, debug)
+        cdef Move result = Move()
+        result.mv = search_result.best_move
+        return result, search_result.value, depth
+
+    def mtdf(Player self, BitBoardState board, int depth):
+        cdef AlphaBetaValue search_result
+        cdef bool stop = False
+        search_result = mtdf[LogisticEvaluation](board.bs, self.manager, self.memory, depth, &stop)
+        cdef Move result = Move()
+        result.mv = search_result.best_move
+        return result, search_result.value
+
 cdef class Player:
     cdef SearchMemory *memory
     cdef MoveManager *manager
@@ -721,7 +766,7 @@ cdef class FeatureExtractor:
         cdef move *opponent_moves
         cdef int num_opponent_moves
         
-        cdef np.ndarray[int, ndim=1, mode='c'] output = np.empty(shape=15*15 + 15, dtype='i')
+        cdef np.ndarray[int, ndim=1, mode='c'] output = np.empty(shape=15*15 + 25, dtype='i')
         cdef list features = []
         for fen in tqdm(fens):
             board = BitBoardState.from_fen(fen)
