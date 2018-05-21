@@ -100,8 +100,8 @@ def test_iterative_speed_boost():
 def test_movesearch():
     starting_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     board = BitBoardState.from_fen(starting_fen)
-    white = Player(1000000, 3, 3)
-    black = Player(1000000, 3, 3)
+    white = LogisticPlayer(1000000, 3, 3)
+    black = LogisticPlayer(1000000, 3, 3)
     while(True):
         print(board.to_grid())
         if board.draw():
@@ -132,9 +132,6 @@ def test_movesearch():
         board.make_move(move)
 
 if __name__ == '__main__':
-    test_iterative_speed_boost()
-    test_logistic_iterative_speed_boost()
-    exit()
     # This code will run the test in this file.'
     import sys
     import nose

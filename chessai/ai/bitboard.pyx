@@ -766,7 +766,7 @@ cdef class FeatureExtractor:
         cdef move *opponent_moves
         cdef int num_opponent_moves
         
-        cdef np.ndarray[int, ndim=1, mode='c'] output = np.empty(shape=15*15 + 25, dtype='i')
+        cdef np.ndarray[int, ndim=1, mode='c'] output = np.empty(shape=15*15 + 27, dtype='i')
         cdef list features = []
         for fen in tqdm(fens):
             board = BitBoardState.from_fen(fen)

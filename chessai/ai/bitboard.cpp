@@ -2669,7 +2669,7 @@ static PyObject *__pyx_int_1;
 static PyObject *__pyx_int_4;
 static PyObject *__pyx_int_8;
 static PyObject *__pyx_int_20;
-static PyObject *__pyx_int_250;
+static PyObject *__pyx_int_252;
 static PyObject *__pyx_int_33963030;
 static PyObject *__pyx_int_35311805;
 static PyObject *__pyx_tuple__2;
@@ -12359,7 +12359,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_16FeatureExtractor_2engineered_
   /* "chessai/ai/bitboard.pyx":769
  *         cdef int num_opponent_moves
  * 
- *         cdef np.ndarray[int, ndim=1, mode='c'] output = np.empty(shape=15*15 + 25, dtype='i')             # <<<<<<<<<<<<<<
+ *         cdef np.ndarray[int, ndim=1, mode='c'] output = np.empty(shape=15*15 + 27, dtype='i')             # <<<<<<<<<<<<<<
  *         cdef list features = []
  *         for fen in tqdm(fens):
  */
@@ -12370,7 +12370,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_16FeatureExtractor_2engineered_
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_1 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 769, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_shape, __pyx_int_250) < 0) __PYX_ERR(0, 769, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_shape, __pyx_int_252) < 0) __PYX_ERR(0, 769, __pyx_L1_error)
   if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_n_s_i) < 0) __PYX_ERR(0, 769, __pyx_L1_error)
   __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_empty_tuple, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 769, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -12392,7 +12392,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_16FeatureExtractor_2engineered_
 
   /* "chessai/ai/bitboard.pyx":770
  * 
- *         cdef np.ndarray[int, ndim=1, mode='c'] output = np.empty(shape=15*15 + 25, dtype='i')
+ *         cdef np.ndarray[int, ndim=1, mode='c'] output = np.empty(shape=15*15 + 27, dtype='i')
  *         cdef list features = []             # <<<<<<<<<<<<<<
  *         for fen in tqdm(fens):
  *             board = BitBoardState.from_fen(fen)
@@ -12403,7 +12403,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_16FeatureExtractor_2engineered_
   __pyx_t_3 = 0;
 
   /* "chessai/ai/bitboard.pyx":771
- *         cdef np.ndarray[int, ndim=1, mode='c'] output = np.empty(shape=15*15 + 25, dtype='i')
+ *         cdef np.ndarray[int, ndim=1, mode='c'] output = np.empty(shape=15*15 + 27, dtype='i')
  *         cdef list features = []
  *         for fen in tqdm(fens):             # <<<<<<<<<<<<<<
  *             board = BitBoardState.from_fen(fen)
@@ -12721,7 +12721,7 @@ static PyObject *__pyx_pf_7chessai_2ai_8bitboard_16FeatureExtractor_2engineered_
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
     /* "chessai/ai/bitboard.pyx":771
- *         cdef np.ndarray[int, ndim=1, mode='c'] output = np.empty(shape=15*15 + 25, dtype='i')
+ *         cdef np.ndarray[int, ndim=1, mode='c'] output = np.empty(shape=15*15 + 27, dtype='i')
  *         cdef list features = []
  *         for fen in tqdm(fens):             # <<<<<<<<<<<<<<
  *             board = BitBoardState.from_fen(fen)
@@ -26649,7 +26649,7 @@ static int __Pyx_InitGlobals(void) {
   __pyx_int_4 = PyInt_FromLong(4); if (unlikely(!__pyx_int_4)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_8 = PyInt_FromLong(8); if (unlikely(!__pyx_int_8)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_20 = PyInt_FromLong(20); if (unlikely(!__pyx_int_20)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_int_250 = PyInt_FromLong(250); if (unlikely(!__pyx_int_250)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_int_252 = PyInt_FromLong(252); if (unlikely(!__pyx_int_252)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_33963030 = PyInt_FromLong(33963030L); if (unlikely(!__pyx_int_33963030)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_35311805 = PyInt_FromLong(35311805L); if (unlikely(!__pyx_int_35311805)) __PYX_ERR(0, 1, __pyx_L1_error)
   return 0;
