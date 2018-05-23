@@ -5,7 +5,15 @@ import csv
 import pandas
 
 infilenames = [
-               os.path.join(data_dir, 'random_positions_100k_partial.csv'),
+               os.path.join(data_dir, 'delivery', 'random_positions_a.csv'),
+               os.path.join(data_dir, 'delivery', 'random_positions_b.csv'),
+               os.path.join(data_dir, 'delivery', 'random_positions_c.csv'),
+               os.path.join(data_dir, 'delivery', 'random_positions_d.csv'),
+               os.path.join(data_dir, 'delivery', 'random_positions_e.csv'),
+               os.path.join(data_dir, 'delivery', 'random_positions_f.csv'),
+               os.path.join(data_dir, 'delivery', 'random_positions_g.csv'),
+               os.path.join(data_dir, 'delivery', 'random_positions_h.csv'),
+               os.path.join(data_dir, 'delivery', 'random_positions_i.csv'),
                ]
 outfilename = os.path.join(data_dir, 'extracted_engineered_features.csv')
 

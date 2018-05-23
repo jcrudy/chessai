@@ -183,6 +183,56 @@ class TranspositionTable {
 
 extern const TranspositionEntry null_te;
 
+struct EvaluationEntry{
+	zobrist_int key;
+	BoardState brd;
+	int value;
+	EvaluationEntry(){
+		key = 0;
+		brd = empty_board_state;
+		value = 0;
+	}
+	EvaluationEntry(GameState &game, int value){
+		key = game.hash;
+		brd = game.board_state;
+		this->value = value;
+	}
+	bool operator==(const EvaluationEntry &other) const{
+		if(key == other.key && value == other.value && brd == other.brd){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	bool operator!=(const EvaluationEntry &other) const{
+		return !((*this) == other);
+	}
+};
+
+extern const EvaluationEntry null_ee;
+
+class EvaluationTable {
+	public:
+		EvaluationTable(){}
+		void initialize(size_t size);
+		EvaluationTable(size_t size);
+		~EvaluationTable(){
+			if(size>0){
+				delete[] this->data;
+			}
+		}
+		void setitem(GameState &game, const EvaluationEntry &entry);
+		EvaluationEntry getitem(GameState &game);
+		size_t getindex(GameState &game){
+			return (game.hash % size);
+		}
+	private:
+		size_t size;
+		EvaluationEntry *data;//Stores best and most recent
+
+};
+
+
 inline void extract_engineered_features(GameState &brd, move *own_moves, int num_own_moves, move *opponent_moves,
 		                                int num_opponent_moves, int *output){
 	// output should be at least 15*15 + 15
@@ -230,12 +280,44 @@ inline void extract_engineered_features(GameState &brd, move *own_moves, int num
 	brd.moves_from.add_moves(opponent_moves, num_opponent_moves, true);
 	brd.moves_to.add_moves(opponent_moves, num_opponent_moves, false);
 	bitboard targets, tmp;
+
+	bitboard w_king_area, b_king_area, w_king, b_king;
+	w_king = brd.board_state.white & brd.board_state.k;
+	b_king = brd.board_state.black & brd.board_state.k;
+	w_king_area = empty;
+	w_king_area |= step_north(w_king);
+	w_king_area |= step_west(w_king);
+	w_king_area |= step_south(w_king);
+	w_king_area |= step_east(w_king);
+	w_king_area |= step_northeast(w_king);
+	w_king_area |= step_northwest(w_king);
+	w_king_area |= step_southwest(w_king);
+	w_king_area |= step_southeast(w_king);
+	int w_king_area_attack = 0;
+	int b_king_area_attack = 0;
+
+	b_king_area = empty;
+	b_king_area |= step_north(b_king);
+	b_king_area |= step_west(b_king);
+	b_king_area |= step_south(b_king);
+	b_king_area |= step_east(b_king);
+	b_king_area |= step_northeast(b_king);
+	b_king_area |= step_northwest(b_king);
+	b_king_area |= step_southwest(b_king);
+	b_king_area |= step_southeast(b_king);
+
+
 	int from_target_index, to_target_index;
 	piece to_pc, from_pc;
 	for(int i=0;i<64;i++){
 		targets = brd.moves_from.targets[i];
 		from_pc = brd.piece_map[i];
 		from_target_index = piece_to_target_index(from_pc);
+		if(piece_is_white(from_pc)){
+			b_king_area_attack += population_count(b_king_area & targets);
+		}else if(piece_is_black(from_pc)){
+			w_king_area_attack += population_count(w_king_area & targets);
+		}
 		while(targets){
 			tmp = ls1b(targets);
 			to_pc = brd.piece_map[greatest_square_index(tmp)];
@@ -244,6 +326,7 @@ inline void extract_engineered_features(GameState &brd, move *own_moves, int num
 			targets ^= tmp;
 		}
 	}
+
 
 	output[0] = w_p;
 	output[1] = b_p;
@@ -272,11 +355,12 @@ inline void extract_engineered_features(GameState &brd, move *own_moves, int num
 	output[24] = b_rank_4;
 	output[25] = brd.board_state.whites_turn?num_own_moves:num_opponent_moves;
 	output[26] = brd.board_state.whites_turn?num_opponent_moves:num_own_moves;
-
+	output[27] = w_king_area_attack;
+	output[28] = b_king_area_attack;
 
 	for(int i=0;i<15;i++){
 		for(int j=0;j<15;j++){
-			output[27 + i*15 + j] = attack_count[i][j];
+			output[29 + i*15 + j] = attack_count[i][j];
 		}
 	}
 
@@ -324,10 +408,62 @@ struct LogisticEvaluation{
 		b_rank_3 = population_count(brd.board_state.black & brd.board_state.p & rank_3);
 		b_rank_4 = population_count(brd.board_state.black & brd.board_state.p & rank_4);
 
+		brd.moves_from.set_moves(own_moves, num_own_moves, true);
+		brd.moves_to.set_moves(own_moves, num_own_moves, false);
+		brd.moves_from.add_moves(opponent_moves, num_opponent_moves, true);
+		brd.moves_to.add_moves(opponent_moves, num_opponent_moves, false);
+		bitboard targets, tmp;
+
+		bitboard w_king_area, b_king_area, w_king, b_king;
+		w_king = brd.board_state.white & brd.board_state.k;
+		b_king = brd.board_state.black & brd.board_state.k;
+		w_king_area = empty;
+		w_king_area |= step_north(w_king);
+		w_king_area |= step_west(w_king);
+		w_king_area |= step_south(w_king);
+		w_king_area |= step_east(w_king);
+		w_king_area |= step_northeast(w_king);
+		w_king_area |= step_northwest(w_king);
+		w_king_area |= step_southwest(w_king);
+		w_king_area |= step_southeast(w_king);
+		int w_king_area_attack = 0, b_king_area_attack = 0;
+
+		b_king_area = empty;
+		b_king_area |= step_north(b_king);
+		b_king_area |= step_west(b_king);
+		b_king_area |= step_south(b_king);
+		b_king_area |= step_east(b_king);
+		b_king_area |= step_northeast(b_king);
+		b_king_area |= step_northwest(b_king);
+		b_king_area |= step_southwest(b_king);
+		b_king_area |= step_southeast(b_king);
+
+
+		int from_target_index, to_target_index;
+		piece to_pc, from_pc;
+		for(int i=0;i<64;i++){
+			targets = brd.moves_from.targets[i];
+			from_pc = brd.piece_map[i];
+			from_target_index = piece_to_target_index(from_pc);
+			if(piece_is_white(from_pc)){
+				b_king_area_attack += population_count(b_king_area & targets);
+			}else if(piece_is_black(from_pc)){
+				w_king_area_attack += population_count(w_king_area & targets);
+			}
+			while(targets){
+				tmp = ls1b(targets);
+				to_pc = brd.piece_map[greatest_square_index(tmp)];
+				to_target_index = piece_to_target_index(to_pc);
+				attack_count[from_target_index][to_target_index] += 1;
+				targets ^= tmp;
+			}
+		}
+
 //		int coef[240] = {3519, -3671, 7275, -7292, 8093, -9000, 12604, -12925, 25405, -23569, 3209, -1107, 488, -94, -585, 0, 0, 0, 50, 162, -259, 200, -333, 162, -121, 167, -210, 168, -311, 5, 0, 0, 0, -2322, 4384, -6450, 0, -28, 1004, -6856, -1407, 6598, 0, 0, 0, 0, 0, 0, 1777, -450, 0, 1018, 1879, -438, 0, 4041, -4994, -2947, 0, 6267, 0, 0, 0, 0, 119, 0, 270, 0, 619, 0, 267, 0, -325, 0, 1601, 0, 0, 0, 90, 0, -960, 0, 0, 0, -89, 0, 196, 0, 11, 0, 0, 0, 0, 0, 2988, 0, 0, 0, 3236, 0, 3449, 0, 585, 0, 5830, 0, 0, 0, -3841, 0, 1152, 0, -1328, 0, -1595, 0, -824, 0, -3542, 0, 0, 0, 0, 0, 2484, 0, 1734, 0, -1182, 0, 565, 0, 126, 0, 4229, 0, 0, 0, -3801, 0, -2070, 0, 1180, 0, -1435, 0, -23, 0, -1482, 0, 0, 0, 0, 0, 2098, 0, 1399, 0, 2278, 0, -265, 0, -105, 0, 5532, 0, 0, 0, -2402, 0, -1628, 0, -1091, 0, 0, 0, -336, 0, -3584, 0, 0, 0, 0, 0, 4255, 0, 5376, 0, 6603, 0, 5069, 0, 0, 0, 12742, 0, 0, 0, -6199, 0, -3254, 0, -3958, 0, -5631, 0, 2612, 0, -11757, 0, 0, 0, 0, 0, -955, 0, 0, 0, 1683, 0, 2054, 0, 119, 0, 0, 0, 0, 0, -2641, 0, 330, 0, -347, 0, -3686, 0, -840, 0, 0, 0};
 //		int coef[250] = {3025, -3187, 7289, -7168, 8098, -9081, 12896, -13281, 25474, -23751, 3353, -1133, 552, -577, -4, 231, 119, 295, -47, 5945, -5144, 1495, -1817, 351, -1226, 0, 0, 0, -28, 220, -231, 168, -320, 108, -100, 139, -198, 157, -237, -84, 0, 0, 0, -2470, 4199, -6551, 0, -59, 785, -6935, -1211, 6720, 0, 0, 0, 0, 0, 0, 2640, -399, 0, 1023, 1903, -375, 0, 4005, -6350, -3066, 0, 5945, 0, 0, 0, 0, 0, 0, 400, 0, 704, 0, 265, 0, -251, 0, 2755, 0, 0, 0, 214, 0, -1039, 0, -141, 0, -64, 0, 143, 0, -308, 0, 0, 0, 0, 0, 2373, 0, 0, 0, 3565, 0, 3631, 0, 766, 0, 5533, 0, 0, 0, -3224, 0, 1098, 0, -1344, 0, -1855, 0, -943, 0, -3759, 0, 0, 0, 0, 0, 2356, 0, 1665, 0, -1544, 0, 564, 0, 33, 0, 3911, 0, 0, 0, -3534, 0, -2011, 0, 1345, 0, -1496, 0, -102, 0, -983, 0, 0, 0, 0, 0, 1880, 0, 1380, 0, 2262, 0, -328, 0, -38, 0, 5387, 0, 0, 0, -2310, 0, -1628, 0, -1156, 0, 0, 0, -439, 0, -3029, 0, 0, 0, 0, 0, 4267, 0, 5472, 0, 6697, 0, 5163, 0, 0, 0, 12402, 0, 0, 0, -6178, 0, -3182, 0, -4022, 0, -5759, 0, 2601, 0, -11954, 0, 0, 0, 0, 0, -1608, 0, 0, 0, 1521, 0, 2077, 0, 138, 0, 0, 0, 0, 0, -2242, 0, 0, 0, -1029, 0, -4604, 0, -1540, 0, 0, 0};
-		int coef[252] = {3039, -3202, 7282, -7165, 8102, -9071, 12891, -13304, 25460, -23742, 3390, -1147, 555, -582, 0, 233, 121, 289, -39, 5528, -3614, 1508, -1827, 357, -1230, 218, -810, 0, 0, 0, 794, -5, 581, -49, 487, -108, 709, -79, 613, -61, 570, -301, 0, 0, 0, -1591, 4069, -5616, 0, 0, 588, -6075, -1454, 7482, 0, 0, 0, 0, 0, 0, 3473, -600, 0, 827, 2730, -542, 0, 3808, -5563, -3292, 0, 5758, 0, 0, 0, 0, 0, 0, 161, 0, 487, 0, 60, 0, -480, 0, 2590, 0, 0, 0, 812, 0, -228, 0, 653, 0, 714, 0, 956, 0, 357, 0, 0, 0, 0, 0, 2022, 0, 0, 0, 3357, 0, 3418, 0, 553, 0, 5385, 0, 0, 0, -2077, 0, 1701, 0, -540, 0, -1053, 0, -126, 0, -2983, 0, 0, 0, 0, 0, 2123, 0, 1449, 0, -1796, 0, 358, 0, -124, 0, 3700, 0, 0, 0, -2676, 0, -1199, 0, 2183, 0, -701, 0, 657, 0, -170, 0, 0, 0, 0, 0, 1668, 0, 1168, 0, 2047, 0, 0, 0, -234, 0, 5153, 0, 0, 0, -1423, 0, -815, 0, -352, 0, 230, 0, 245, 0, -2203, 0, 0, 0, 0, 0, 4042, 0, 5253, 0, 6485, 0, 5103, 0, 0, 0, 12260, 0, 0, 0, -5288, 0, -2422, 0, -3190, 0, -4987, 0, 3181, 0, -11221, 0, 0, 0, 0, 0, -1828, 0, 0, 0, 1298, 0, 1838, 0, 0, 0, 0, 0, 0, 0, -922, 0, 443, 0, -230, 0, -3812, 0, -716, 0, 0, 0};
-
+//		int coef[252] = {3039, -3202, 7282, -7165, 8102, -9071, 12891, -13304, 25460, -23742, 3390, -1147, 555, -582, 0, 233, 121, 289, -39, 5528, -3614, 1508, -1827, 357, -1230, 218, -810, 0, 0, 0, 794, -5, 581, -49, 487, -108, 709, -79, 613, -61, 570, -301, 0, 0, 0, -1591, 4069, -5616, 0, 0, 588, -6075, -1454, 7482, 0, 0, 0, 0, 0, 0, 3473, -600, 0, 827, 2730, -542, 0, 3808, -5563, -3292, 0, 5758, 0, 0, 0, 0, 0, 0, 161, 0, 487, 0, 60, 0, -480, 0, 2590, 0, 0, 0, 812, 0, -228, 0, 653, 0, 714, 0, 956, 0, 357, 0, 0, 0, 0, 0, 2022, 0, 0, 0, 3357, 0, 3418, 0, 553, 0, 5385, 0, 0, 0, -2077, 0, 1701, 0, -540, 0, -1053, 0, -126, 0, -2983, 0, 0, 0, 0, 0, 2123, 0, 1449, 0, -1796, 0, 358, 0, -124, 0, 3700, 0, 0, 0, -2676, 0, -1199, 0, 2183, 0, -701, 0, 657, 0, -170, 0, 0, 0, 0, 0, 1668, 0, 1168, 0, 2047, 0, 0, 0, -234, 0, 5153, 0, 0, 0, -1423, 0, -815, 0, -352, 0, 230, 0, 245, 0, -2203, 0, 0, 0, 0, 0, 4042, 0, 5253, 0, 6485, 0, 5103, 0, 0, 0, 12260, 0, 0, 0, -5288, 0, -2422, 0, -3190, 0, -4987, 0, 3181, 0, -11221, 0, 0, 0, 0, 0, -1828, 0, 0, 0, 1298, 0, 1838, 0, 0, 0, 0, 0, 0, 0, -922, 0, 443, 0, -230, 0, -3812, 0, -716, 0, 0, 0};
+//		int coef[252] = {2785, -2990, 6608, -6414, 8919, -8729, 12629, -12722, 26442, -25038, 3367, -313, -434, 0, -388, 75, 8, 158, -256, 4183, -4955, 1753, -1658, 443, -625, 641, -366, 0, 0, 0, 294, -512, 104, -463, 25, -347, 223, -592, 200, -534, 246, -757, 0, 0, 0, -804, -1452, -1450, 9347, 1429, -2159, 529, -798, 1767, -3844, 62, 0, 0, 0, 0, 621, -1113, 0, 1108, -1312, 887, 0, -819, -254, 1716, 0, 1082, 0, 0, 0, 0, -830, 0, -115, 0, -63, 0, -446, 0, -702, 0, 1694, 0, 0, 0, 898, 0, -176, 0, -112, 0, 88, 0, 613, 0, -1221, 0, 0, 0, 0, 0, 2655, 0, -131, 0, 2020, 0, 2053, 0, 578, 0, 4336, 0, 0, 0, -3401, 0, 0, 0, -2771, 0, -2585, 0, -999, 0, -3327, 0, 0, 0, 0, 0, 1241, 0, 577, 0, 560, 0, 312, 0, -630, 0, 1758, 0, 0, 0, -1832, 0, -1009, 0, -782, 0, -504, 0, 594, 0, -3662, 0, 0, 0, 0, 0, 1543, 0, 955, 0, 1413, 0, 518, 0, 168, 0, 3562, 0, 0, 0, -1953, 0, -1310, 0, -1444, 0, -1050, 0, 175, 0, -3875, 0, 0, 0, 0, 0, 4064, 0, 4382, 0, 4680, 0, 3577, 0, 1492, 0, 17761, 0, 0, 0, -5193, 0, -5051, 0, -4042, 0, -4135, 0, -2255, 0, -19813, 0, 0, 0, 0, 0, 588, 0, 195, 0, 520, 0, 1246, 0, 706, 0, 0, 0, 0, 0, -1586, 0, -1966, 0, -1456, 0, -2592, 0, -3209, 0, 0, 0};
+		int coef[254] = {2791, -2990, 6606, -6419, 8913, -8730, 12629, -12724, 26424, -25041, 3367, -297, -422, -388, 0, 77, 7, 153, -257, 4108, -4911, 1750, -1668, 440, -632, 675, -390, 213, 32, 0, 0, 0, 316, -547, 127, -500, 49, -383, 247, -626, 223, -569, 267, -788, 0, 0, 0, -786, -1508, -1439, 9331, 1453, -2207, 555, -864, 1791, -3862, 67, 0, 0, 0, 0, 641, -1154, 0, 1083, -1305, 856, 0, -875, -236, 1696, 0, 1002, 0, 0, 0, 0, -898, 0, -162, 0, -119, 0, -517, 0, -746, 0, 1644, 0, 0, 0, 930, 0, -155, 0, -92, 0, 103, 0, 632, 0, -1204, 0, 0, 0, 0, 0, 2592, 0, -178, 0, 1968, 0, 1999, 0, 541, 0, 4314, 0, 0, 0, -3361, 0, 0, 0, -2746, 0, -2564, 0, -973, 0, -3286, 0, 0, 0, 0, 0, 1183, 0, 530, 0, 486, 0, 253, 0, -665, 0, 1716, 0, 0, 0, -1802, 0, -988, 0, -752, 0, -483, 0, 623, 0, -3629, 0, 0, 0, 0, 0, 1480, 0, 903, 0, 1356, 0, 434, 0, 127, 0, 3515, 0, 0, 0, -1907, 0, -1291, 0, -1421, 0, -1021, 0, 196, 0, -3835, 0, 0, 0, 0, 0, 4001, 0, 4300, 0, 4626, 0, 3502, 0, 1484, 0, 17708, 0, 0, 0, -5174, 0, -5038, 0, -4011, 0, -4131, 0, -2298, 0, -19770, 0, 0, 0, 0, 0, 550, 0, 153, 0, 480, 0, 1199, 0, 667, 0, 0, 0, 0, 0, -1543, 0, -1926, 0, -1447, 0, -2556, 0, -3161, 0, 0, 0};
 
 		int output = 0;
 
@@ -356,13 +492,14 @@ struct LogisticEvaluation{
 		output += coef[22]*b_rank_3;
 		output += coef[23]*w_rank_5;
 		output += coef[24]*b_rank_4;
-		output += coef[25]*brd.board_state.whites_turn?num_own_moves:num_opponent_moves;
-		output += coef[26]*brd.board_state.whites_turn?num_opponent_moves:num_own_moves;
-
+		output += coef[25]*(brd.board_state.whites_turn?num_own_moves:num_opponent_moves);
+		output += coef[26]*(brd.board_state.whites_turn?num_opponent_moves:num_own_moves);
+		output += coef[27]*w_king_area_attack;
+		output += coef[28]*b_king_area_attack;
 
 		for(int i=0;i<15;i++){
 			for(int j=0;j<15;j++){
-				output += coef[25 + i*15 + j]*attack_count[i][j];
+				output += coef[29 + i*15 + j]*attack_count[i][j];
 			}
 		}
 
@@ -520,14 +657,14 @@ class HistoryTable{
 				delete black_history;
 			}
 		}
-		void record_cutoff(GameState &game, move &mv){
+		void record_cutoff(GameState &game, move &mv, int depth){
 			MoveTable<int> *table;
 			if(game.board_state.whites_turn){
 				table = white_history;
 			}else{
 				table = black_history;
 			}
-			table->add(mv, 1);
+			table->add(mv, depth*depth);
 		}
 		int score(GameState &game, move &mv){
 			MoveTable<int> *table;
@@ -557,14 +694,16 @@ class SearchMemory{
 			delete killers;
 			delete hh;
 		}
-		SearchMemory(size_t tt_size, int num_killers, int num_history){
+		SearchMemory(size_t tt_size, int num_killers, int num_history, size_t ee_size){
 			tt = new TranspositionTable(tt_size);
 			killers = new KillerTable(num_killers);
 			hh = new HistoryTable(num_history);
+			ee = new EvaluationTable(ee_size);
 		}
 		TranspositionTable *tt;
 		KillerTable *killers;
 		HistoryTable *hh;
+		EvaluationTable *ee;
 };
 
 class MoveManager{
@@ -778,8 +917,37 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 	move *opponent_moves = manager->get_opponent_moves();
 	int num_opponent_moves = manager->num_opponent_moves();
 
+	int result;
+	// Check for checkmates and draws
+	if(num_moves == 0){
+		if(own_check(&game)){
+			// Checkmate.  We lose.
+			result = maximize?(-(Evaluation::mate)):(Evaluation::mate);
+		}else{
+			// Stalemate
+			result = Evaluation::draw;
+		}
+		return result;
+	}
+
+	// Check for draw by repetition or 50 move rule
+	// A maxrep of 2 is used because, in principal, if we repeat once,
+	// we will repeat again, and this is faster to check.
+	if(game.halfmove_clock >= 50 || draw_by_repetition(&game, 2)){
+		// Draw
+		result = Evaluation::draw;
+		return result;
+	}
+
 	// Get the current evaluation and possibly cut off immediately
-	int result = Evaluation::evaluate(game, moves, num_moves, opponent_moves, num_opponent_moves);
+	EvaluationEntry entry = memory->ee->getitem(game);
+	if(entry != null_ee){
+		result = entry.value;
+	}else{
+		result = Evaluation::evaluate(game, moves, num_moves, opponent_moves, num_opponent_moves);
+		entry = EvaluationEntry(game, result);
+		memory->ee->setitem(game, entry);
+	}
 	if(maximize){
 		if(result > beta){
 			return result;
@@ -806,27 +974,6 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 		}//else value == beta
 	}
 	// At this point result is the stand pat value, and matches alpha (if maximizing) or beta (otherwise).
-
-	// Check for checkmates and draws
-	if(num_moves == 0){
-		if(own_check(&game)){
-			// Checkmate.  We lose.
-			result = maximize?(-(Evaluation::mate)):(Evaluation::mate);
-		}else{
-			// Stalemate
-			result = Evaluation::draw;
-		}
-		return result;
-	}
-
-	// Check for draw by repetition or 50 move rule
-	// A maxrep of 2 is used because, in principal, if we repeat once,
-	// we will repeat again, and this is faster to check.
-	if(game.halfmove_clock >= 50 || draw_by_repetition(&game, 2)){
-		// Draw
-		result = Evaluation::draw;
-		return result;
-	}
 
 	// Order moves
 	bool in_check = own_check(&game) || opponent_check(&game);
@@ -896,7 +1043,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 		                 int beta, int depth, bool *stop, int top, bool debug){
 	// Not using negamax.  All scores will be from the perspective of white.  That is,
 	// white seeks to maximize and black seeks to minimize.
-
+	bool true_before = game.board_state.k & 1;
 	// Check whether maximizing or minimizing
 	bool maximize = game.board_state.whites_turn;
 
@@ -978,6 +1125,10 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 
 	// Generate moves
 	manager->generate_all(game, depth);
+	bool true_after = game.board_state.k & 1;
+	if(debug && true_after && !true_before){
+		printf("Bingo\n");
+	}
 
 	// Check for checkmates and stalemates
 	if(manager->num_moves(depth) == 0){
@@ -1018,6 +1169,9 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	moverecord rec;
 	for(int i=(manager->full_begin(depth));i<(manager->pv_end(depth));i++){
 		mv = moves[i];
+//		if(depth == top){
+//			printf("depth=%d, mv.from_square = %d, mv.to_square = %d, mv.sort_score = %d, stop = %d\n", depth, mv.from_square, mv.to_square, mv.sort_score, *stop);
+//		}
 		rec = manager->make(game, mv);
 		if(i < manager->pv_begin(depth)){
 			// Search full depth right away
@@ -1039,10 +1193,15 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 			}
 		}
 		manager->unmake(game, rec);
+		true_after = game.board_state.k & 1;
+		if(debug && true_after && !true_before){
+			printf("Bingo2\n");
+		}
+
 		if(maximize){
 			if(search_result.value > beta){
 				// Cut node.  Yay!
-				memory->hh->record_cutoff(game, mv);
+				memory->hh->record_cutoff(game, mv, depth);
 				memory->killers->record_cutoff(game, mv);
 				search_result.best_move = nomove;
 				memory->tt->setitem(game, TranspositionEntry(game, search_result, depth, false, true));
@@ -1062,7 +1221,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 		}else{
 			if(search_result.value < alpha){
 				// Cut node.  Yay!
-				memory->hh->record_cutoff(game, mv);
+				memory->hh->record_cutoff(game, mv, depth);
 				memory->killers->record_cutoff(game, mv);
 				search_result.best_move = nomove;
 				memory->tt->setitem(game, TranspositionEntry(game, search_result, depth, true, false));
@@ -1086,7 +1245,10 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 			break;
 		}
 	}
-
+	true_after = game.board_state.k & 1;
+	if(debug && true_after && !true_before){
+		printf("Bingo3\n");
+	}
 	// We checked everything.  Either it's an all node or a pv node.
 	// Update transposition table and return.
 	memory->tt->setitem(game, TranspositionEntry(game, result, depth, result.value < alpha, result.value > beta));
@@ -1272,6 +1434,62 @@ AlphaBetaValue talphabeta(GameState &game, MoveManager *manager, SearchMemory *m
 //					 float beta, double time_limit){
 //	// Iterative deepening of mtdf with a time limit (in seconds)
 //}
+
+struct SimpleTimeManager{
+	static std::chrono::milliseconds time_to_use(GameState &game, std::chrono::milliseconds ponder_time_used, std::chrono::milliseconds time_remaining){
+		std::chrono::milliseconds result;
+		result = ponder_time_used > std::chrono::milliseconds(10)?ponder_time_used:(std::chrono::milliseconds(1000));
+		result = (result > (time_remaining / 2))?(time_remaining / 2):result;
+		result = result>std::chrono::milliseconds(10)?result:std::chrono::milliseconds(10);
+		return result;
+	}
+};
+
+template <class Evaluation, class TimeManager>
+class Player{
+	public:
+		Player(size_t tt_size, int num_killers, int num_history, size_t ee_size){
+			ponder_time_used = std::chrono::milliseconds(0);
+			depth = 0;
+			memory = new SearchMemory(tt_size, num_killers, num_history, ee_size);
+			manager = new MoveManager();
+		}
+		~Player(){
+			delete memory;
+			delete manager;
+		}
+		void start_ponder(GameState &game){
+			AlphaBetaValue result;
+			stop = false;
+			ponder_start_time = std::chrono::high_resolution_clock::now();
+			search_thread = std::thread(calphabeta<Evaluation>, &game, manager, memory, -(Evaluation::infinity), Evaluation::infinity, &stop, &depth, &result, false);
+		}
+		void stop_ponder(){
+			stop = true;
+			search_thread.join();
+			ponder_stop_time = std::chrono::high_resolution_clock::now();
+			ponder_time_used = std::chrono::duration_cast<std::chrono::milliseconds>(ponder_stop_time - ponder_start_time);
+		}
+		AlphaBetaValue movesearch(GameState &game, int time_remaining){
+			std::chrono::milliseconds time_to_use = TimeManager::time_to_use(game, ponder_time_used, std::chrono::milliseconds(time_remaining));
+			AlphaBetaValue result;
+			stop = false;
+			search_thread = std::thread(calphabeta<Evaluation>, &game, manager, memory, -(Evaluation::infinity), Evaluation::infinity, &stop, &depth, &result, false);
+			std::this_thread::sleep_for(time_to_use);
+			stop = true;
+			search_thread.join();
+			return result;
+		}
+		int depth;
+	private:
+		std::chrono::high_resolution_clock::time_point ponder_start_time;
+		std::chrono::high_resolution_clock::time_point ponder_stop_time;
+		std::chrono::milliseconds ponder_time_used;
+		bool stop;
+		std::thread search_thread;
+		SearchMemory *memory;
+		MoveManager *manager;
+};
 
 
 

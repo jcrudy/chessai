@@ -236,7 +236,39 @@ def test_draw_by_repetition():
     board.make_move(r1)
     board.make_move(r2)
     assert_true(board.draw())
+    
+    fen = '8/4r3/8/2k5/5K2/8/8/8 w - - 36 99'
+    board = BitBoardState.from_fen(fen)
+    board.make_move(Move(29, 37, "no"))
+    board.make_move(Move(34, 25, "no"))
+    board.make_move(Move(37, 29, "no"))
+    board.make_move(Move(25, 34, "no"))
+    board.make_move(Move(29, 37, "no"))
+    board.make_move(Move(34, 25, "no"))
+    board.make_move(Move(37, 29, "no"))
+    board.make_move(Move(25, 34, "no"))
+    assert_true(board.repetition(2))
+    board.make_move(Move(29, 37, "no"))
+    board.make_move(Move(34, 25, "no"))
+    board.make_move(Move(37, 29, "no"))
+    board.make_move(Move(25, 34, "no"))
+    assert_true(board.repetition(3))
+    assert_true(board.draw())
+    
+    fen = '8/8/3p4/p1p5/P1P1r3/8/8/K2k4 b - - 20 118'
+    board = BitBoardState.from_fen(fen)
+    moves = [Move(3, 2, "no"), Move(0, 8, "no"), Move(2, 3, "no"), Move(8, 0, "no"),
+             Move(3, 2, "no"), Move(0, 8, "no"), Move(2, 3, "no"), Move(8, 0, "no"),
+             Move(3, 2, "no"), Move(0, 8, "no"), Move(2, 3, "no"), Move(8, 9, "no")]
+    print board.to_grid()
+    for move in moves:
+        board.make_move(move)
+        print board.to_grid()
+        print board.draw()
 
+def test_long_form():
+    assert_equal(Move.from_long_form(True, 'd7-d8=Q'), Move(51, 59, "Q"))
+    
 def test_promotion():
     fen = '4k3/P7/8/8/8/8/8/8 w - - 0 100'
     board = BitBoardState.from_fen(fen)
@@ -703,8 +735,8 @@ def confirm_moves(fen, depth):
             raise
     return total
 
-def test_move_tree_depth_4():
-    fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+def test_move_tree_depth_3():
+    fen = '6r1/1p2kp1p/3p4/PP1np3/3rP2R/8/2R1K1P1/4N3 b - - 4 36'
     compare_to_python(fen, 4)
 
 def test_positions():

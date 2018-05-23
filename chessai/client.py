@@ -12,9 +12,13 @@ class Client(object):
         self.ai = ai
 
     def connect(self):
+        print 'A'
         logging.info("Connecting to %s:%s" % (self.host, self.port))
+        print 'B'
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        print 'C'
         self.socket.connect((self.host, self.port))
+        print 'D'
         self.send_message("JOIN", "%s %s" % (self.tournament_name, self.player_name))
 
     def wait_for_messages(self):
@@ -82,10 +86,23 @@ class Client(object):
         elif action == "INFO":
             # info from the server we might want to display
             logging.info(message)
+            if 'not legal' in message.lower() or 'game over' in message.lower():
+                self.ai.print_diagnostic()
+            
 
         elif action == "YOUR_MOVE":
+            game_id      = parts[0]
+            white_player = parts[1]
+            black_player = parts[2]
+            white_time   = parts[3]
+            black_time   = parts[4]
+            current_board_fen = parts[5]
+            if white_player == self.player_name:
+                time_remaining = int(1000 * float(white_time))
+            else:
+                time_remaining = int(1000 * float(black_time))
             # server is telling us we need to move!
-            self.send_message("MOVE", "%s %s" % (self.game_id, self.ai.move()))
+            self.send_message("MOVE", "%s %s" % (self.game_id, self.ai.move(time_remaining)))
 
         elif action == "GAME_OVER":
             logging.info("Game over: %s" % (message))

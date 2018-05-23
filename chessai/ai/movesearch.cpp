@@ -2,6 +2,7 @@
 
 const AlphaBetaValue empty_alpha_beta_value = AlphaBetaValue();
 const TranspositionEntry null_te = TranspositionEntry();
+const EvaluationEntry null_ee = EvaluationEntry();
 const int SimpleEvaluation::infinity = 1000000;
 const int SimpleEvaluation::mate = 200000;
 const int SimpleEvaluation::draw = 0;
@@ -57,29 +58,6 @@ void TranspositionTable::setitem(GameState &game, const TranspositionEntry &entr
 		data[index][0] = entry;
 		return;
 	}
-//	else if(old.key == entry.key && old.brd == entry.brd &&
-//			 (old.depth < entry.depth || (entry.depth == old.depth && (old.value.fail_low || old.value.fail_high)))){
-//		// The same position but scored to greater depth
-//		data[index][0] = entry;
-//		return;
-//	}
-//	if(maximize){
-//		if(old.value.fail_low && !entry.value.fail_low){
-//			data[index][0] = entry;
-//			return;
-//		}else if(old.value.value < entry.value.value){
-//			data[index][0] = entry;
-//			return;
-//		}
-//	}else{
-//		if(old.value.fail_high && !entry.value.fail_high){
-//			data[index][0] = entry;
-//			return;
-//		}else if(old.value.value > entry.value.value){
-//			data[index][0] = entry;
-//			return;
-//		}
-//	}
 
 	// If we got here, the best entry didn't get replaced.  Then we
 	// replace the other entry unless it's the same position at a greater
@@ -93,3 +71,37 @@ void TranspositionTable::setitem(GameState &game, const TranspositionEntry &entr
 		return;
 	}
 }
+
+
+
+void EvaluationTable::initialize(size_t size){
+	this->size = size;
+	this->data = new EvaluationEntry[size];
+	for(size_t i=0;i<size;i++){
+		this->data[i] = null_ee;
+	}
+}
+EvaluationTable::EvaluationTable(size_t size) {
+	initialize(size);
+}
+
+EvaluationEntry EvaluationTable::getitem(GameState &game){
+	if(size == 0){
+		return null_ee;
+	}
+	size_t index = getindex(game);
+	EvaluationEntry candidate = data[index];
+	if(candidate.key == game.hash && candidate.brd == game.board_state){
+		return candidate;
+	}
+	return null_ee;
+}
+
+void EvaluationTable::setitem(GameState &game, const EvaluationEntry &entry){
+	if(size == 0){
+		return;
+	}
+	size_t index = getindex(game);
+	data[index] = entry;
+}
+

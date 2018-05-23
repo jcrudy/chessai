@@ -21,10 +21,10 @@ y = data.iloc[:,-1]
 
 # model = GradientBoostingClassifier()
 model = LogisticRegression(penalty='l1', fit_intercept=False)
+# model = DecisionTreeClassifier(min_samples_leaf=1000)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.25, random_state=1)
 
 model.fit(X_train, y_train > 0)
-model.coef_ = np.around(model.coef_, 4)
 
 pred_train = model.predict_proba(X_train)
 pred_test = model.predict_proba(X_test)
@@ -34,10 +34,23 @@ test_accuracy = accuracy_score(y_test > 0, pred_test[:,1] > .5)
 
 print('train_accuracy = %f' % train_accuracy)
 print('test_accuracy = %f' % test_accuracy)
+plot_roc(y_test > 0, pred_test[:,1], 'white')
+pyplot.show()
+
+model.coef_ = np.around(model.coef_, 4)
 print(model.coef_[~((np.abs(10000 * model.coef_) > 1) | (1000 * model.coef_ == 0))])
 print((10000 * model.coef_).astype(int))
 print((model.coef_.shape))
 print('int coef[%d] = {%s};' % (model.coef_.shape[1], ', '.join(map(repr, list(np.ravel((10000 * model.coef_).astype(int)))))))
+
+pred_train = model.predict_proba(X_train)
+pred_test = model.predict_proba(X_test)
+
+train_accuracy = accuracy_score(y_train > 0, pred_train[:,1] > .5)
+test_accuracy = accuracy_score(y_test > 0, pred_test[:,1] > .5)
+
+print('train_accuracy = %f' % train_accuracy)
+print('test_accuracy = %f' % test_accuracy)
 plot_roc(y_test > 0, pred_test[:,1], 'white')
 pyplot.show()
 # print(model.intercept_)

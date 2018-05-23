@@ -216,6 +216,21 @@ cdef extern from "movesearch.h":
         size_t size
         TranspositionEntry (*data)[2]
         
+    cdef cppclass EvaluationEntry:
+        zobrist_int key;
+        BoardState brd;
+        int value;
+        EvaluationEntry()
+        EvaluationEntry(GameState &game, int value)
+    
+    cdef cppclass EvaluationTable:
+        EvaluationTable()
+        void initialize(size_t size)
+        EvaluationTable(size_t size)
+        void setitem(GameState &game, const EvaluationEntry &entry)
+        EvaluationEntry getitem(GameState &game)
+        size_t getindex(GameState &game)
+        
     cdef cppclass SimpleEvaluation:
         pass
     
@@ -234,13 +249,14 @@ cdef extern from "movesearch.h":
         HistoryTable(int num_history)
         void record_cutoff(GameState &game, move &mv)
         int score(GameState &game, move &mv)
-        
+    
     cdef cppclass SearchMemory:
         SearchMemory()
-        SearchMemory(size_t tt_size, int num_killers, int num_history)
-        TranspositionTable tt
-        KillerTable killers
-        HistoryTable hh
+        SearchMemory(size_t tt_size, int num_killers, int num_history, size_t ee_size)
+        TranspositionTable *tt
+        KillerTable *killers
+        HistoryTable *hh
+        EvaluationTable *ee
 
     cdef cppclass MoveManager:
         MoveManager()
@@ -283,6 +299,17 @@ cdef extern from "movesearch.h":
     cdef AlphaBetaValue mtdf[Evaluation](GameState &game, MoveManager *manager, SearchMemory *memory, int depth, bool *stop)
     cdef void extract_engineered_features(GameState &brd, move *own_moves, int num_own_moves, move *opponent_moves,
                                           int num_opponent_moves, int *output)
+    
+    cdef cppclass SimpleTimeManager:
+        pass
+    
+    cdef cppclass Player[Evaluation, TimeManager]:
+        Player(size_t tt_size, int num_killers, int num_history, size_t ee_size)
+        void start_ponder(GameState &game)
+        void stop_ponder()
+        AlphaBetaValue movesearch(GameState &game, int time_remaining)
+        int depth
+    
 #     cdef cppclass SearchMemory:
 #         SearchMemory(int num_killers, int num_moves)
 #         TranspositionTable tt
@@ -507,13 +534,13 @@ cdef class Move:
     def from_long_form(cls, white, rep):
         from_square, to_square = rep.split('-')
         if '=' in to_square:
-            to_square, promotion = rep.split('=')
+            to_square, promotion = to_square.split('=')
         else:
             promotion = 'no'
         if white:
             promotion = promotion.upper()
         else:
-            promotion = promotion.lower()  
+            promotion = promotion.lower()
         return cls(algebraic_to_int(from_square), algebraic_to_int(to_square), promotion)
     
     cpdef nomove(Move self):
@@ -636,11 +663,30 @@ cdef class ZobristHash:
         result.value = zobrist.update(self.value, &(brd.bs), &(mv.rec))
         return result
 
+cdef class LogisticOfficialPlayer:
+    cdef Player[LogisticEvaluation, SimpleTimeManager] *player
+    def __init__(LogisticOfficialPlayer self, size_t tt_size, int num_killers, int num_history, size_t ee_size):
+        self.player = new Player[LogisticEvaluation, SimpleTimeManager](tt_size, num_killers, num_history, ee_size)
+    
+    cpdef start_ponder(LogisticOfficialPlayer self, BitBoardState game):
+        self.player[0].start_ponder(game.bs)
+    
+    cpdef stop_ponder(LogisticOfficialPlayer self):
+        self.player[0].stop_ponder()
+    
+    cpdef movesearch(LogisticOfficialPlayer self, BitBoardState game, int time_remaining):
+        cdef AlphaBetaValue search_result
+        search_result = self.player[0].movesearch(game.bs, time_remaining)
+        cdef Move result = Move()
+        result.mv = search_result.best_move
+        return result, search_result.value, self.player[0].depth
+    
+
 cdef class LogisticPlayer:
     cdef SearchMemory *memory
     cdef MoveManager *manager
-    def __init__(Player self, size_t tt_size, int num_killers, int num_history):
-        self.memory = new SearchMemory(tt_size, num_killers, num_history)
+    def __init__(Player self, size_t tt_size, int num_killers, int num_history, size_t ee_size=2000000):
+        self.memory = new SearchMemory(tt_size, num_killers, num_history, ee_size)
         self.manager = new MoveManager()
     
     def alphabeta(Player self, BitBoardState board, int depth):
@@ -678,11 +724,11 @@ cdef class LogisticPlayer:
         result.mv = search_result.best_move
         return result, search_result.value
 
-cdef class Player:
+cdef class SimplePlayer:
     cdef SearchMemory *memory
     cdef MoveManager *manager
-    def __init__(Player self, size_t tt_size, int num_killers, int num_history):
-        self.memory = new SearchMemory(tt_size, num_killers, num_history)
+    def __init__(Player self, size_t tt_size, int num_killers, int num_history, size_t ee_size=2000000):
+        self.memory = new SearchMemory(tt_size, num_killers, num_history, ee_size)
         self.manager = new MoveManager()
     
     def alphabeta(Player self, BitBoardState board, int depth):
@@ -766,7 +812,7 @@ cdef class FeatureExtractor:
         cdef move *opponent_moves
         cdef int num_opponent_moves
         
-        cdef np.ndarray[int, ndim=1, mode='c'] output = np.empty(shape=15*15 + 27, dtype='i')
+        cdef np.ndarray[int, ndim=1, mode='c'] output = np.empty(shape=15*15 + 29, dtype='i')
         cdef list features = []
         for fen in tqdm(fens):
             board = BitBoardState.from_fen(fen)
@@ -790,6 +836,9 @@ cdef class FeatureExtractor:
 
 cdef class BitBoardState:
     cdef GameState bs
+    
+    cpdef int get_threefold_repetition_clock(BitBoardState self):
+        return self.bs.threefold_repetition_clock
     
     cpdef bool check(BitBoardState self):
         if own_check(&(self.bs)):

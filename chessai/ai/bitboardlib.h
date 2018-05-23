@@ -757,6 +757,10 @@ inline piece piece_from_square_index(GameState *bs, brdidx square_index){
 }
 
 inline void unsafe_place_piece(GameState *bs, brdidx square_index, piece pc){
+	int fake_variable=0;
+	if(square_index==0 && pc == K){
+		fake_variable++;
+	}
 	bitboard bb = bitboard_from_square_index(square_index);
 	(bs->piece_map)[square_index] = pc;
 	switch(pc){
@@ -1358,7 +1362,7 @@ inline void unmake_move(GameState *brd, moverecord *mv){
 }
 
 
-inline bitboard checking_rays_intersection(GameState *brd, const bool pin_check_only){
+inline bitboard checking_rays_intersection(GameState *brd, const bool pin_check_only, const bool whites_turn){
 	// Return the intersection of all rays by which the current mover's king is in check
 	// by sliding pieces.  If no such rays, return the set of all squares (the empty intersection).
 	// If pin_check_only, this is being used to detect an absolute pin and, under the 
@@ -1366,7 +1370,7 @@ inline bitboard checking_rays_intersection(GameState *brd, const bool pin_check_
 	// there is at most one possible pinning ray and we can terminate once we find it.
 	
 	BoardState bs = brd->board_state;
-	bitboard king_board = bs.k & get_current_movers_bitboard(brd);
+	bitboard king_board = bs.k & get_player_bitboard(brd, whites_turn);
 	bitboard propagator = ~(bs.white | bs.black);
 	brdidx king_square = greatest_square_index(king_board);
 	brdidx king_rank = square_index_to_rank_index(king_square);
@@ -1382,7 +1386,7 @@ inline bitboard checking_rays_intersection(GameState *brd, const bool pin_check_
 	bitboard result = full;
 	
 	// Check for attacking rooks and queens
-	attackers = rook_moves_from_square_index(king_square) & get_opposing_movers_bitboard(brd) & (bs.r | bs.q);
+	attackers = rook_moves_from_square_index(king_square) & get_player_bitboard(brd, !whites_turn) & (bs.r | bs.q);
 	while(attackers){
 		current_attacker = ls1b(attackers);
 		attackers &= ~current_attacker;
@@ -1436,7 +1440,7 @@ inline bitboard checking_rays_intersection(GameState *brd, const bool pin_check_
 		}
 	}
 	// Check for attacking bishops and queens
-	attackers = bishop_moves_from_square_index(king_square) & get_opposing_movers_bitboard(brd) & (bs.b | bs.q);
+	attackers = bishop_moves_from_square_index(king_square) & get_player_bitboard(brd, !whites_turn) & (bs.b | bs.q);
 	while(attackers){
 		current_attacker = ls1b(attackers);
 		attackers &= ~current_attacker;
@@ -1491,16 +1495,16 @@ inline bitboard checking_rays_intersection(GameState *brd, const bool pin_check_
 	}
 	
 	// Check for attacking knights
-	attackers = knight_moves_from_square_index(king_square) & get_opposing_movers_bitboard(brd) & (bs.n);
+	attackers = knight_moves_from_square_index(king_square) & get_player_bitboard(brd, !whites_turn) & (bs.n);
 	if(attackers){
 		result &= attackers;
 	}
 	
 	// Check for attacking pawns
 	if(get_whites_turn(brd)){
-		attackers = black_pawn_inverse_capture_moves_from_square_index(king_square) & get_opposing_movers_bitboard(brd) & (bs.p);
+		attackers = black_pawn_inverse_capture_moves_from_square_index(king_square) & get_player_bitboard(brd, !whites_turn) & (bs.p);
 	}else{
-		attackers = white_pawn_inverse_capture_moves_from_square_index(king_square) & get_opposing_movers_bitboard(brd) & (bs.p);
+		attackers = white_pawn_inverse_capture_moves_from_square_index(king_square) & get_player_bitboard(brd, !whites_turn) & (bs.p);
 	}
 	if(attackers){
 		result &= attackers;
@@ -1758,8 +1762,8 @@ inline bool opponent_check(GameState *brd){
 inline bool player_check(GameState *brd, bool whites_turn){
 	bitboard own = get_player_bitboard(brd, whites_turn);
 	bitboard opponent = get_player_bitboard(brd, !whites_turn);
-	brdidx king_square = greatest_square_index(opponent & brd->board_state.k);
-	bitboard attackers = attackers_from_square_index(brd, king_square) & own;
+	brdidx king_square = greatest_square_index(own & brd->board_state.k);
+	bitboard attackers = attackers_from_square_index(brd, king_square) & opponent;
 	if(attackers){
 		return(true);
 	}else{
@@ -1774,7 +1778,7 @@ inline int king_captures(GameState *brd, move *moves, bool whites_turn){
 	brdidx king_square = greatest_square_index(brd->board_state.k & own); // there is only one king
 	bitboard king_targets = king_moves_from_square_index(king_square);
 	piece own_king;
-	if(get_whites_turn(brd)){
+	if(whites_turn){
 		own_king = K;
 	}else{
 		own_king = k;
@@ -1888,7 +1892,7 @@ inline int all_king_moves(GameState *brd, move *moves, bool whites_turn){
 	}else{
 		own_king = k;
 	}
-	king_targets &= ~own;
+//	king_targets &= ~own; //TODO: redundant
 	bitboard target;
 	brdidx target_square;
 	while(king_targets){
@@ -2042,7 +2046,7 @@ inline int knight_captures(GameState *brd, move *moves, bool whites_turn){
 		// propagator takes care of pinning
 		propagator = full;
 		unplace_piece(brd, source_square);
-		propagator &= checking_rays_intersection(brd, false);
+		propagator &= checking_rays_intersection(brd, false, whites_turn);
 		if(whites_turn){
 			unsafe_place_piece(brd, source_square, N);
 		}else{
@@ -2094,7 +2098,7 @@ inline int all_knight_moves(GameState *brd, move *moves, bool whites_turn){
 		// propagator takes care of pinning
 		propagator = full;
 		unplace_piece(brd, source_square);
-		propagator &= checking_rays_intersection(brd, false);
+		propagator &= checking_rays_intersection(brd, false, whites_turn);
 		if(whites_turn){
 			unsafe_place_piece(brd, source_square, N);
 		}else{
@@ -2149,7 +2153,7 @@ inline int quiet_knight_moves(GameState *brd, move *moves, bool whites_turn){
 		// propagator takes care of pinning
 		propagator = full;
 		unplace_piece(brd, source_square);
-		propagator &= checking_rays_intersection(brd, false);
+		propagator &= checking_rays_intersection(brd, false, whites_turn);
 		if(whites_turn){
 			unsafe_place_piece(brd, source_square, N);
 		}else{
@@ -2212,7 +2216,7 @@ inline int pawn_captures(GameState *brd, move *moves, bool whites_turn){
 		
 		// propagator takes care of pinning
 		unplace_piece(brd, source_square);
-		pinboard = checking_rays_intersection(brd, false);
+		pinboard = checking_rays_intersection(brd, false, whites_turn);
 		if(bs.enpassant != no_enpassant){
 			pinboard |= get_enpassant_bitboard(brd);
 		}
@@ -2349,7 +2353,7 @@ inline int all_pawn_moves(GameState *brd, move *moves, bool whites_turn){
 		
 		// take care of pinning
 		pc = unplace_piece(brd, source_square);
-		pinboard = checking_rays_intersection(brd, false);
+		pinboard = checking_rays_intersection(brd, false, whites_turn);
 		if(bs.enpassant != no_enpassant){
 			pinboard |= get_enpassant_bitboard(brd);
 		}
@@ -2483,7 +2487,7 @@ inline int quiet_pawn_moves(GameState *brd, move *moves, bool whites_turn){
 		// propagator takes care of pinning
 		propagator = unoccupied;
 		unplace_piece(brd, source_square);
-		propagator &= checking_rays_intersection(brd, false);
+		propagator &= checking_rays_intersection(brd, false, whites_turn);
 		if(whites_turn){
 			unsafe_place_piece(brd, source_square, P);
 		}else{
@@ -2615,7 +2619,7 @@ inline int bishop_captures(GameState *brd, move *moves, bool whites_turn){
 		
 		// take care of pinning
 		unplace_piece(brd, source_square);
-		pinboard = checking_rays_intersection(brd, false);
+		pinboard = checking_rays_intersection(brd, false, whites_turn);
 		if(whites_turn){
 			unsafe_place_piece(brd, source_square, B);
 		}else{
@@ -2673,7 +2677,7 @@ inline int all_bishop_moves(GameState *brd, move *moves, bool whites_turn){
 		
 		// take care of pinning
 		unplace_piece(brd, source_square);
-		pinboard = checking_rays_intersection(brd, false);
+		pinboard = checking_rays_intersection(brd, false, whites_turn);
 		if(whites_turn){
 			unsafe_place_piece(brd, source_square, B);
 		}else{
@@ -2730,7 +2734,7 @@ inline int quiet_bishop_moves(GameState *brd, move *moves, bool whites_turn){
 		// propagator takes care of pinning
 		propagator = unoccupied;
 		unplace_piece(brd, source_square);
-		propagator &= checking_rays_intersection(brd, false);
+		propagator &= checking_rays_intersection(brd, false, whites_turn);
 		if(whites_turn){
 			unsafe_place_piece(brd, source_square, B);
 		}else{
@@ -2780,7 +2784,7 @@ inline int rook_captures(GameState *brd, move *moves, bool whites_turn){
 		
 		// take care of pinning
 		unplace_piece(brd, source_square);
-		pinboard = checking_rays_intersection(brd, false);
+		pinboard = checking_rays_intersection(brd, false, whites_turn);
 		if(whites_turn){
 			unsafe_place_piece(brd, source_square, R);
 		}else{
@@ -2838,7 +2842,7 @@ inline int all_rook_moves(GameState *brd, move *moves, bool whites_turn){
 		
 		// take care of pinning
 		unplace_piece(brd, source_square);
-		pinboard = checking_rays_intersection(brd, false);
+		pinboard = checking_rays_intersection(brd, false, whites_turn);
 		if(whites_turn){
 			unsafe_place_piece(brd, source_square, R);
 		}else{
@@ -2897,7 +2901,7 @@ inline int quiet_rook_moves(GameState *brd, move *moves, bool whites_turn){
 		// propagator takes care of pinning
 		propagator = unoccupied;
 		unplace_piece(brd, source_square);
-		propagator &= checking_rays_intersection(brd, false);
+		propagator &= checking_rays_intersection(brd, false, whites_turn);
 		if(whites_turn){
 			unsafe_place_piece(brd, source_square, R);
 		}else{
@@ -2947,7 +2951,7 @@ inline int queen_captures(GameState *brd, move *moves, bool whites_turn){
 		
 		// take care of pinning
 		unplace_piece(brd, source_square);
-		pinboard = checking_rays_intersection(brd, false);
+		pinboard = checking_rays_intersection(brd, false, whites_turn);
 		if(whites_turn){
 			unsafe_place_piece(brd, source_square, Q);
 		}else{
@@ -3017,7 +3021,7 @@ inline int all_queen_moves(GameState *brd, move *moves, bool whites_turn){
 		
 		// take care of pinning
 		unplace_piece(brd, source_square);
-		pinboard = checking_rays_intersection(brd, false);
+		pinboard = checking_rays_intersection(brd, false, whites_turn);
 		if(whites_turn){
 			unsafe_place_piece(brd, source_square, Q);
 		}else{
@@ -3090,7 +3094,7 @@ inline int quiet_queen_moves(GameState *brd, move *moves, bool whites_turn){
 		// propagator takes care of pinning
 		propagator = unoccupied;
 		unplace_piece(brd, source_square);
-		propagator &= checking_rays_intersection(brd, false);
+		propagator &= checking_rays_intersection(brd, false, whites_turn);
 		if(whites_turn){
 			unsafe_place_piece(brd, source_square, Q);
 		}else{
