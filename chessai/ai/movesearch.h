@@ -773,12 +773,18 @@ class MoveManager{
 				if(capture_target != no){
 					capture_count += 1;
 					mv->sort_score += 10 * ((10 * piece_to_search_order(capture_target))) + (6 - piece_to_search_order(capturer));
+					if(mv->promotion != no){
+						// If it's a promotion and a capture
+						mv->sort_score += 100 * piece_to_search_order(mv->promotion);
+					}
+				}else if(mv->promotion != no){
+					// If it's a promotion,
+					capture_count += 1;
+					mv->sort_score += 100 * piece_to_search_order(mv->promotion)  + (6 - piece_to_search_order(capturer));
 				}else{
 					// This move is quiet, so it will go at the end and ultimately not be used.
 					mv->sort_score = -1;
 				}
-
-
 			}
 
 			// Sort moves based on sort_score.  Highest to lowest.
