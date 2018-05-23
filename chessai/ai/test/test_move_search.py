@@ -161,7 +161,7 @@ def test_weird_situation():
     fen = '8/7P/4k3/2b5/2P1p2P/4p3/5q2/5K2 w - - 3 54'
     board = BitBoardState.from_fen(fen)
     player = LogisticPlayer(1000000, 3, 3)
-    board.make_move(Move(1, 18, "no"))
+#     board.make_move(Move(1, 18, "no"))
     player.tmovesearch(board, 1000)
     assert_equal(board.to_fen(), fen)
 
