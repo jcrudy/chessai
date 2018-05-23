@@ -1126,9 +1126,6 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	// Generate moves
 	manager->generate_all(game, depth);
 	bool true_after = game.board_state.k & 1;
-	if(debug && true_after && !true_before){
-		printf("Bingo\n");
-	}
 
 	// Check for checkmates and stalemates
 	if(manager->num_moves(depth) == 0){
@@ -1165,7 +1162,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	}
 	bool fail_soft_hit;
 
-	bool debug_ = depth==4?debug:false;
+	bool debug_ = false;
 	moverecord rec;
 	for(int i=(manager->full_begin(depth));i<(manager->pv_end(depth));i++){
 		mv = moves[i];
@@ -1194,9 +1191,6 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 		}
 		manager->unmake(game, rec);
 		true_after = game.board_state.k & 1;
-		if(debug && true_after && !true_before){
-			printf("Bingo2\n");
-		}
 
 		if(maximize){
 			if(search_result.value > beta){
@@ -1246,8 +1240,9 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 		}
 	}
 	true_after = game.board_state.k & 1;
-	if(debug && true_after && !true_before){
-		printf("Bingo3\n");
+
+	if(debug){
+		printf("END\n");
 	}
 	// We checked everything.  Either it's an all node or a pv node.
 	// Update transposition table and return.

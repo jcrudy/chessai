@@ -19,6 +19,7 @@ class TournamentAI(ChessAI):
         print '%s moves %s' % ('White' if self.board.whites_turn else 'Black', move)
         move = Move.from_long_form(self.board.whites_turn, move)
         print move
+        assert move in self.board.all_moves()
         self.moves.append(move)
         self.board.make_move(move)
         print 'After %s move:' % ('White' if not self.board.whites_turn else 'Black')

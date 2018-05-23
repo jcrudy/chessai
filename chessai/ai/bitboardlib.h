@@ -737,7 +737,7 @@ inline bool draw_by_repetition(GameState *brd, int maxrep){
 	record_entry rep_entry;
 	if(brd->threefold_repetition_clock >= 2 * maxrep){
 		for(repetition_check = brd->halfmove_counter;
-			repetition_check <= brd->threefold_repetition_clock;
+			repetition_check >= brd->halfmove_counter - brd->threefold_repetition_clock;
 			repetition_check -= 2){
 			rep_entry = brd->record[game_record_index(repetition_check)];
 			if(brd->hash == rep_entry.key && brd->board_state == rep_entry.board_state){
