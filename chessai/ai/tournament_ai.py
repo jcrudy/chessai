@@ -7,7 +7,7 @@ class TournamentAI(ChessAI):
         self.player = LogisticOfficialPlayer(5000000, 3, 3, 5000000)
         self.board = BitBoardState.from_fen(self.default_fen)
         self.moves = []
-#         self.player.start_ponder(self.board)
+        self.player.start_ponder(self.board)
     
     def print_diagnostic(self):
 #         pass
