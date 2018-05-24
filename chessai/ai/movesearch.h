@@ -1316,6 +1316,24 @@ void calphabeta(GameState *game, MoveManager *manager, SearchMemory *memory, int
 }
 
 template<class Evaluation>
+void salphabeta(GameState *game, std::shared_ptr<MoveManager> manager, std::shared_ptr<SearchMemory> memory, int alpha, int beta, std::shared_ptr<bool> stop, std::shared_ptr<int> depth, std::shared_ptr<AlphaBetaValue> result, bool debug){
+	AlphaBetaValue search_result;
+	int _depth = 0;
+	while(true){
+		if(*stop){
+			break;
+		}
+		search_result = alphabeta<Evaluation>(*game, manager.get(), memory.get(), alpha, beta, _depth, stop.get(), _depth, debug);
+		if(!(*stop)){
+			// Don't take partial results
+			(*result) = search_result;
+			(*depth) = _depth;
+		}
+		_depth++;
+	}
+}
+
+template<class Evaluation>
 AlphaBetaValue talphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, int alpha, int beta, int time, int *depth, bool debug){
 	// time in milliseconds
 	AlphaBetaValue result;
@@ -1439,9 +1457,17 @@ AlphaBetaValue talphabeta(GameState &game, MoveManager *manager, SearchMemory *m
 struct SimpleTimeManager{
 	static std::chrono::milliseconds time_to_use(GameState &game, std::chrono::milliseconds ponder_time_used, std::chrono::milliseconds time_remaining){
 		std::chrono::milliseconds result;
-		result = ponder_time_used > std::chrono::milliseconds(10)?ponder_time_used:(std::chrono::milliseconds(1000));
-		result = (result > (time_remaining / 2))?(time_remaining / 2):result;
-		result = result>std::chrono::milliseconds(10)?result:std::chrono::milliseconds(10);
+		int estimated_remaining_moves = 61 - game.fullmove_counter;
+		if(estimated_remaining_moves < 5){
+			estimated_remaining_moves = 5;
+		}
+		result = time_remaining / (2*estimated_remaining_moves);
+		if(result > std::chrono::milliseconds(10000)){
+			result = std::chrono::milliseconds(10000);
+		}
+//		result = ponder_time_used > std::chrono::milliseconds(10)?ponder_time_used:(std::chrono::milliseconds(1000));
+//		result = (result > (time_remaining / 2))?(time_remaining / 2):result;
+//		result = result>std::chrono::milliseconds(10)?result:std::chrono::milliseconds(10);
 		return result;
 	}
 };
@@ -1450,46 +1476,72 @@ template <class Evaluation, class TimeManager>
 class Player{
 	public:
 		Player(size_t tt_size, int num_killers, int num_history, size_t ee_size){
+			printf("constructor 4\n");
 			ponder_time_used = std::chrono::milliseconds(0);
-			depth = 0;
-			memory = new SearchMemory(tt_size, num_killers, num_history, ee_size);
-			manager = new MoveManager();
+			depth = std::make_shared<int>(0);
+			*depth = 0;
+			memory = std::shared_ptr<SearchMemory>(new SearchMemory(tt_size, num_killers, num_history, ee_size));
+			manager = std::shared_ptr<MoveManager>(new MoveManager());
+			stop = std::make_shared<bool>(true);
+			result = std::shared_ptr<AlphaBetaValue>(new AlphaBetaValue());
+
 		}
+//		Player(){
+//			printf("constructor 1\n");
+//			ponder_time_used = std::chrono::milliseconds(0);
+//			depth = std::shared_ptr<int>(0);
+//			stop = shared_ptr<bool>(true);
+//		}
 		~Player(){
-			delete memory;
-			delete manager;
+			if(search_thread->joinable()){
+				*stop = true;
+				search_thread->join();
+				delete search_thread;
+			}
+
 		}
 		void start_ponder(GameState &game){
-			AlphaBetaValue result;
-			stop = false;
+			printf("start_ponder\n");
+			if(!(*stop)){
+				return;//Already pondering
+			}
+			*stop = false;
 			ponder_start_time = std::chrono::high_resolution_clock::now();
-			search_thread = std::thread(calphabeta<Evaluation>, &game, manager, memory, -(Evaluation::infinity), Evaluation::infinity, &stop, &depth, &result, false);
+			search_thread = new std::thread(salphabeta<Evaluation>, &game, manager, memory, -(Evaluation::infinity), Evaluation::infinity, stop, depth, result, false);
+			printf("end start_ponder\n");
 		}
 		void stop_ponder(){
-			stop = true;
-			search_thread.join();
+			printf("stop_ponder\n");
+			*stop = true;
+			search_thread->join();
+			delete search_thread;
 			ponder_stop_time = std::chrono::high_resolution_clock::now();
 			ponder_time_used = std::chrono::duration_cast<std::chrono::milliseconds>(ponder_stop_time - ponder_start_time);
+			printf("end stop_ponder\n");
 		}
 		AlphaBetaValue movesearch(GameState &game, int time_remaining){
 			std::chrono::milliseconds time_to_use = TimeManager::time_to_use(game, ponder_time_used, std::chrono::milliseconds(time_remaining));
-			AlphaBetaValue result;
-			stop = false;
-			search_thread = std::thread(calphabeta<Evaluation>, &game, manager, memory, -(Evaluation::infinity), Evaluation::infinity, &stop, &depth, &result, false);
+			*stop = false;
+			search_thread = new std::thread(salphabeta<Evaluation>, &game, manager, memory, -(Evaluation::infinity), Evaluation::infinity, stop, depth, result, false);
 			std::this_thread::sleep_for(time_to_use);
-			stop = true;
-			search_thread.join();
-			return result;
+			*stop = true;
+			search_thread->join();
+			delete search_thread;
+			return *result;
 		}
-		int depth;
+		int get_depth(){
+			return *depth;
+		}
 	private:
+		std::shared_ptr<int> depth;
+		std::shared_ptr<AlphaBetaValue> result;
 		std::chrono::high_resolution_clock::time_point ponder_start_time;
 		std::chrono::high_resolution_clock::time_point ponder_stop_time;
 		std::chrono::milliseconds ponder_time_used;
-		bool stop;
-		std::thread search_thread;
-		SearchMemory *memory;
-		MoveManager *manager;
+		std::shared_ptr<bool> stop;
+		std::thread *search_thread;
+		std::shared_ptr<SearchMemory> memory;
+		std::shared_ptr<MoveManager> manager;
 };
 
 

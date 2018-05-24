@@ -16,6 +16,7 @@ class TournamentAI(ChessAI):
         print self.moves
 #         
     def update(self, move):
+        self.player.stop_ponder()
         print '%s moves %s' % ('White' if self.board.whites_turn else 'Black', move)
         move = Move.from_long_form(self.board.whites_turn, move)
         print move
@@ -24,17 +25,17 @@ class TournamentAI(ChessAI):
         self.board.make_move(move)
         print 'After %s move:' % ('White' if not self.board.whites_turn else 'Black')
         print self.board.to_grid()
+        self.player.start_ponder(self.board)
     
     def start(self, fen):
-#         self.player.stop_ponder()
+        self.player.stop_ponder()
         self.board = BitBoardState.from_fen(fen)
-#         self.player.start_ponder(self.board)
+        self.player.start_ponder(self.board)
     
     def move(self, time_remaining):
-#         self.player.stop_ponder()
+        self.player.stop_ponder()
         move, score, depth = self.player.movesearch(self.board, time_remaining)
         long_form_move = move.to_long_form()
         print('Selected %s with score %d at depth %d.' % (long_form_move, score, depth))
-#         self.board.make_move(move)
-#         self.player.start_ponder(self.board)
+        self.player.start_ponder(self.board)
         return long_form_move

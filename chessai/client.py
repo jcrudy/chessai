@@ -1,5 +1,6 @@
 import logging
 import socket
+from time import sleep
 
 class Client(object):
     def __init__(self, host, port, tournament_name, player_name, ai):
@@ -17,6 +18,8 @@ class Client(object):
         print 'B'
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print 'C'
+        sleep(10)
+        print 'C.1'
         self.socket.connect((self.host, self.port))
         print 'D'
         self.send_message("JOIN", "%s %s" % (self.tournament_name, self.player_name))

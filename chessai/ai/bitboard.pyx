@@ -305,10 +305,11 @@ cdef extern from "movesearch.h":
     
     cdef cppclass Player[Evaluation, TimeManager]:
         Player(size_t tt_size, int num_killers, int num_history, size_t ee_size)
-        void start_ponder(GameState &game)
-        void stop_ponder()
-        AlphaBetaValue movesearch(GameState &game, int time_remaining)
-        int depth
+#         Player()
+        void start_ponder(GameState &game) nogil
+        void stop_ponder() nogil
+        AlphaBetaValue movesearch(GameState &game, int time_remaining) nogil
+        int get_depth()
     
 #     cdef cppclass SearchMemory:
 #         SearchMemory(int num_killers, int num_moves)
@@ -665,21 +666,32 @@ cdef class ZobristHash:
 
 cdef class LogisticOfficialPlayer:
     cdef Player[LogisticEvaluation, SimpleTimeManager] *player
-    def __init__(LogisticOfficialPlayer self, size_t tt_size, int num_killers, int num_history, size_t ee_size):
+    cdef bool pondering
+    def __cinit__(LogisticOfficialPlayer self, size_t tt_size, int num_killers, int num_history, size_t ee_size):
         self.player = new Player[LogisticEvaluation, SimpleTimeManager](tt_size, num_killers, num_history, ee_size)
+        self.pondering = False
+        
+    def __dealloc__(LogisticOfficialPlayer self):
+        del self.player
     
     cpdef start_ponder(LogisticOfficialPlayer self, BitBoardState game):
-        self.player[0].start_ponder(game.bs)
+        if not self.pondering:
+            self.player[0].start_ponder(game.bs)
+            self.pondering = True
     
     cpdef stop_ponder(LogisticOfficialPlayer self):
-        self.player[0].stop_ponder()
+        if self.pondering:
+            self.player[0].stop_ponder()
+            self.pondering = False
     
     cpdef movesearch(LogisticOfficialPlayer self, BitBoardState game, int time_remaining):
+        if self.pondering:
+            self.stop_ponder()
         cdef AlphaBetaValue search_result
         search_result = self.player[0].movesearch(game.bs, time_remaining)
         cdef Move result = Move()
         result.mv = search_result.best_move
-        return result, search_result.value, self.player[0].depth
+        return result, search_result.value, self.player[0].get_depth()
     
 
 cdef class LogisticPlayer:

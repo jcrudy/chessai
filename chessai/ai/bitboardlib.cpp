@@ -1,9 +1,6 @@
 #include "bitboardlib.h"
 #include <stdio.h>
-#include "tinythread.h"
 #include <unistd.h>
-
-using namespace tthread;
 
 const bitboard empty = 0x0000000000000000ULL;
 const bitboard full = 0xFFFFFFFFFFFFFFFFULL;
