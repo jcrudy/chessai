@@ -15,7 +15,5 @@ class MyAI(ChessAI):
         self.player = TimePlayer(5000000, 3, 3)
     
     def move(self):
-        print('A')
         move = self.player.tmovesearch(self.board, self.time_limit)
-        print('B')
         return move.to_long_form()

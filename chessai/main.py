@@ -5,12 +5,9 @@ import logging
 
 
 def main(args):
-    print(1)
     client = Client(args.host, args.port, args.tournament, 
                     args.player, ai_dict[args.ai][0](**ai_dict[args.ai][1]))
-    print(2)
     client.connect()
-    print(3)
     client.wait_for_messages()
     
 if __name__ == '__main__':

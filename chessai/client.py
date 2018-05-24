@@ -13,15 +13,9 @@ class Client(object):
         self.ai = ai
 
     def connect(self):
-        print 'A'
         logging.info("Connecting to %s:%s" % (self.host, self.port))
-        print 'B'
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print 'C'
-        sleep(10)
-        print 'C.1'
         self.socket.connect((self.host, self.port))
-        print 'D'
         self.send_message("JOIN", "%s %s" % (self.tournament_name, self.player_name))
 
     def wait_for_messages(self):

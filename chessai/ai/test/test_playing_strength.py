@@ -1,4 +1,4 @@
-from chessai.ai.bitboard import BitBoardState, Player, LogisticPlayer
+from chessai.ai.bitboard import BitBoardState, SimplePlayer, LogisticPlayer
 import chess
 from six import string_types
 
@@ -30,7 +30,7 @@ def test_bratko_kopec():
                  ('r2qnrnk/p2b2b1/1p1p2pp/2pPpp2/1PP1P3/PRNBB3/3QNPPP/5RK1 w - - 0 1', 'f4', 'BK.24')
                  ]
     score = 0
-    player = Player(5000000, 3, 3)
+    player = SimplePlayer(5000000, 3, 3)
     for fen, best_moves, q_id in positions:
         if isinstance(best_moves, string_types):
             best_moves = {best_moves}
@@ -97,8 +97,6 @@ def test_logistic_bratko_kopec():
   
 
 if __name__ == '__main__':
-    test_logistic_bratko_kopec()
-    exit()
     # This code will run the test in this file.'
     import sys
     import nose

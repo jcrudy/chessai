@@ -1348,112 +1348,6 @@ AlphaBetaValue talphabeta(GameState &game, MoveManager *manager, SearchMemory *m
 	return result;
 }
 
-
-//template<class Evaluation>
-//AlphaBetaValue mtdf(GameState &game, MoveManager &manager, SearchMemory &memory, float alpha, float beta, int depth){
-//	// Check whether maximizing or minimizing
-//	const bool maximize = game.whites_turn;
-//	AlphaBetaValue result;
-//	float orig_alpha = alpha;
-//	float orig_beta = beta;
-//	result.fail_low = false;
-//	result.fail_high = false;
-//	result.value = 0;
-//	result.checkmate = false;
-//	result.checkmate_maximize = false;
-//	result.draw = false;
-//	result.ply = 0;
-//	result.best_move = nomove;
-//
-//	// Check the transposition table
-//	TranspositionEntry entry = memory->tt->getitem(game);
-//	if(entry != null_te && (entry.depth >= depth || (entry.value.checkmate && entry.depth >= 0))){
-//		// The transposition entry is valid at this depth
-//
-//		if(entry.value.fail_low){
-//			// This transposition entry is an upper bound
-//			beta = (entry.value.value < beta)?(entry.value.value):beta;
-//			if(alpha > beta){
-//				result.fail_low = true;
-//				result.fail_high = false;
-//				result.value = alpha;
-//				result.checkmate = false;
-//				result.checkmate_maximize = false;
-//				result.draw = false;
-//				result.ply = 0;
-//				result.best_move = nomove;
-//				return result;
-//			}
-//		}else if(entry.value.fail_high){
-//			// This transposition entry is a lower bound
-//			alpha = (entry.value.value > alpha)?(entry.value.value):alpha;
-//			if(alpha > beta){
-//				result.fail_low = false;
-//				result.fail_high = true;
-//				result.value = beta;
-//				result.checkmate = false;
-//				result.checkmate_maximize = false;
-//				result.draw = false;
-//				result.ply = 0;
-//				result.best_move = nomove;
-//				return result;
-//			}
-//		}else{
-//			// The transposition entry is exact
-//			value = entry.value.value;
-//			if(value < alpha){
-//				result.fail_low = true;
-//				result.fail_high = false;
-//				result.checkmate = false;
-//				result.draw = false;
-//				result.ply = entry.value.ply;
-//				result.value = alpha;
-//				result.best_move = nomove;
-//				return result;
-//			}else if(value > beta){
-//				result.fail_low = false;
-//				result.fail_high = true;
-//				result.checkmate = false;
-//				result.draw = false;
-//				result.ply = entry.value.ply;
-//				result.value = beta;
-//				result.best_move = nomove;
-//				return result;
-//			}else{
-//				return entry.value;
-//			}
-//		}
-//	}else if(entry != null_te){
-//		guess = entry.value.value;
-//	}
-//
-//
-//	// Do mtdf
-//	float proposal;
-//	AlphaBetaValue search_result;
-//	if(maximize){
-//		while(alpha < beta){
-//			proposal = lower_bound-(Evaluation::zero_window);
-//			beta = (guess > proposal)?guess:proposal;
-//			search_result = alphabeta<Evaluation>(game, manager, memory, beta-(Evaluation::zero_window), beta, depth);
-//			if(search_result.fail_low){
-//				// It's bad to fail low because the zero-window search is slower, so take a bigger step.
-//
-//			}
-//
-//		}
-//
-//	}
-//
-//
-//
-//}
-//template<class Evaluation>
-//AlphaBetaValue imtdf(GameState &game, MoveManager &manager, SearchMemory &memory, float alpha,
-//					 float beta, double time_limit){
-//	// Iterative deepening of mtdf with a time limit (in seconds)
-//}
-
 struct SimpleTimeManager{
 	static std::chrono::milliseconds time_to_use(GameState &game, std::chrono::milliseconds ponder_time_used, std::chrono::milliseconds time_remaining){
 		std::chrono::milliseconds result;
@@ -1465,9 +1359,6 @@ struct SimpleTimeManager{
 		if(result > std::chrono::milliseconds(10000)){
 			result = std::chrono::milliseconds(10000);
 		}
-//		result = ponder_time_used > std::chrono::milliseconds(10)?ponder_time_used:(std::chrono::milliseconds(1000));
-//		result = (result > (time_remaining / 2))?(time_remaining / 2):result;
-//		result = result>std::chrono::milliseconds(10)?result:std::chrono::milliseconds(10);
 		return result;
 	}
 };
@@ -1476,7 +1367,6 @@ template <class Evaluation, class TimeManager>
 class Player{
 	public:
 		Player(size_t tt_size, int num_killers, int num_history, size_t ee_size){
-			printf("constructor 4\n");
 			ponder_time_used = std::chrono::milliseconds(0);
 			depth = std::make_shared<int>(0);
 			*depth = 0;
@@ -1486,12 +1376,6 @@ class Player{
 			result = std::shared_ptr<AlphaBetaValue>(new AlphaBetaValue());
 
 		}
-//		Player(){
-//			printf("constructor 1\n");
-//			ponder_time_used = std::chrono::milliseconds(0);
-//			depth = std::shared_ptr<int>(0);
-//			stop = shared_ptr<bool>(true);
-//		}
 		~Player(){
 			if(search_thread->joinable()){
 				*stop = true;
@@ -1501,23 +1385,19 @@ class Player{
 
 		}
 		void start_ponder(GameState &game){
-			printf("start_ponder\n");
 			if(!(*stop)){
 				return;//Already pondering
 			}
 			*stop = false;
 			ponder_start_time = std::chrono::high_resolution_clock::now();
 			search_thread = new std::thread(salphabeta<Evaluation>, &game, manager, memory, -(Evaluation::infinity), Evaluation::infinity, stop, depth, result, false);
-			printf("end start_ponder\n");
 		}
 		void stop_ponder(){
-			printf("stop_ponder\n");
 			*stop = true;
 			search_thread->join();
 			delete search_thread;
 			ponder_stop_time = std::chrono::high_resolution_clock::now();
 			ponder_time_used = std::chrono::duration_cast<std::chrono::milliseconds>(ponder_stop_time - ponder_start_time);
-			printf("end stop_ponder\n");
 		}
 		AlphaBetaValue movesearch(GameState &game, int time_remaining){
 			std::chrono::milliseconds time_to_use = TimeManager::time_to_use(game, ponder_time_used, std::chrono::milliseconds(time_remaining));
