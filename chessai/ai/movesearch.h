@@ -835,6 +835,14 @@ class MoveManager{
 				if(capture_target != no){
 					capture_count += 1;
 					mv->sort_score += 10 * ((10 * piece_to_search_order(capture_target))) + (6 - piece_to_search_order(capturer));
+					if(mv->promotion != no){
+						// If it's a promotion and a capture
+						mv->sort_score += 100 * piece_to_search_order(mv->promotion);
+					}
+				}else if(mv->promotion != no){
+					// If it's a promotion,
+					capture_count += 1;
+					mv->sort_score += 100 * piece_to_search_order(mv->promotion)  + (6 - piece_to_search_order(capturer));
 				}
 
 				// Use history heuristic for any moves that remain
@@ -1064,7 +1072,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	if(game.halfmove_clock >= 50 || (draw_by_repetition(&game, 2) && !(top == depth))){
 		// Draw
 		result.value = Evaluation::draw;
-		result.ply = game.halfmove_counter;
+		result.ply = top - depth;
 		result.best_move = nomove;
 //		memory->tt->setitem(game, TranspositionEntry(game, result, depth, result.value < alpha, result.value > beta));
 		return result;
@@ -1123,7 +1131,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	// If this is a leaf node, call quiescence search
 	if(depth <= 0){
 		result.value = quiesce<Evaluation>(game, manager, memory, alpha, beta, depth - 1);
-		result.ply = game.halfmove_counter;
+		result.ply = top - depth;
 		result.best_move = nomove;
 		memory->tt->setitem(game, TranspositionEntry(game, result, depth, result.value < alpha, result.value > beta));
 		return result;
@@ -1138,11 +1146,11 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 		if(own_check(&game)){
 			// Checkmate.  We lose.
 			result.value = maximize?(-(Evaluation::mate)):(Evaluation::mate);
-			result.ply = game.halfmove_counter;
+			result.ply = top - depth;
 		}else{
 			// Stalemate
 			result.value = Evaluation::draw;
-			result.ply = game.halfmove_counter;
+			result.ply = top - depth;
 		}
 		result.best_move = nomove;
 		memory->tt->setitem(game, TranspositionEntry(game, result, depth, result.value < alpha, result.value > beta));
@@ -1206,9 +1214,22 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				search_result.best_move = nomove;
 				memory->tt->setitem(game, TranspositionEntry(game, search_result, depth, false, true));
 				return search_result;
-			}else if(search_result.value > result.value){
+			}else if(search_result.value >= result.value){
 				if(search_result.value > alpha ||
-					(search_result.value == alpha && (result.best_move == nomove || result.ply < search_result.ply))){
+					(search_result.value == alpha && (result.best_move == nomove || result.ply > search_result.ply))){
+					if((search_result.value == alpha && (result.ply > search_result.ply) && top == depth)){
+						printf("maximize = %d\n", maximize);
+						printf("top = %d\n", top);
+						printf("search_result.value = %d\n", search_result.value);
+						printf("result.value = %d\n", result.value);
+						printf("search_result.ply = %d\n", search_result.ply);
+						printf("result.ply = %d\n", result.ply);
+						printf("search_result.best_move.from_square = %d\n", search_result.best_move.from_square);
+						printf("search_result.best_move.to_square = %d\n", search_result.best_move.to_square);
+						printf("result.best_move.from_square = %d\n", result.best_move.from_square);
+						printf("result.best_move.to_square = %d\n", result.best_move.to_square);
+					}
+
 					// New best move.  Note that in the case of equal scores, we keep the
 					// old best move unless the new one has a lower ply (which favors sooner checkmates).
 					// This is just an heuristic.
@@ -1226,9 +1247,21 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				search_result.best_move = nomove;
 				memory->tt->setitem(game, TranspositionEntry(game, search_result, depth, true, false));
 				return search_result;
-			}else if(search_result.value < result.value){
+			}else if(search_result.value <= result.value){
 				if(search_result.value < beta ||
-					(search_result.value == beta && (result.best_move == nomove || result.ply < search_result.ply))){
+					(search_result.value == beta && (result.best_move == nomove || result.ply > search_result.ply))){
+					if((search_result.value == beta && (result.ply > search_result.ply) && top == depth)){
+						printf("maximize = %d\n", maximize);
+						printf("top = %d\n", top);
+						printf("search_result.value = %d\n", search_result.value);
+						printf("result.value = %d\n", result.value);
+						printf("search_result.ply = %d\n", search_result.ply);
+						printf("result.ply = %d\n", result.ply);
+						printf("search_result.best_move.from_square = %d\n", search_result.best_move.from_square);
+						printf("search_result.best_move.to_square = %d\n", search_result.best_move.to_square);
+						printf("result.best_move.from_square = %d\n", result.best_move.from_square);
+						printf("result.best_move.to_square = %d\n", result.best_move.to_square);
+					}
 					// New best move.  Note that in the case of equal scores, we keep the
 					// old best move unless the new one has a lower ply (which favors sooner checkmates).
 					// This is just an heuristic.

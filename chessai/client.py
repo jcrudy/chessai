@@ -75,7 +75,7 @@ class Client(object):
             white_time   = parts[5]
             black_time   = parts[6]
             fen          = " ".join(parts[7:])
-            self.ai.update(move)
+            self.ai.update(move, fen)
         elif action == "CLOCK_UPDATE":
             # sent every few seconds with up to date clock and board state info. Message continence are identical to GAME_STARTED.
             pass
