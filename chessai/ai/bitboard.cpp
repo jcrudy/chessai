@@ -11,10 +11,12 @@
         ], 
         "extra_compile_args": [
             "-std=c++14", 
-            "-g", 
-            "-O0", 
-            "-stdlib=libc++", 
-            "-pthread"
+            "-Ofast", 
+            "-march=native", 
+            "-Wmaybe-uninitialized", 
+            "-Wuninitialized", 
+            "-pthread", 
+            "-stdlib=libc++"
         ], 
         "include_dirs": [
             "chessai/ai", 

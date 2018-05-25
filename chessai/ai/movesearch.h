@@ -1223,18 +1223,18 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 			}else if(search_result.value >= result.value){
 				if(search_result.value > alpha ||
 					(search_result.value == alpha && (result.best_move == nomove || result.ply > (search_result.ply + 1)))){
-					if((search_result.value == alpha && (result.ply > search_result.ply) && top == depth)){
-						printf("maximize = %d\n", maximize);
-						printf("top = %d\n", top);
-						printf("search_result.value = %d\n", search_result.value);
-						printf("result.value = %d\n", result.value);
-						printf("search_result.ply = %d\n", search_result.ply);
-						printf("result.ply = %d\n", result.ply);
-						printf("search_result.best_move.from_square = %d\n", search_result.best_move.from_square);
-						printf("search_result.best_move.to_square = %d\n", search_result.best_move.to_square);
-						printf("result.best_move.from_square = %d\n", result.best_move.from_square);
-						printf("result.best_move.to_square = %d\n", result.best_move.to_square);
-					}
+//					if((search_result.value == alpha && (result.ply > search_result.ply) && top == depth)){
+//						printf("maximize = %d\n", maximize);
+//						printf("top = %d\n", top);
+//						printf("search_result.value = %d\n", search_result.value);
+//						printf("result.value = %d\n", result.value);
+//						printf("search_result.ply = %d\n", search_result.ply);
+//						printf("result.ply = %d\n", result.ply);
+//						printf("search_result.best_move.from_square = %d\n", search_result.best_move.from_square);
+//						printf("search_result.best_move.to_square = %d\n", search_result.best_move.to_square);
+//						printf("result.best_move.from_square = %d\n", result.best_move.from_square);
+//						printf("result.best_move.to_square = %d\n", result.best_move.to_square);
+//					}
 
 					// New best move.  Note that in the case of equal scores, we keep the
 					// old best move unless the new one has a lower ply (which favors sooner checkmates).
@@ -1259,18 +1259,18 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 			}else if(search_result.value <= result.value){
 				if(search_result.value < beta ||
 					(search_result.value == beta && (result.best_move == nomove || result.ply > (search_result.ply + 1)))){
-					if((search_result.value == beta && (result.ply > search_result.ply) && top == depth)){
-						printf("maximize = %d\n", maximize);
-						printf("top = %d\n", top);
-						printf("search_result.value = %d\n", search_result.value);
-						printf("result.value = %d\n", result.value);
-						printf("search_result.ply = %d\n", search_result.ply);
-						printf("result.ply = %d\n", result.ply);
-						printf("search_result.best_move.from_square = %d\n", search_result.best_move.from_square);
-						printf("search_result.best_move.to_square = %d\n", search_result.best_move.to_square);
-						printf("result.best_move.from_square = %d\n", result.best_move.from_square);
-						printf("result.best_move.to_square = %d\n", result.best_move.to_square);
-					}
+//					if((search_result.value == beta && (result.ply > search_result.ply) && top == depth)){
+//						printf("maximize = %d\n", maximize);
+//						printf("top = %d\n", top);
+//						printf("search_result.value = %d\n", search_result.value);
+//						printf("result.value = %d\n", result.value);
+//						printf("search_result.ply = %d\n", search_result.ply);
+//						printf("result.ply = %d\n", result.ply);
+//						printf("search_result.best_move.from_square = %d\n", search_result.best_move.from_square);
+//						printf("search_result.best_move.to_square = %d\n", search_result.best_move.to_square);
+//						printf("result.best_move.from_square = %d\n", result.best_move.from_square);
+//						printf("result.best_move.to_square = %d\n", result.best_move.to_square);
+//					}
 					// New best move.  Note that in the case of equal scores, we keep the
 					// old best move unless the new one has a lower ply (which favors sooner checkmates).
 					// This is just an heuristic.
