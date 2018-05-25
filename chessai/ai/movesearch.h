@@ -1133,7 +1133,9 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 		result.value = quiesce<Evaluation>(game, manager, memory, alpha, beta, depth - 1);
 		result.ply = top - depth;
 		result.best_move = nomove;
-		memory->tt->setitem(game, TranspositionEntry(game, result, depth, result.value < alpha, result.value > beta));
+		if(!(*stop)){
+			memory->tt->setitem(game, TranspositionEntry(game, result, depth, result.value < alpha, result.value > beta));
+		}
 		return result;
 	}
 
@@ -1153,7 +1155,9 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 			result.ply = top - depth;
 		}
 		result.best_move = nomove;
-		memory->tt->setitem(game, TranspositionEntry(game, result, depth, result.value < alpha, result.value > beta));
+		if(!(*stop)){
+			memory->tt->setitem(game, TranspositionEntry(game, result, depth, result.value < alpha, result.value > beta));
+		}
 		return result;
 	}
 
@@ -1212,7 +1216,9 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				memory->hh->record_cutoff(game, mv, depth);
 				memory->killers->record_cutoff(game, mv);
 				search_result.best_move = nomove;
-				memory->tt->setitem(game, TranspositionEntry(game, search_result, depth, false, true));
+				if(!(*stop)){
+					memory->tt->setitem(game, TranspositionEntry(game, search_result, depth, false, true));
+				}
 				return search_result;
 			}else if(search_result.value >= result.value){
 				if(search_result.value > alpha ||
@@ -1245,7 +1251,9 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				memory->hh->record_cutoff(game, mv, depth);
 				memory->killers->record_cutoff(game, mv);
 				search_result.best_move = nomove;
-				memory->tt->setitem(game, TranspositionEntry(game, search_result, depth, true, false));
+				if(!(*stop)){
+					memory->tt->setitem(game, TranspositionEntry(game, search_result, depth, true, false));
+				}
 				return search_result;
 			}else if(search_result.value <= result.value){
 				if(search_result.value < beta ||
@@ -1285,7 +1293,9 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	}
 	// We checked everything.  Either it's an all node or a pv node.
 	// Update transposition table and return.
-	memory->tt->setitem(game, TranspositionEntry(game, result, depth, result.value < alpha, result.value > beta));
+	if(!(*stop)){// If stop was requested, result may not be valid.
+		memory->tt->setitem(game, TranspositionEntry(game, result, depth, result.value < alpha, result.value > beta));
+	}
 	return result;
 
 }
@@ -1407,12 +1417,20 @@ class Player{
 			manager = std::shared_ptr<MoveManager>(new MoveManager());
 			stop = std::make_shared<bool>(true);
 			result = std::shared_ptr<AlphaBetaValue>(new AlphaBetaValue());
+			thread_start = false;
 
 		}
 		~Player(){
-			if(search_thread->joinable()){
+			if(thread_start && search_thread->joinable()){
+				printf("A\n");
 				*stop = true;
-				search_thread->join();
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				if(search_thread->joinable()){
+					search_thread->join();
+				}
+				delete search_thread;
+			}else if(thread_start){
+				printf("B\n");
 				delete search_thread;
 			}
 
@@ -1424,11 +1442,13 @@ class Player{
 			*stop = false;
 			ponder_start_time = std::chrono::high_resolution_clock::now();
 			search_thread = new std::thread(salphabeta<Evaluation>, &game, manager, memory, -(Evaluation::infinity), Evaluation::infinity, stop, depth, result, false);
+			thread_start = true;
 		}
 		void stop_ponder(){
 			*stop = true;
 			search_thread->join();
 			delete search_thread;
+			thread_start = false;
 			ponder_stop_time = std::chrono::high_resolution_clock::now();
 			ponder_time_used = std::chrono::duration_cast<std::chrono::milliseconds>(ponder_stop_time - ponder_start_time);
 		}
@@ -1436,16 +1456,19 @@ class Player{
 			std::chrono::milliseconds time_to_use = TimeManager::time_to_use(game, ponder_time_used, std::chrono::milliseconds(time_remaining));
 			*stop = false;
 			search_thread = new std::thread(salphabeta<Evaluation>, &game, manager, memory, -(Evaluation::infinity), Evaluation::infinity, stop, depth, result, false);
+			thread_start = true;
 			std::this_thread::sleep_for(time_to_use);
 			*stop = true;
 			search_thread->join();
 			delete search_thread;
+			thread_start = false;
 			return *result;
 		}
 		int get_depth(){
 			return *depth;
 		}
 	private:
+		bool thread_start;
 		std::shared_ptr<int> depth;
 		std::shared_ptr<AlphaBetaValue> result;
 		std::chrono::high_resolution_clock::time_point ponder_start_time;

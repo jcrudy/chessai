@@ -26,11 +26,11 @@ class TournamentAI(ChessAI):
         print '%s moves %s' % ('White' if self.board.whites_turn else 'Black', move)
         move = Move.from_long_form(self.board.whites_turn, move)
         print move
-        assert move in self.board.all_moves()
+#         assert move in self.board.all_moves()
         self.moves.append(move)
        
         self.board.make_move(move)
-        assert_equal(self.board.to_fen(), fen)
+#         assert_equal(self.board.to_fen(), fen)
         
         print 'After %s move:' % ('White' if not self.board.whites_turn else 'Black')
         print self.board.to_grid()
@@ -39,6 +39,7 @@ class TournamentAI(ChessAI):
     
     def start(self, fen):
         if self.do_refresh:
+            del self.player
             self.player = LogisticOfficialPlayer(5000000, 3, 3, 5000000)
         if self.do_ponder:
             self.player.stop_ponder()

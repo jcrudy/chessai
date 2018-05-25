@@ -2,7 +2,12 @@ from chessai.ai.bitboard import BitBoardState, Move, LogisticOfficialPlayer, Log
 from nose.tools import assert_in, assert_not_equal
 
 def test_checkmate_preference_bug():
-    board = BitBoardState.from_fen('8/6p1/2p2b2/7p/6p1/4K3/k6r/1q6 b - - 13 50')
+#     board = BitBoardState.from_fen('8/6p1/2p2b2/7p/6p1/4K3/k6r/1q6 b - - 13 50')
+    board = BitBoardState.from_fen('1R6/4b2p/2p4P/2P2kp1/3rp3/7R/r4P2/5K2 w - - 4 35')
+    board = BitBoardState.from_fen('rnbqkbnr/pppppppr/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+    moves = []
+    for move in moves:
+        board.make_move(move)
     player = LogisticPlayer(5000000, 3, 3)
     for i in range(8):
         print player.alphabeta(board, i)
