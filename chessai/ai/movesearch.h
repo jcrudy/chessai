@@ -936,7 +936,7 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 	if(num_moves == 0){
 		if(own_check(&game)){
 			// Checkmate.  We lose.
-			result = maximize?(-(Evaluation::mate)):(Evaluation::mate);
+			result = maximize?(-(Evaluation::mate + depth)):(Evaluation::mate + depth);
 		}else{
 			// Stalemate
 			result = Evaluation::draw;
@@ -1069,10 +1069,10 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	// This must be done before transposition table lookup
 	// because the transposition table does not take the halfmove clock
 	// or threefold clock and position record into account.
-	if(game.halfmove_clock >= 50 || (draw_by_repetition(&game, 2) && !(top == depth))){
+	if(game.halfmove_clock >= 50 || ((draw_by_repetition(&game, 2) && !(top == depth)) || draw_by_repetition(&game, 3))){
 		// Draw
 		result.value = Evaluation::draw;
-		result.ply = top - depth;
+		result.ply = 0;
 		result.best_move = nomove;
 //		memory->tt->setitem(game, TranspositionEntry(game, result, depth, result.value < alpha, result.value > beta));
 		return result;
@@ -1131,7 +1131,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	// If this is a leaf node, call quiescence search
 	if(depth <= 0){
 		result.value = quiesce<Evaluation>(game, manager, memory, alpha, beta, depth - 1);
-		result.ply = top - depth;
+		result.ply = 0;
 		result.best_move = nomove;
 		if(!(*stop)){
 			memory->tt->setitem(game, TranspositionEntry(game, result, depth, result.value < alpha, result.value > beta));
@@ -1147,12 +1147,12 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	if(manager->num_moves(depth) == 0){
 		if(own_check(&game)){
 			// Checkmate.  We lose.
-			result.value = maximize?(-(Evaluation::mate)):(Evaluation::mate);
-			result.ply = top - depth;
+			result.value = maximize?(-(Evaluation::mate + depth)):(Evaluation::mate + depth);
+			result.ply = 0;
 		}else{
 			// Stalemate
 			result.value = Evaluation::draw;
-			result.ply = top - depth;
+			result.ply = 0;
 		}
 		result.best_move = nomove;
 		if(!(*stop)){
@@ -1222,7 +1222,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				return search_result;
 			}else if(search_result.value >= result.value){
 				if(search_result.value > alpha ||
-					(search_result.value == alpha && (result.best_move == nomove || result.ply > search_result.ply))){
+					(search_result.value == alpha && (result.best_move == nomove || result.ply > (search_result.ply + 1)))){
 					if((search_result.value == alpha && (result.ply > search_result.ply) && top == depth)){
 						printf("maximize = %d\n", maximize);
 						printf("top = %d\n", top);
@@ -1240,9 +1240,10 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 					// old best move unless the new one has a lower ply (which favors sooner checkmates).
 					// This is just an heuristic.
 					result.best_move = mv;
-					result.ply = search_result.ply;
+
 					alpha = search_result.value;
 				}
+				result.ply = search_result.ply + 1;
 				result.value = search_result.value;
 			}
 		}else{
@@ -1257,7 +1258,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				return search_result;
 			}else if(search_result.value <= result.value){
 				if(search_result.value < beta ||
-					(search_result.value == beta && (result.best_move == nomove || result.ply > search_result.ply))){
+					(search_result.value == beta && (result.best_move == nomove || result.ply > (search_result.ply + 1)))){
 					if((search_result.value == beta && (result.ply > search_result.ply) && top == depth)){
 						printf("maximize = %d\n", maximize);
 						printf("top = %d\n", top);
@@ -1274,9 +1275,9 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 					// old best move unless the new one has a lower ply (which favors sooner checkmates).
 					// This is just an heuristic.
 					result.best_move = mv;
-					result.ply = search_result.ply;
 					beta = search_result.value;
 				}
+				result.ply = search_result.ply + 1;
 				result.value = search_result.value;
 			}
 
@@ -1286,7 +1287,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 			break;
 		}
 	}
-	true_after = game.board_state.k & 1;
+//	true_after = game.board_state.k & 1;
 
 	if(debug){
 		printf("END\n");

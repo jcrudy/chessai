@@ -5,12 +5,25 @@ def test_checkmate_preference_bug():
 #     board = BitBoardState.from_fen('8/6p1/2p2b2/7p/6p1/4K3/k6r/1q6 b - - 13 50')
     board = BitBoardState.from_fen('1R6/4b2p/2p4P/2P2kp1/3rp3/7R/r4P2/5K2 w - - 4 35')
     board = BitBoardState.from_fen('rnbqkbnr/pppppppr/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
-    moves = []
-    for move in moves:
-        board.make_move(move)
+    board = BitBoardState.from_fen('8/8/8/1p6/8/1K6/3k4/2q5 w - - 38 88')
+#     moves = []
+#     for move in moves:
+#         board.make_move(move)
+    board.make_move(Move(17, 8))
+    
     player = LogisticPlayer(5000000, 3, 3)
-    for i in range(8):
-        print player.alphabeta(board, i)
+    while(not board.checkmate()):
+        print board.to_fen()
+        print board.to_grid()
+        for i in range(12):
+#             print(i)
+            mv, score = player.alphabeta(board, i)
+        
+            print mv, score
+        if not mv:
+            break
+        
+        board.make_move(mv)
     
 
 def test_for_bug():
