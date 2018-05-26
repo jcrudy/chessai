@@ -8,7 +8,7 @@ def test_player():
     print white.movesearch(board, 60000)
 #     
 def test_tournament_ai():
-    ai = TournamentAI()
+    ai = TournamentAI(False, False)
     ai.start('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
     print ai.move(10000)
     
