@@ -98,8 +98,6 @@ class MoveTable{
 
 struct AlphaBetaValue{
 	// In alpha-beta search, treat alpha and beta as inclusive (closed) bounds.
-	// If fail_low, value is a closed upper bound.
-	// If fail_high, value is a closed lower bound.
 	// Note that these are fail-soft values.
 	int ply;
 	int value;
@@ -936,7 +934,7 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 	if(num_moves == 0){
 		if(own_check(&game)){
 			// Checkmate.  We lose.
-			result = maximize?(-(Evaluation::mate + depth)):(Evaluation::mate + depth);
+			result = maximize?(-(Evaluation::mate)):(Evaluation::mate);
 		}else{
 			// Stalemate
 			result = Evaluation::draw;
@@ -1052,6 +1050,7 @@ int quiesce(GameState &game, MoveManager *manager, SearchMemory *memory, int alp
 
 }
 
+
 template<class Evaluation>
 AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *memory, int alpha,
 		                 int beta, int depth, bool *stop, int top, bool debug){
@@ -1142,12 +1141,14 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	// Generate moves
 	manager->generate_all(game, depth);
 	bool true_after = game.board_state.k & 1;
+	int num_moves = manager->num_moves(depth);
 
 	// Check for checkmates and stalemates
-	if(manager->num_moves(depth) == 0){
+	if(num_moves == 0){
 		if(own_check(&game)){
 			// Checkmate.  We lose.
-			result.value = maximize?(-(Evaluation::mate + depth)):(Evaluation::mate + depth);
+//			printf("Checkmate in alphabeta at depth %d\n", depth);
+			result.value = maximize?(-(Evaluation::mate)):(Evaluation::mate);
 			result.ply = 0;
 		}else{
 			// Stalemate
@@ -1161,10 +1162,26 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 		return result;
 	}
 
-	int k;
 	// Order moves
 	manager->order_all(game, memory, depth);
 	move *moves = manager->get_moves(depth);
+
+	// Get eval of current state
+	manager->generate_all_opponent(game);
+	move *opponent_moves = manager->get_opponent_moves();
+	int num_opponent_moves = manager->num_opponent_moves();
+	int current_eval;
+	EvaluationEntry eval_entry = memory->ee->getitem(game);
+	if(eval_entry != null_ee){
+		current_eval = eval_entry.value;
+	}else{
+		current_eval = Evaluation::evaluate(game, moves, num_moves, opponent_moves, num_opponent_moves);
+		eval_entry = EvaluationEntry(game, current_eval);
+		memory->ee->setitem(game, eval_entry);
+	}
+
+	int k;
+
 
 	// Iterate over full moves
 	move mv;
@@ -1185,10 +1202,17 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 	for(int i=(manager->full_begin(depth));i<(manager->pv_end(depth));i++){
 		mv = moves[i];
 //		if(depth == top){
+//			printf("The move is %d->%d\n", mv.from_square, mv.to_square);
+//			if(mv.from_square == 54 && mv.to_square == 9){
+//				printf("X\n");
+//			}
+//		}
+
+//		if(depth == top){
 //			printf("depth=%d, mv.from_square = %d, mv.to_square = %d, mv.sort_score = %d, stop = %d\n", depth, mv.from_square, mv.to_square, mv.sort_score, *stop);
 //		}
 		rec = manager->make(game, mv);
-		if(i < manager->pv_begin(depth)){
+		if( true || i < manager->pv_begin(depth)){
 			// Search full depth right away
 			search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, stop, top, debug_);
 		}else{
@@ -1207,8 +1231,12 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				}
 			}
 		}
+		search_result.ply++;
 		manager->unmake(game, rec);
 		true_after = game.board_state.k & 1;
+//		if((search_result.value == Evaluation::mate || -search_result.value == Evaluation::mate) && depth == top){
+//			printf("Propagated mate at depth %d with ply %d\n", depth, search_result.ply);
+//		}
 
 		if(maximize){
 			if(search_result.value > beta){
@@ -1221,31 +1249,43 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				}
 				return search_result;
 			}else if(search_result.value >= result.value){
-				if(search_result.value > alpha ||
-					(search_result.value == alpha && (result.best_move == nomove || result.ply > (search_result.ply + 1)))){
-//					if((search_result.value == alpha && (result.ply > search_result.ply) && top == depth)){
-//						printf("maximize = %d\n", maximize);
-//						printf("top = %d\n", top);
-//						printf("search_result.value = %d\n", search_result.value);
-//						printf("result.value = %d\n", result.value);
-//						printf("search_result.ply = %d\n", search_result.ply);
-//						printf("result.ply = %d\n", result.ply);
-//						printf("search_result.best_move.from_square = %d\n", search_result.best_move.from_square);
-//						printf("search_result.best_move.to_square = %d\n", search_result.best_move.to_square);
-//						printf("result.best_move.from_square = %d\n", result.best_move.from_square);
-//						printf("result.best_move.to_square = %d\n", result.best_move.to_square);
-//					}
-
-					// New best move.  Note that in the case of equal scores, we keep the
-					// old best move unless the new one has a lower ply (which favors sooner checkmates).
-					// This is just an heuristic.
+				if(search_result.value > alpha){
 					result.best_move = mv;
-
 					alpha = search_result.value;
+					result.value = search_result.value;
+					result.ply = search_result.ply;
+//					if(depth == top){
+//						printf("Selected move %d->%d with score %d and ply %d at depth %d\n", mv.from_square, mv.to_square, search_result.value, search_result.ply, depth);
+//					}
+//					if((search_result.value == Evaluation::mate || -search_result.value == Evaluation::mate) && depth == top){
+//						printf("Selected mate at depth %d with ply %d\n", depth, search_result.ply);
+//					}
+				}else if(search_result.value == alpha){
+					if(result.best_move == nomove ||
+						(search_result.value > current_eval && search_result.ply < result.ply) ||
+						(search_result.value < current_eval && search_result.ply > result.ply)
+					){
+						result.best_move = mv;
+						alpha = search_result.value;
+						result.value = search_result.value;
+						result.ply = search_result.ply;
+//						if((search_result.value == Evaluation::mate || -search_result.value == Evaluation::mate) && depth == top){
+//							printf("Selected mate at depth %d with ply %d\n", depth, search_result.ply);
+//						}
+					}
+
+				}else{
+					result.ply = search_result.ply;
+					result.value = search_result.value;
 				}
-				result.ply = search_result.ply + 1;
-				result.value = search_result.value;
+
+
 			}
+//			else{
+////				if(depth == top){
+////					printf("Rejected move %d->%d with score %d and ply %d at depth %d\n", mv.from_square, mv.to_square, search_result.value, search_result.ply, depth);
+////				}
+//			}
 		}else{
 			if(search_result.value < alpha){
 				// Cut node.  Yay!
@@ -1257,29 +1297,42 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 				}
 				return search_result;
 			}else if(search_result.value <= result.value){
-				if(search_result.value < beta ||
-					(search_result.value == beta && (result.best_move == nomove || result.ply > (search_result.ply + 1)))){
-//					if((search_result.value == beta && (result.ply > search_result.ply) && top == depth)){
-//						printf("maximize = %d\n", maximize);
-//						printf("top = %d\n", top);
-//						printf("search_result.value = %d\n", search_result.value);
-//						printf("result.value = %d\n", result.value);
-//						printf("search_result.ply = %d\n", search_result.ply);
-//						printf("result.ply = %d\n", result.ply);
-//						printf("search_result.best_move.from_square = %d\n", search_result.best_move.from_square);
-//						printf("search_result.best_move.to_square = %d\n", search_result.best_move.to_square);
-//						printf("result.best_move.from_square = %d\n", result.best_move.from_square);
-//						printf("result.best_move.to_square = %d\n", result.best_move.to_square);
-//					}
-					// New best move.  Note that in the case of equal scores, we keep the
-					// old best move unless the new one has a lower ply (which favors sooner checkmates).
-					// This is just an heuristic.
+				if(search_result.value < beta){
 					result.best_move = mv;
 					beta = search_result.value;
+					result.ply = search_result.ply;
+					result.value = search_result.value;
+//					if(depth == top){
+//						printf("Selected move %d->%d with score %d and ply %d at depth %d\n", mv.from_square, mv.to_square, search_result.value, search_result.ply, depth);
+//					}
+//					if((search_result.value == Evaluation::mate || -search_result.value == Evaluation::mate) && depth == top){
+//						printf("Selected mate at depth %d with ply %d\n", depth, search_result.ply);
+//					}
+				}else if(search_result.value == beta){
+					if(result.best_move == nomove ||
+						(search_result.value > current_eval && search_result.ply > result.ply) ||
+						(search_result.value < current_eval && search_result.ply < result.ply)
+					){
+						result.best_move = mv;
+						beta = search_result.value;
+						result.ply = search_result.ply;
+						result.value = search_result.value;
+//						if((search_result.value == Evaluation::mate || -search_result.value == Evaluation::mate) && depth == top){
+//							printf("Selected mate at depth %d with ply %d\n", depth, search_result.ply);
+//						}
+					}
+				}else{
+					result.ply = search_result.ply;
+					result.value = search_result.value;
 				}
-				result.ply = search_result.ply + 1;
-				result.value = search_result.value;
+
+
 			}
+//			else{
+//				if(depth == top){
+//					printf("Rejected move %d->%d with score %d and ply %d at depth %d\n", mv.from_square, mv.to_square, search_result.value, search_result.ply);
+//				}
+//			}
 
 		}
 		if(*stop){
@@ -1291,6 +1344,9 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 
 	if(debug){
 		printf("END\n");
+	}
+	if(-result.value == Evaluation::infinity){
+		printf("??\n");
 	}
 	// We checked everything.  Either it's an all node or a pv node.
 	// Update transposition table and return.

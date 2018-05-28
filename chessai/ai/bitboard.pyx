@@ -713,6 +713,7 @@ cdef class LogisticPlayer:
         cdef AlphaBetaValue search_result
         cdef bool stop = False
         search_result = alphabeta[LogisticEvaluation](board.bs, self.manager, self.memory, -10000000, 10000000, depth, &stop, depth, debug)
+        print search_result.ply
         cdef Move result = Move()
         result.mv = search_result.best_move
         return result, search_result.value
