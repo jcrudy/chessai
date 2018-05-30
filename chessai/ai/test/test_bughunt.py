@@ -1,6 +1,10 @@
 from chessai.ai.bitboard import BitBoardState, Move, LogisticOfficialPlayer, LogisticPlayer
 from nose.tools import assert_in, assert_not_equal
 
+def test_promotion_choice_bug():
+    board = BitBoardState.from_fen('8/8/8/4N3/6K1/2P5/P2kp3/8 b - - 3 53')
+    #Black chose knight in game with pondering on
+
 def test_checkmate_preference_bug():
 #     board = BitBoardState.from_fen('8/6p1/2p2b2/7p/6p1/4K3/k6r/1q6 b - - 13 50')
     board = BitBoardState.from_fen('1R6/4b2p/2p4P/2P2kp1/3rp3/7R/r4P2/5K2 w - - 4 35')

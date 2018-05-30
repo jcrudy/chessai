@@ -1212,7 +1212,7 @@ AlphaBetaValue alphabeta(GameState &game, MoveManager *manager, SearchMemory *me
 //			printf("depth=%d, mv.from_square = %d, mv.to_square = %d, mv.sort_score = %d, stop = %d\n", depth, mv.from_square, mv.to_square, mv.sort_score, *stop);
 //		}
 		rec = manager->make(game, mv);
-		if( true || i < manager->pv_begin(depth)){
+		if(i < manager->pv_begin(depth)){
 			// Search full depth right away
 			search_result = alphabeta<Evaluation>(game, manager, memory, alpha, beta, depth-1, stop, top, debug_);
 		}else{
