@@ -3,6 +3,7 @@ from infinity import inf
 import numpy as np
 import random
 from chessai.ai.flat_network import create_net
+import time
 
 class GameBlock(object):
     def __init__(self):
@@ -118,9 +119,12 @@ class TDLambdaTrainer(object):
         
         # Store starting position
         vec = self.extractor(board)
+        d = vec.shape[-1]
         record.store(board, vec, self.model.predict(vec))
         
         # Play a game
+        t0 = time.time()
+        move_count = 0
         while True:
             whites_turn = board.whites_turn
             moves = board.all_moves()
@@ -139,33 +143,49 @@ class TDLambdaTrainer(object):
                 best_vec = self.extractor(board)
                 best_score = self.model.predict(best_vec)
             else: #Exploit
-                for move in moves:
+                X = np.empty(shape=(len(moves), d))
+#                 y = np.empty(shape=(len(moves), 1))
+#                 w = np.empty(shape=(len(moves), 1))
+                for i, move in enumerate(moves):
                     rec = board.make_move(move)
-                    vec = self.extractor(board)
-                    score = self.model.predict(vec)
-                    if whites_turn:
-                        if score > best_score:
-                            best_score = score
-                            best_move = move
-                            best_vec = vec
-                    else:
-                        if score < best_score:
-                            best_score = score
-                            best_move = move
-                            best_vec = vec
-                    
+                    X[i,:] = self.extractor(board)[0,:]
                     board.unmake_move(rec)
+                y = self.model.predict(X)
+                if whites_turn:
+                    best_score_idx = np.argmax(y, 0)[0]
+                else:
+                    best_score_idx = np.argmin(y, 0)[0]
+                best_score = y[best_score_idx:(best_score_idx+1), 0]
+                best_move = moves[best_score_idx]
+                best_vec = X[best_score_idx:(best_score_idx+1),:]
+#                     score = self.model.predict(vec)
+#                     if whites_turn:
+#                         if score > best_score:
+#                             best_score = score
+#                             best_move = move
+#                             best_vec = vec
+#                     else:
+#                         if score < best_score:
+#                             best_score = score
+#                             best_move = move
+#                             best_vec = vec
+                    
+                    
                 
                 board.make_move(best_move)
+            move_count += 1
             
             if board.draw():
                 record.store(board, best_vec, self.draw_score)
                 break
             if board.checkmate():
-                record.store(board, best_vec, self.win_score if not board.whites_turn else -board.win_score)
+                record.store(board, best_vec, self.win_score if not board.whites_turn else -self.win_score)
                 break
+            print(move_count, move_count / (time.time() - t0))
             record.store(board, best_vec, best_score)
-        
+            
+        t1 = time.time()
+        print('Played %d moves in %fs.' % (move_count, t1-t0))
         return record
     
 
