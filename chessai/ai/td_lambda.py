@@ -176,9 +176,11 @@ class TDLambdaTrainer(object):
             move_count += 1
             
             if board.draw():
+                print("Draw!")
                 record.store(board, best_vec, self.draw_score)
                 break
             if board.checkmate():
+                print("Checkmate!  %s wins!" % ('Black' if board.whites_turn else 'White'))
                 record.store(board, best_vec, self.win_score if not board.whites_turn else -self.win_score)
                 break
             print(move_count, move_count / (time.time() - t0))
