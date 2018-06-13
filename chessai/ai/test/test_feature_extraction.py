@@ -1,4 +1,5 @@
 from chessai.ai.bitboard import BitBoardState, FeatureExtractor
+import numpy as np
 
 def test_feature_extraction():
     initial_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
@@ -6,6 +7,13 @@ def test_feature_extraction():
     for i in range(20):
         print board.extract_features()['pieces'][i,:,:]
 #     print board.extract_features()['pieces'][1,:,:]
+
+def test_flat_raw_feature_extraction():
+    initial_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    board = BitBoardState.from_fen(initial_fen)
+    print np.ravel(board.extract_flat_raw_features())[-70:-50]
+    print board.extract_flat_raw_features().shape
+    assert set(board.extract_flat_raw_features()[0,:]) <= {-1,1}
 
 def test_engineered_feature_extraction():
     fens = [
@@ -37,8 +45,6 @@ def test_engineered_feature_extraction():
     
 
 if __name__ == '__main__':
-    test_engineered_feature_extraction()
-    exit()
     # This code will run the test in this file.'
     import sys
     import nose

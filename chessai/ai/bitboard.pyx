@@ -881,6 +881,43 @@ cdef class BitBoardState:
             return True
         return False
     
+    def extract_flat_raw_features(BitBoardState self):
+        cdef np.ndarray[double, ndim=2, mode="c"] vec = np.zeros(shape=(1, 20*8*8 + 64,), order='C')
+        cdef BoardFeatures features
+        features.white_pawn = &vec[0, 0*64]
+        features.black_pawn = &vec[0, 1*64]
+        features.white_knight = &vec[0, 2*64]
+        features.black_knight = &vec[0, 3*64]
+        features.white_rook = &vec[0, 4*64]
+        features.black_rook = &vec[0, 5*64]
+        features.white_bishop = &vec[0, 6*64]
+        features.black_bishop = &vec[0, 7*64]
+        features.white_queen = &vec[0, 8*64]
+        features.black_queen = &vec[0, 9*64]
+        features.white_king = &vec[0, 10*64]
+        features.black_king = &vec[0, 11*64]
+        features.white_en_passant = &vec[0, 12*64]
+        features.black_en_passant = &vec[0, 13*64]
+        features.white_all = &vec[0, 14*64]
+        features.black_all = &vec[0, 15*64]
+        features.white_queen_and_bishop = &vec[0, 16*64]
+        features.black_queen_and_bishop = &vec[0, 17*64]
+        features.white_queen_and_rook = &vec[0, 18*64]
+        features.black_queen_and_rook = &vec[0, 19*64]
+        features.turn = &vec[0, 20*64]
+        features.castle_rights = &vec[0, 20*64 + 2]
+        self.bs.board_state.extract_features(&features)
+        vec[0, 20*64 + 1] = -1 * min(vec[0, 20*64], 0)
+        vec[0, 20*64] = max(vec[0, 20*64], 0)
+        vec[0, 20*64 + 63] = 1
+        vec[0, 20*64 + 2] *= vec[0, 20*64 + 2]
+        vec[0, 20*64 + 3] *= vec[0, 20*64 + 3]
+        vec[0, 20*64 + 4] *= vec[0, 20*64 + 4]
+        vec[0, 20*64 + 5] *= vec[0, 20*64 + 5]
+        vec *= 2
+        vec -= 1
+        return vec
+
     def extract_features(BitBoardState self):
         cdef np.ndarray[double, ndim=3, mode="c"] pieces = np.empty(shape=(20,8,8), order='C')
 #         cdef np.ndarray[double, ndim=3, mode="c"] knight = np.empty(shape=(8,8,2), order='C')  # @DuplicatedSignature
