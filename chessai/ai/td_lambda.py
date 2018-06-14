@@ -2,8 +2,17 @@ from chessai.ai.bitboard import BitBoardState
 from infinity import inf
 import numpy as np
 import random
-from chessai.ai.flat_network import create_net
+from chessai.ai.flat_network import create_net, ktotal
 import time
+import h5py
+from keras.models import save_model, load_model
+from six import BytesIO
+import pickle
+import os
+from xnor_layers import XnorDense
+from binary_ops import binary_tanh
+from tempfile import mkstemp
+from binary_layers import Clip
 
 class GameBlock(object):
     def __init__(self):
@@ -81,6 +90,48 @@ class TDLambdaTrainer(object):
         self.model = model
         self.win_score = win_score
         self.draw_score = draw_score
+    
+    def __getstate__(self):
+        with h5py.File('does not matter', driver='core', backing_store=False) as h5file:
+            save_model(self.model, h5file)
+            h5file.flush()
+            binary_data = h5file.fid.get_file_image()
+        return {
+                'lam': self.lam,
+                'extractor': self.extractor,
+                'model': binary_data,
+                'win_score': self.win_score,
+                'draw_score': self.draw_score
+                }
+    
+    def __setstate__(self, state):
+        self.lam = state['lam']
+        self.extractor = state['extractor']
+        fapl = h5py.h5p.create(h5py.h5p.FILE_ACCESS)
+        fapl.set_fapl_core()
+        fapl.set_file_image(state['model'])
+        tmfile, tmfilename = mkstemp()
+        os.remove(tmfilename)
+#         tmfile.close()
+        fid = h5py.h5f.open(tmfilename, h5py.h5f.ACC_RDONLY, fapl=fapl)
+        with h5py.File(fid) as h5file:
+            loaded_model = load_model(h5file, custom_objects={'XnorDense': XnorDense,
+                                                              'binary_tanh': binary_tanh,
+                                                              'Clip': Clip})
+        os.remove(tmfilename)
+        self.model = loaded_model
+        self.win_score = state['win_score']
+        self.draw_score = state['draw_score']
+    
+    def save(self, path):
+        with open(path, 'wb') as outfile:
+            pickle.dump(self, outfile)
+    
+    @classmethod
+    def load(cls, path):
+        with open(path, 'rb') as infile:
+            result = pickle.load(infile)
+        return result
     
     def train(self, n_epochs, games_per_epoch=lambda i: 1, 
               starting_position=lambda i, j:'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
@@ -195,10 +246,15 @@ if __name__ == '__main__':
     model = create_net()
     model.compile(optimizer='adadelta', loss='mse')
     trainer = TDLambdaTrainer(.5, basic_extractor, model)
-    record = trainer.play_game('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', .5)
+    trainer.save('test_saved_trainer.pkl')
+    trainer2 = TDLambdaTrainer.load('test_saved_trainer.pkl')
+    record = trainer2.play_game('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', .5)
     print record.train_data(.5)
-    trainer.train(1)
+    trainer2.train(1)
     
+    trainer.train(1)
+    if os.path.exists('test_saved_trainer.pkl'):
+        os.remove('test_saved_trainer.pkl')
                     
         
         
