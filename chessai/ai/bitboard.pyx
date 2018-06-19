@@ -10,6 +10,9 @@ cimport numpy as np
 import numpy as np
 from cython.operator cimport dereference
 from tqdm import tqdm
+from libcpp.memory cimport shared_ptr
+from libc.stdlib cimport malloc, free
+from toolz import compose, first
 
 cdef extern from "stdbool.h":
     ctypedef char bool
@@ -182,6 +185,69 @@ cdef extern from "bitboardlib.h":
         double *turn
         double *castle_rights
 
+cdef extern from "xnornet.h":
+    cdef int convert_to_binary[T](T *input, int input_size, uint64_t *output, int output_size, int stride)
+    cdef int convert_from_binary[T](uint64_t *input, int input_size, T *output, int output_size, int stride)
+    cdef int binary_sum(uint64_t *x, int size)
+    cdef int binary_tanh_dot(uint64_t *x, uint64_t *y, int size)
+    cdef cppclass XNorEvaluator:
+        XNorEvaluator(int *layer_sizes, int num_layers, int input_size)
+        void set_weights[T](int layer, T *weights)
+        int apply(uint64_t *input)
+
+cpdef binary_tanh_dot_validation_function(np.ndarray[double, ndim=2, mode='c'] x, np.ndarray[double, ndim=2, mode='c'] y):
+    cdef int x_size = x.shape[1]
+    cdef int y_size = y.shape[1]
+    cdef np.ndarray[double, ndim=2, mode='c'] output = np.empty(shape=(1,y_size))
+    cdef uint64_t *x_b = <uint64_t*> malloc((x_size/64) * sizeof(uint64_t))
+    cdef uint64_t *y_col_b = <uint64_t*> malloc((x_size/64) * sizeof(uint64_t))
+    cdef int i
+    convert_to_binary[double](&x[0,0], x_size, x_b, x_size / 64, 1)
+    for i in range(y_size):
+        convert_to_binary[double](&y[0,i], x_size, y_col_b, x_size / 64, y_size)
+        output[0, i] = 1 if binary_tanh_dot(x_b, y_col_b, x_size/64) else -1
+    free(x_b)
+    free(y_col_b)
+    return output
+    
+cpdef binary_sum_validation_function(np.ndarray[double, ndim=2, mode='c'] data):
+    cdef int input_size = data.shape[1]
+    cdef int output_size = input_size / 64;
+    cdef double * input = &data[0, 0]
+    cdef uint64_t *output = <uint64_t*> malloc(output_size * sizeof(uint64_t))
+    if convert_to_binary[double](input, input_size, output, output_size, 1):
+        result = False
+    cdef int correct_value = data.sum()
+    cdef int value = binary_sum(output, output_size)
+    free(output)
+    if correct_value != value:
+        print '%d != %d' % (value, correct_value)
+        return False
+    print '%d == %d' % (value, correct_value)
+    return True
+
+cpdef double_binary_conversion_validation_function(np.ndarray[double, ndim=2, mode='c'] data):
+    cdef input_size = data.shape[1]
+    cdef int output_size = input_size / 64;
+    cdef double * input = &data[0, 0]
+    cdef uint64_t *output = <uint64_t*> malloc(output_size * sizeof(uint64_t))
+    cdef double *copy = <double*> malloc(input_size * sizeof(double))
+    cdef bool result = True
+    if convert_to_binary[double](input, input_size, output, output_size, 1):
+        result = False
+    if convert_from_binary[double](output, output_size, copy, input_size, 1):
+        result = False
+    cdef int i
+    for i in range(input_size):
+        if not ((copy[i]>0) == (input[i]>0) and (copy[i]<=0) == (input[i]<=0)):
+            print 'mismatch at position %d: %f != %f' % (i, input[i], copy[i])
+            result = False
+            break
+    free(output)
+    free(copy)
+    return result
+            
+
 cdef extern from "movesearch.h":
     cdef cppclass MoveTable[ElementType]:
         MoveTable(int num_best)
@@ -310,12 +376,81 @@ cdef extern from "movesearch.h":
         void stop_ponder() nogil
         AlphaBetaValue movesearch(GameState &game, int time_remaining) nogil
         int get_depth()
+        int get_pv(GameState &game, move *pv, moverecord *recs)
+        TranspositionTable *get_tt()
     
 #     cdef cppclass SearchMemory:
 #         SearchMemory(int num_killers, int num_moves)
 #         TranspositionTable tt
 #         HistoryTable hh
 #         KillerTable killers
+
+
+cdef class XNor:
+    cdef XNorEvaluator *evaluator
+    def __cinit__(XNor self, list layer_sizes, int input_size):
+        cdef int num_layers = len(layer_sizes)
+        cdef int *sizes = <int *>malloc(num_layers * sizeof(int))
+        cdef int i, size
+        for i, size in enumerate(layer_sizes):
+            sizes[i] = size
+        self.evaluator = new XNorEvaluator(sizes, num_layers, input_size)
+        free(sizes)
+    
+    def __dealloc__(XNor self):
+        del self.evaluator
+        
+    cpdef set_weights(XNor self, int layer, np.ndarray[np.float32_t, ndim=2, mode='c'] weights):
+        print 'X'
+        self.evaluator[0].set_weights[float](layer, &weights[0,0])
+        print 'Y'
+    
+    @classmethod
+    def from_keras(cls, model):
+        from chessai.xnornet.xnor_layers import XnorDense
+        from keras.layers.core import Dropout, Lambda
+        from keras.engine.topology import InputLayer
+        cdef list layers = list(reversed(map(compose(first, model.layers_by_depth.__getitem__), range(len(model.layers)))))
+        cdef list layer_sizes = []
+        cdef int insize, outsize, input_size
+        cdef bool got_input = False
+        cdef list weight_list = []
+        for layer in layers:
+            if isinstance(layer, XnorDense):
+                weights = layer.get_weights()[0]
+                insize, outsize = weights.shape
+                layer_sizes.append(outsize)
+                weight_list.append(weights)
+                if not got_input:
+                    input_size = insize
+                    got_input = True
+        print 'layer_sizes = %s' % str(layer_sizes)
+        print 'weight_list = %s' % str(layer_sizes)
+        print 'A'
+        cdef XNor result = XNor(layer_sizes, input_size)
+        print 'A.5'
+        for i, weights in enumerate(weight_list):
+            print i
+            result.set_weights(i, weights)
+        print 'B'
+        return result
+    
+    cpdef int evaluate(XNor self, np.ndarray[double, ndim=2, mode='c'] data):
+        '''
+        Expects data to be 1 x n contiguous array
+        Allocates a temporary array to store the binarized version of the data
+        '''
+        print data
+        print data.shape[1]
+        if data.shape[1] % 64 != 0:
+            raise ValueError('Data size %d not divisible by 64.' % data.shape[1])
+        cdef uint64_t *converted_data = <uint64_t *>malloc((data.shape[1] / 64) * sizeof(uint64_t))
+        cdef double *data_array = &data[0,0]
+        convert_to_binary[double](data_array, data.shape[1], converted_data, data.shape[1] / 64, 1)
+        cdef int result
+        result = self.evaluator[0].apply(converted_data)
+        free(converted_data)
+        return result
 
 cpdef bitboard_to_str(bitboard bb):
     cdef int i
@@ -693,6 +828,18 @@ cdef class LogisticOfficialPlayer:
         result.mv = search_result.best_move
         return result, search_result.value, self.player[0].get_depth()
     
+    def get_pv(LogisticOfficialPlayer self, BitBoardState game):
+        cdef move pv[100];
+        cdef moverecord recs[100];
+        cdef int pv_length = self.player[0].get_pv(game.bs, pv, recs)
+        cdef int i
+        cdef list result = []
+        cdef Move mv
+        for i in range(pv_length):
+            mv = Move()
+            mv.mv = pv[i]
+            result.append(mv)
+        return result
 
 cdef class LogisticPlayer:
     cdef SearchMemory *memory

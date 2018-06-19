@@ -2,17 +2,16 @@ from chessai.ai.bitboard import BitBoardState
 from infinity import inf
 import numpy as np
 import random
-from chessai.ai.flat_network import create_net, ktotal
+from chessai.ai.flat_network import create_net
 import time
 import h5py
 from keras.models import save_model, load_model
-from six import BytesIO
 import pickle
 import os
-from xnor_layers import XnorDense
-from binary_ops import binary_tanh
+from chessai.xnornet.xnor_layers import XnorDense
+from chessai.xnornet.binary_ops import binary_tanh
 from tempfile import mkstemp
-from binary_layers import Clip
+from chessai.binarynet.binary_layers import Clip
 
 class GameBlock(object):
     def __init__(self):
@@ -63,10 +62,13 @@ class GameRecord():
         self.current_block.store(board, vector, score)
     
     def train_data(self, lambd):
+        self.new_block()
         X = []
         y = []
         w = []
-        for block in self.blocks:
+        for i, block in enumerate(self.blocks):
+            if i == len(self.blocks) - 1:
+                1+1
             X_, y_, w_ = block.train_data(lambd)
             if y_ is not None:
                 X.append(X_)
@@ -82,6 +84,44 @@ def basic_extractor(board):
 
 def play_game(trainer, starting_fen, epsilon):
     return trainer.play_game(starting_fen, epsilon)
+
+class TDLambdaPlayer(object):
+    def __init__(self, extractor, model, win_score=2048, draw_score=0):
+        self.extractor = extractor
+        self.model = model
+        self.win_score = win_score
+        self.draw_score = draw_score
+        self.reset_record()
+        
+    def reset_record(self):
+        self.record = GameRecord()
+    
+    def _move(self, board):
+        '''Choose move.  Return move, vector, score'''
+        raise NotImplementedError
+    
+    def move(self, board):
+        move, vector, score = self._move(board)
+        self.record.store(board, vector, score)
+        return move
+    
+    def learn(self):
+        raise NotImplementedError
+    
+    def record_white_win(self):
+        self.record.store(None, None, self.win_score)
+    
+    def record_black_win(self):
+        self.record.store(None, None, -self.win_score)
+        
+    def record_draw(self):
+        self.record.store(None, None, self.draw_score)
+    
+    
+    
+    
+    
+    
 
 class TDLambdaTrainer(object):
     def __init__(self, lambd, extractor, model, win_score=2048., draw_score=0.):
@@ -133,7 +173,7 @@ class TDLambdaTrainer(object):
             result = pickle.load(infile)
         return result
     
-    def train(self, n_epochs, games_per_epoch=lambda i: 1, 
+    def train(self, n_epochs, games_per_epoch=lambda i: 10, 
               starting_position=lambda i, j:'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
               epsilon=lambda i, j: .5,
               lambda_=lambda i, j: .5,
@@ -152,7 +192,7 @@ class TDLambdaTrainer(object):
                 y.append(y_)
                 w.append(w_)
         
-        if len(X) == 0:
+        if X is None or len(X) == 0:
             return
         elif len(X) == 1:
             X = X[0]
@@ -162,7 +202,16 @@ class TDLambdaTrainer(object):
             X = np.concatenate(X, axis=0)
             y = np.concatenate(y, axis=0)
             w = np.concatenate(w, axis=0)
-        self.model.fit(X, y, sample_weight=w, batch_size=batch_size)
+        if X is None:
+            return
+        try:
+            print(y)
+            self.model.fit(X, y, sample_weight=w, batch_size=batch_size, epochs=10)
+        except:
+            print(X)
+            print(y)
+            print(w)
+            raise
     
     def play_game(self, starting_fen, epsilon):
         record = GameRecord()
@@ -193,15 +242,26 @@ class TDLambdaTrainer(object):
                 board.make_move(best_move)
                 best_vec = self.extractor(board)
                 best_score = self.model.predict(best_vec)
+                print 'Random move score: %d' % best_score
             else: #Exploit
-                X = np.empty(shape=(len(moves), d))
+                X = np.zeros(shape=(len(moves), d))
 #                 y = np.empty(shape=(len(moves), 1))
 #                 w = np.empty(shape=(len(moves), 1))
+                draws = []
+                mates = []
                 for i, move in enumerate(moves):
                     rec = board.make_move(move)
+                    if board.draw():
+                        draws.append(i)
+                    if board.checkmate():
+                        mates.append(i)
                     X[i,:] = self.extractor(board)[0,:]
                     board.unmake_move(rec)
                 y = self.model.predict(X)
+                if draws:
+                    y[np.array(draws)] = self.draw_score
+                if mates:
+                    y[np.array(mates)] = self.win_score if whites_turn else -self.win_score
                 if whites_turn:
                     best_score_idx = np.argmax(y, 0)[0]
                 else:
@@ -209,6 +269,7 @@ class TDLambdaTrainer(object):
                 best_score = y[best_score_idx:(best_score_idx+1), 0]
                 best_move = moves[best_score_idx]
                 best_vec = X[best_score_idx:(best_score_idx+1),:]
+                print 'Selected move score: %d' % best_score
 #                     score = self.model.predict(vec)
 #                     if whites_turn:
 #                         if score > best_score:
@@ -228,13 +289,13 @@ class TDLambdaTrainer(object):
             
             if board.draw():
                 print("Draw!")
-                record.store(board, best_vec, self.draw_score)
+                record.store(board, best_vec, np.array([self.draw_score]))
                 break
             if board.checkmate():
                 print("Checkmate!  %s wins!" % ('Black' if board.whites_turn else 'White'))
-                record.store(board, best_vec, self.win_score if not board.whites_turn else -self.win_score)
+                record.store(board, best_vec, np.array([self.win_score if not board.whites_turn else -self.win_score]))
                 break
-            print(move_count, move_count / (time.time() - t0))
+#             print(move_count, move_count / (time.time() - t0))
             record.store(board, best_vec, best_score)
             
         t1 = time.time()
@@ -243,19 +304,37 @@ class TDLambdaTrainer(object):
     
 
 if __name__ == '__main__':
-    model = create_net()
-    model.compile(optimizer='adadelta', loss='mse')
-    trainer = TDLambdaTrainer(.5, basic_extractor, model)
-    trainer.save('test_saved_trainer.pkl')
-    trainer2 = TDLambdaTrainer.load('test_saved_trainer.pkl')
-    record = trainer2.play_game('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', .5)
-    print record.train_data(.5)
-    trainer2.train(1)
-    
-    trainer.train(1)
-    if os.path.exists('test_saved_trainer.pkl'):
-        os.remove('test_saved_trainer.pkl')
-                    
+    filename = 'saved_trainer.pkl'
+    if os.path.exists(filename):
+        print('Loading from file')
+        trainer = TDLambdaTrainer.load(filename)
+    else:
+        print('Creating')
+        model = create_net()
+        model.compile(optimizer='adadelta', loss='mae')
+        trainer = TDLambdaTrainer(.5, basic_extractor, model)
+    k = 0
+    while True:
+        epsilon = .25#1. - (1/(1 + math.exp(-k / 100.)))
+        print('epsilon = %f' % epsilon)
+        trainer.train(1, 
+                     epsilon=lambda i, j: epsilon,
+                     lambda_=lambda i, j: .8,)
+        
+        trainer.save(filename)
+        save_model(trainer.model, 'trained_model.h5')
+        k += 1
+#     
+#     trainer.save('test_saved_trainer.pkl')
+#     trainer2 = TDLambdaTrainer.load('test_saved_trainer.pkl')
+#     record = trainer2.play_game('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', .5)
+#     print record.train_data(.5)
+#     trainer2.train(1)
+#     
+#     trainer.train(1)
+#     if os.path.exists('test_saved_trainer.pkl'):
+#         os.remove('test_saved_trainer.pkl')
+#                     
         
         
         

@@ -1524,6 +1524,29 @@ class Player{
 		int get_depth(){
 			return *depth;
 		}
+		int get_pv(GameState &game, move *pv, moverecord *recs){
+			TranspositionTable *tt = get_tt();
+			TranspositionEntry entry = tt->getitem(game);
+			move mv = entry.value.best_move;
+			int i = 0;
+			while(!(mv == nomove)){
+				pv[i] = mv;
+				recs[i] = make_move(&game, &mv);
+				tt->getitem(game);
+				mv = entry.value.best_move;
+				i++;
+			}
+			int j = i;
+			while(j > 0){
+				j--;
+				unmake_move(&game, &(recs[j]));
+			}
+			return i;
+		}
+
+		TranspositionTable *get_tt(){
+			return memory.get()->tt;
+		}
 	private:
 		bool thread_start;
 		std::shared_ptr<int> depth;
