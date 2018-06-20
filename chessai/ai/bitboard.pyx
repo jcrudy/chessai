@@ -14,6 +14,11 @@ from libcpp.memory cimport shared_ptr
 from libc.stdlib cimport malloc, free
 from toolz import compose, first
 
+# cdef extern from 'boost/dynamic_bitset.hpp' namespace 'boost':
+#     cdef cppclass dynamic_bitset[Block, Allocator]:
+#         typename block_type;
+#         typename allocator_type;
+
 cdef extern from "stdbool.h":
     ctypedef char bool
 
@@ -186,40 +191,42 @@ cdef extern from "bitboardlib.h":
         double *castle_rights
 
 cdef extern from "xnornet.h":
-    cdef int convert_to_binary[T](T *input, int input_size, uint64_t *output, int output_size, int stride)
-    cdef int convert_from_binary[T](uint64_t *input, int input_size, T *output, int output_size, int stride)
-    cdef int binary_sum(uint64_t *x, int size)
-    cdef int binary_tanh_dot(uint64_t *x, uint64_t *y, int size)
+    cdef cppclass bitset_type:
+        bitset_type(int n)
+    cdef int convert_to_binary[T](T *input, int input_size, bitset_type output, int stride)
+    cdef int convert_from_binary[T](bitset_type input, T *output, int output_size, int stride)
+    cdef int binary_sum(bitset_type x)
+    cdef int binary_tanh_dot(bitset_type x, bitset_type y)
     cdef cppclass XNorEvaluator:
         XNorEvaluator(int *layer_sizes, int num_layers, int input_size)
         void set_weights[T](int layer, T *weights)
-        int apply(uint64_t *input)
+        int apply(bitset_type input)
 
 cpdef binary_tanh_dot_validation_function(np.ndarray[double, ndim=2, mode='c'] x, np.ndarray[double, ndim=2, mode='c'] y):
     cdef int x_size = x.shape[1]
     cdef int y_size = y.shape[1]
     cdef np.ndarray[double, ndim=2, mode='c'] output = np.empty(shape=(1,y_size))
-    cdef uint64_t *x_b = <uint64_t*> malloc((x_size/64) * sizeof(uint64_t))
-    cdef uint64_t *y_col_b = <uint64_t*> malloc((x_size/64) * sizeof(uint64_t))
+    cdef bitset_type *x_b = new bitset_type(x_size)#<uint64_t*> malloc((x_size/64) * sizeof(uint64_t))
+    cdef bitset_type *y_col_b = new bitset_type(x_size)#<uint64_t*> malloc((x_size/64) * sizeof(uint64_t))
     cdef int i
-    convert_to_binary[double](&x[0,0], x_size, x_b, x_size / 64, 1)
+    convert_to_binary[double](&x[0,0], x_size, x_b[0], 1)
     for i in range(y_size):
-        convert_to_binary[double](&y[0,i], x_size, y_col_b, x_size / 64, y_size)
-        output[0, i] = 1 if binary_tanh_dot(x_b, y_col_b, x_size/64) else -1
-    free(x_b)
-    free(y_col_b)
+        convert_to_binary[double](&y[0,i], x_size, y_col_b[0], y_size)
+        output[0, i] = 1 if binary_tanh_dot(x_b[0], y_col_b[0]) else -1
+    del x_b
+    del y_col_b
     return output
     
 cpdef binary_sum_validation_function(np.ndarray[double, ndim=2, mode='c'] data):
     cdef int input_size = data.shape[1]
-    cdef int output_size = input_size / 64;
+    cdef int output_size = input_size;
     cdef double * input = &data[0, 0]
-    cdef uint64_t *output = <uint64_t*> malloc(output_size * sizeof(uint64_t))
-    if convert_to_binary[double](input, input_size, output, output_size, 1):
+    cdef bitset_type *output = new bitset_type(output_size)#<uint64_t*> malloc(output_size * sizeof(uint64_t))
+    if convert_to_binary[double](input, input_size, output[0], 1):
         result = False
     cdef int correct_value = data.sum()
-    cdef int value = binary_sum(output, output_size)
-    free(output)
+    cdef int value = binary_sum(output[0])
+    del output
     if correct_value != value:
         print '%d != %d' % (value, correct_value)
         return False
@@ -228,14 +235,16 @@ cpdef binary_sum_validation_function(np.ndarray[double, ndim=2, mode='c'] data):
 
 cpdef double_binary_conversion_validation_function(np.ndarray[double, ndim=2, mode='c'] data):
     cdef input_size = data.shape[1]
-    cdef int output_size = input_size / 64;
+    cdef int output_size = input_size;
     cdef double * input = &data[0, 0]
-    cdef uint64_t *output = <uint64_t*> malloc(output_size * sizeof(uint64_t))
+    cdef bitset_type *output = new bitset_type(output_size)#<uint64_t*> malloc(output_size * sizeof(uint64_t))
     cdef double *copy = <double*> malloc(input_size * sizeof(double))
     cdef bool result = True
-    if convert_to_binary[double](input, input_size, output, output_size, 1):
+    if convert_to_binary[double](input, input_size, output[0], 1):
+        print 'Fail 1'
         result = False
-    if convert_from_binary[double](output, output_size, copy, input_size, 1):
+    if convert_from_binary[double](output[0], copy, input_size, 1):
+        print 'Fail 2'
         result = False
     cdef int i
     for i in range(input_size):
@@ -243,7 +252,7 @@ cpdef double_binary_conversion_validation_function(np.ndarray[double, ndim=2, mo
             print 'mismatch at position %d: %f != %f' % (i, input[i], copy[i])
             result = False
             break
-    free(output)
+    del output
     free(copy)
     return result
             
@@ -436,14 +445,14 @@ cdef class XNor:
         return result
     
     cpdef int evaluate_n_times(XNor self, np.ndarray[double, ndim=2, mode='c'] data, int n):
-        if data.shape[1] % 64 != 0:
-            raise ValueError('Data size %d not divisible by 64.' % data.shape[1])
-        cdef uint64_t *converted_data = <uint64_t *>malloc((data.shape[1] / 64) * sizeof(uint64_t))
+#         if data.shape[1] % 64 != 0:
+#             raise ValueError('Data size %d not divisible by 64.' % data.shape[1])
+        cdef bitset_type *converted_data =  new bitset_type(data.shape[1])#<uint64_t *>malloc((data.shape[1] / 64) * sizeof(uint64_t))
         cdef double *data_array = &data[0,0]
-        convert_to_binary[double](data_array, data.shape[1], converted_data, data.shape[1] / 64, 1)
+        convert_to_binary[double](data_array, data.shape[1], converted_data[0], 1)
         cdef int i
         for i in range(n):
-            result = self.evaluator[0].apply(converted_data)
+            result = self.evaluator[0].apply(converted_data[0])
         free(converted_data)
         return result
         
@@ -454,14 +463,14 @@ cdef class XNor:
         '''
         print data
         print data.shape[1]
-        if data.shape[1] % 64 != 0:
-            raise ValueError('Data size %d not divisible by 64.' % data.shape[1])
-        cdef uint64_t *converted_data = <uint64_t *>malloc((data.shape[1] / 64) * sizeof(uint64_t))
+#         if data.shape[1] % 64 != 0:
+#             raise ValueError('Data size %d not divisible by 64.' % data.shape[1])
+        cdef bitset_type *converted_data = new bitset_type(data.shape[1])#<uint64_t *>malloc((data.shape[1] / 64) * sizeof(uint64_t))
         cdef double *data_array = &data[0,0]
-        convert_to_binary[double](data_array, data.shape[1], converted_data, data.shape[1] / 64, 1)
+        convert_to_binary[double](data_array, data.shape[1], converted_data[0], 1)
         cdef int result
-        result = self.evaluator[0].apply(converted_data)
-        free(converted_data)
+        result = self.evaluator[0].apply(converted_data[0])
+        del converted_data
         return result
 
 cpdef bitboard_to_str(bitboard bb):
