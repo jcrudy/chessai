@@ -13,10 +13,10 @@ def create_net():
     outp = inp
     outp = Dropout(.2)(outp)
     outp = XnorDense(2048, use_bias=False, activation=binary_tanh)(outp)
-#     outp = Dropout(.2)(outp)
-#     outp = XnorDense(2048, use_bias=False, activation=binary_tanh)(outp)
-#     outp = Dropout(.2)(outp)
-#     outp = XnorDense(2048, use_bias=False, activation=binary_tanh)(outp)
+    outp = Dropout(.2)(outp)
+    outp = XnorDense(2048, use_bias=False, activation=binary_tanh)(outp)
+    outp = Dropout(.2)(outp)
+    outp = XnorDense(2048, use_bias=False, activation=binary_tanh)(outp)
     outp = Lambda(ktotal)(outp)
     
     return Model(inputs=inp, outputs=outp)

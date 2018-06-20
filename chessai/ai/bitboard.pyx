@@ -435,6 +435,18 @@ cdef class XNor:
         print 'B'
         return result
     
+    cpdef int evaluate_n_times(XNor self, np.ndarray[double, ndim=2, mode='c'] data, int n):
+        if data.shape[1] % 64 != 0:
+            raise ValueError('Data size %d not divisible by 64.' % data.shape[1])
+        cdef uint64_t *converted_data = <uint64_t *>malloc((data.shape[1] / 64) * sizeof(uint64_t))
+        cdef double *data_array = &data[0,0]
+        convert_to_binary[double](data_array, data.shape[1], converted_data, data.shape[1] / 64, 1)
+        cdef int i
+        for i in range(n):
+            result = self.evaluator[0].apply(converted_data)
+        free(converted_data)
+        return result
+        
     cpdef int evaluate(XNor self, np.ndarray[double, ndim=2, mode='c'] data):
         '''
         Expects data to be 1 x n contiguous array

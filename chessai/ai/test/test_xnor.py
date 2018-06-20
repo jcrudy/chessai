@@ -4,6 +4,18 @@ import numpy as np
 from chessai.ai.xnor_to_cpp import xnor_tanh
 from nose.tools import assert_equal
 from numpy.ma.testutils import assert_array_almost_equal
+import time
+
+def test_xnor_eval_speed():
+    model = create_net()
+    xnor = XNor.from_keras(model)
+    board = BitBoardState.from_fen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+    features = board.extract_flat_raw_features()
+    n = 10000
+    t0 = time.time()
+    xnor.evaluate_n_times(features, n)
+    t1 = time.time()
+    print 'Evaluated %d times in %fs.  Speed is %f evaluations/s.' % (n, (t1-t0), n / (t1-t0))
 
 def test_binary_conversion():
     board = BitBoardState.from_fen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')

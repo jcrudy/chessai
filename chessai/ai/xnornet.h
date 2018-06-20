@@ -4,36 +4,39 @@ int convert_to_binary(T *input, int input_size, uint64_t *output, int output_siz
 	// input_size is in bits (of output--input representation is irrelevant), output_size is in 64 bit chunks
 	// must have input_size == output_size * 64
 	// Checks that sizes match.  Returns 0 for success, 1 for failure due to size mismatch.
-	std::bitset<64> tmp;
+	uint64_t tmp;
 	int idx;
 	if(input_size != 64 * output_size){
 		return 1;
 	}
 	for(int i=0;i<input_size;i+=64){
-		tmp = std::bitset<64>();
+		tmp = 0;
 		for(int j=0;j<64;j++){
 			idx = i + j;
 			if(idx>=64 * output_size){
 				break;
 			}
-			tmp[j] = input[stride * idx] > 0?1:0;
+			if(input[stride * idx] > 0){
+				tmp |= (1 << j);
+			}
+//			tmp[j] |= input[stride * idx] > 0?1:0;
 		}
-		output[i/64] = tmp.to_ullong();
+		output[i/64] = tmp;
 	}
 	return 0;
 }
 
 template<typename T>
 int convert_from_binary(uint64_t *input, int input_size, T *output, int output_size, int stride){
-	std::bitset<64> tmp;
+	uint64_t tmp;
 	int idx;
 	if(output_size != 64 * input_size){
 		return 1;
 	}
 	for(int i=0;i<input_size;i++){
-		tmp = std::bitset<64>(input[i]);
+		tmp = input[i];
 		for(int j=0;j<64;j++){
-			output[stride * (64*i + j)] = tmp[j]?1:-1;
+			output[stride * (64*i + j)] = (tmp & (1<<j))?1:-1;
 		}
 	}
 	return 0;
@@ -42,11 +45,8 @@ int convert_from_binary(uint64_t *input, int input_size, T *output, int output_s
 int binary_sum(uint64_t *x, int size){
 	int total_bits = 0;
 	for(int i=0;i<size;i++){
-		printf("%s", std::bitset<64>(x[i]).to_string().c_str());
-		printf(" %d ", __builtin_popcountll(x[i]));
 		total_bits += __builtin_popcountll(x[i]);
 	}
-	printf("\n");
 	return total_bits - (64*size - total_bits);
 }
 
@@ -94,72 +94,26 @@ class XNorLayer{
 		void set_weights(T *float_weights){
 			// Assume rows and cols divisible by 64
 			// Assume row-major ordering of float_weights
-			std::bitset<64> tmp;
-			printf("set_weights\n");
-			printf("rows = %d, cols=%d\n", rows, cols);
 			for(int i=0;i<cols;i++){
 				convert_to_binary(&(float_weights[i]), 64*rows, weights[i], rows, cols);
 			}
-//
-//
-//			for(int i=0;i<cols;i++){
-//				for(int j=0;j<64*rows;j+=64){
-//					tmp = std::bitset<64>();
-//					for(int k=0;k<64;k++){
-//						// column i, row j+k
-//						tmp[k] = (float_weights[i + (j + k) * cols] > 0)?1:0;
-//					}
-//					// Set column i, rows j:(j+64)
-//					weights[i][j / 64] = tmp.to_ullong();
-//				}
-//			}
-//			printf("completed set_weights\n");
-		}
-
-		template<typename T>
-		void get_weights(T *float_weights){
-
 		}
 
 		void apply(uint64_t *input, uint64_t *output){
-			uint64_t tmp;
-			std::bitset<64> outtmp;
+			uint64_t outtmp;
 			int colsum;
 			int anticolsum;
 			int thresh = 64 * rows;
 			for(int i=0;i<cols;i+=64){
+				outtmp = 0;
 				for(int k=0;k<64;k++){
 					// col i+k
-					outtmp[k] = binary_tanh_dot(weights[i+k], input, rows);
-					printf("%d", outtmp[k]?1:0);
+					if(binary_tanh_dot(weights[i+k], input, rows)){
+						outtmp |= (1<<k);
+					}
 				}
-				printf(" %d ", __builtin_popcountll(outtmp.to_ullong()));
-				printf("Setting output[%d]\n", i/64);
-				output[i / 64] = outtmp.to_ullong();
+				output[i / 64] = outtmp;
 			}
-			printf("\n");
-
-
-//				for(int j=0;j<64;j++){
-//					colsum = 0;
-//					anticolsum = 0;
-//					for(int row=0;row<rows;row++){
-//						tmp = ~(weights[i][row] ^ input[i]);
-//						colsum += __builtin_popcountll(tmp);
-//						anticolsum += (64 - colsum);
-//						// One of the following will happen by the last iteration,
-//						// but may happen as soon as halfway through, allowing an early stop.
-//						if(anticolsum >= thresh){
-//							outtmp[j] = 0;
-//							break;
-//						}else if(colsum > thresh){
-//							outtmp[j] = 1;
-//							break;
-//						}
-//					}
-//				}
-//				output[i / 64] = outtmp.to_ullong();
-//			}
 		}
 	private:
 		uint64_t ** weights;
@@ -224,37 +178,6 @@ class XNorEvaluator{
 			}
 			return binary_sum(layer_out, (layer->cols) / 64);
 
-
-//			layer = layers[0];
-//			layer->apply(input, tmp1);
-//			printf("num_layers = %d\n", num_layers);
-//			for(int i=1;i<num_layers;i++){
-//				layer = layers[i];
-//				printf("Call apply\n");
-//				layer->apply(tmp1, tmp2);
-//				if(i<num_layers){
-//					for(int k=0;k<(layer->cols)/64;k++){
-//						tmp1[k] = tmp2[k];
-//					}
-//				}
-//			}
-//
-//			int total = 0;
-//			if(num_layers%2){
-//				for(int k=0;k<final_size/64;k++){
-//
-//				}
-//			}else{
-//
-//			}
-//
-//			for(int i=0;i<final_size/64;i++){
-//				printf("popcount = %d\n", __builtin_popcountll(tmp2[i]));
-//				total += __builtin_popcountll(tmp2[i]);
-//			}
-//			printf("total = %d\n", total);
-//			printf("final_size = %d\n", final_size);
-//			return 2*total - final_size;
 		}
 	private:
 		XNorLayer **layers;
