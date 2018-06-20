@@ -1,10 +1,12 @@
 
+
 template<typename T>
 int convert_to_binary(T *input, int input_size, uint64_t *output, int output_size, int stride){
 	// input_size is in bits (of output--input representation is irrelevant), output_size is in 64 bit chunks
 	// must have input_size == output_size * 64
 	// Checks that sizes match.  Returns 0 for success, 1 for failure due to size mismatch.
 	uint64_t tmp;
+	const uint64_t one = 1;
 	int idx;
 	if(input_size != 64 * output_size){
 		return 1;
@@ -17,7 +19,7 @@ int convert_to_binary(T *input, int input_size, uint64_t *output, int output_siz
 				break;
 			}
 			if(input[stride * idx] > 0){
-				tmp |= (1 << j);
+				tmp |= (one << j);
 			}
 //			tmp[j] |= input[stride * idx] > 0?1:0;
 		}
@@ -29,6 +31,7 @@ int convert_to_binary(T *input, int input_size, uint64_t *output, int output_siz
 template<typename T>
 int convert_from_binary(uint64_t *input, int input_size, T *output, int output_size, int stride){
 	uint64_t tmp;
+	const uint64_t one = 1;
 	int idx;
 	if(output_size != 64 * input_size){
 		return 1;
@@ -36,7 +39,7 @@ int convert_from_binary(uint64_t *input, int input_size, T *output, int output_s
 	for(int i=0;i<input_size;i++){
 		tmp = input[i];
 		for(int j=0;j<64;j++){
-			output[stride * (64*i + j)] = (tmp & (1<<j))?1:-1;
+			output[stride * (64*i + j)] = (tmp & (one<<j))?1:-1;
 		}
 	}
 	return 0;
@@ -101,6 +104,7 @@ class XNorLayer{
 
 		void apply(uint64_t *input, uint64_t *output){
 			uint64_t outtmp;
+			const uint64_t one = 1;
 			int colsum;
 			int anticolsum;
 			int thresh = 64 * rows;
@@ -109,7 +113,7 @@ class XNorLayer{
 				for(int k=0;k<64;k++){
 					// col i+k
 					if(binary_tanh_dot(weights[i+k], input, rows)){
-						outtmp |= (1<<k);
+						outtmp |= (one<<k);
 					}
 				}
 				output[i / 64] = outtmp;
